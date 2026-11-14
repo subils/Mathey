@@ -92,7 +92,7 @@ ok "lector d'imatges a punt a 0.0.0.0:$OCR_PORT (servei math-ocr)"
 
 # Una lectura de prova: la imatge que es passi, o la primera d'un problema que hi hagi a la placa
 if [ -z "$TEST_IMAGE" ]; then
-  for folder in "$REPO_DIR/data/images" "$HOME/ArduinoApps/mentor-cangur/data/images"; do
+  for folder in "$REPO_DIR/data/images" "$HOME/ArduinoApps/mathey/data/images"; do
     candidate="$(find "$folder" -maxdepth 1 -name '*_cat.png' 2>/dev/null | sort | head -1 || true)"
     if [ -n "$candidate" ]; then TEST_IMAGE="$candidate"; break; fi
   done

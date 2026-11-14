@@ -1,5 +1,5 @@
 [Unit]
-Description=Mentor Cangur: lector d'imatges (OCR amb Tesseract, port @OCR_PORT@)
+Description=Mathey: lector d'imatges (OCR amb Tesseract, port @OCR_PORT@)
 After=local-fs.target
 
 [Service]
