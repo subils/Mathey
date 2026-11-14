@@ -19,9 +19,8 @@ const EASE = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 /**
  * El navbar de Faktu (components/marketing/site-navbar.tsx): píndola de vidre
  * flotant, enllaços centrats amb una píndola de fons en passar el cursor, i dos
- * botons a la dreta. Damunt del hero fosc (el de resend.com) la tinta és blanca i
- * el vidre és el de Faktu sobre el vídeo (`.on-dark`); en passar el hero, tinta
- * fosca i vidre clar (`.scrolled`). Els mateixos jocs de colors que Faktu.
+ * botons a la dreta. Damunt del hero clar de Mathey la tinta és sempre fosca; en
+ * passar el hero, el vidre guanya opacitat (`.scrolled`).
  */
 export function SiteNavbar() {
   const pathname = usePathname();
@@ -43,11 +42,10 @@ export function SiteNavbar() {
   }, [hasHero]);
 
   const overHero = hasHero && heroVisible;
-  // Faktu (site-navbar.tsx): els colors canvien segons si és damunt del hero
-  const ink = overHero ? "text-white" : "text-[#1c1c1d]";
-  const linkHover = overHero ? "before:bg-white/20" : "before:bg-black/[0.06]";
-  const ghostBtn = overHero ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/5 text-[#1c1c1d] hover:bg-black/10";
-  const solidBtn = overHero ? "bg-white text-[#1c1c1d] hover:bg-white/90" : "bg-[#1c1c1d] text-white hover:opacity-90";
+  const ink = "text-[#1c1c1d]";
+  const linkHover = "before:bg-black/[0.06]";
+  const ghostBtn = "bg-black/5 text-[#1c1c1d] hover:bg-black/10";
+  const solidBtn = "bg-[#1c1c1d] text-white hover:opacity-90";
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-4 md:pt-6">
@@ -55,7 +53,7 @@ export function SiteNavbar() {
         <nav
           className={cn(
             "navbar-glass relative flex h-[52px] items-center justify-between px-2 md:px-3",
-            overHero ? "on-dark" : "scrolled",
+            !overHero && "scrolled",
           )}
         >
           <NavLogo className={cn("transition-colors", ink)} />

@@ -1,97 +1,122 @@
-/* eslint-disable @next/next/no-img-element -- exportació estàtica: sense optimitzador d'imatges */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Lightbulb, Sparkles, WifiOff } from "lucide-react";
 import Link from "next/link";
-import { ResendCube } from "./resend-cube";
+import { Mark } from "@/components/brand/logo";
+import { Pill } from "@/components/ui/surface";
+import { Reveal } from "./reveal";
 
 /**
- * Hero: el marc de Faktu (8–12 px al voltant d'un panell arrodonit) amb el hero
- * de resend.com a dins, copiat tal qual amb permís de Resend (AGENTS.md):
- * - fons #000 amb les seves dues capes de llum, amb les mateixes classes i màscares:
- *   «Floor background» (bg-hero-1.jpg, opacity-80) i «Light ray background»
- *   (bg-light.avif, -top-20), totes dues des de `md`;
- * - text a l'esquerra amb el degradat i els grisos del seu tema fosc, la píndola
- *   «rainbow-border» i el botó de vidre amb textura;
- * - el seu cub 3D a la dreta (a dalt al mòbil).
+ * El hero de Faktu (sections/hero-section.tsx) en clar: el marc de 8–12 px al
+ * voltant d'un panell arrodonit, blanc i net, amb el cangur (quiet) a dalt i
+ * quatre xips de vidre als costats que expliquen el producte.
  */
 export function Hero() {
   return (
     <section id="hero" className="relative h-[100svh] min-h-[640px] w-full">
       <div className="relative h-full w-full p-2 md:p-3">
-        <div className="relative isolate h-full w-full overflow-hidden rounded-2xl bg-[#000] text-[#f0f0f0]">
-          {/* Les dues capes de llum de resend.com, tal qual */}
-          <img
-            alt=""
-            aria-hidden
-            width={1920}
-            height={1080}
-            decoding="async"
-            src="/static/landing-page/bg-hero-1.jpg"
-            className="pointer-events-none absolute top-0 right-0 left-0 mx-auto hidden h-screen w-full opacity-80 transition-opacity duration-500 select-none md:block"
-            style={{ maskImage: "linear-gradient(to top, transparent 15%, black 25%)", maskComposite: "exclude" }}
-          />
-          <img
-            alt=""
-            aria-hidden
-            width={1920}
-            height={1080}
-            decoding="async"
-            src="/static/landing-page/bg-light.avif"
-            className="pointer-events-none absolute -top-20 right-0 left-0 mx-auto hidden h-screen w-full transition-all duration-500 select-none md:block"
-            style={{ maskImage: "linear-gradient(to top, transparent 15%, black 25%)", maskComposite: "exclude" }}
-          />
+        <div className="relative isolate h-full w-full overflow-hidden rounded-2xl bg-white ring-1 ring-black/[0.04]">
+          <FloatingChips />
 
-          {/* Composició de resend.com: mx-auto max-w-7xl, dues columnes */}
-          <div className="relative z-20 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 pt-24 pb-8 md:max-w-7xl md:flex-row md:justify-between md:pt-16 md:pb-12">
-            <div className="order-2 max-w-3xl origin-[center_left] animate-hero-text-slide-up-fade sm:shrink-0 md:order-1 lg:pl-16">
-              <div className="flex items-center justify-center md:inline-flex">
-                <Link
-                  href="/#com-funciona"
-                  className="rainbow-border relative mb-8 inline-flex items-center justify-center rounded-full text-sm leading-none after:absolute after:inset-0 after:-z-10 after:block after:rounded-full"
-                >
-                  <span className="m-[1px] inline-flex items-center gap-1 rounded-full px-3 py-1 whitespace-nowrap">
-                    Datathon FME 2026
-                    <ChevronRight className="size-3" strokeWidth={2.5} />
-                  </span>
-                </Link>
+          <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+            <Reveal immediate>
+              <div className="mb-7 flex flex-col items-center gap-5">
+                <Mark className="h-16 text-foreground md:h-20" title="Mathey" />
+                <Pill>Datathon FME 2026 · Repte Qualcomm</Pill>
               </div>
-              {/* Mida de Resend (6rem) a l'escriptori; més petita al mòbil perquè «Matemàtiques» hi càpiga */}
-              <h1 className="effect-font-styling effect-font-gradient relative pb-3 text-center text-[2.875rem] leading-[100%] font-medium tracking-[-0.035em] sm:text-[4rem] md:text-left md:text-[5rem] lg:text-[6rem]">
+            </Reveal>
+            <Reveal immediate delay={80}>
+              <h1
+                className="mb-5 max-w-5xl text-foreground"
+                style={{ fontSize: "clamp(40px, 7vw, 96px)", fontWeight: 500, letterSpacing: "-0.035em", lineHeight: 1 }}
+              >
                 Matemàtiques
                 <br />
-                socràtiques
+                <span className="text-gradient">socràtiques</span>
               </h1>
-              <p className="relative mt-2 mb-8 max-w-[30rem] text-center text-base leading-7 font-normal text-[#a1a4a5] md:text-left md:text-[1.125rem] md:leading-[1.5]">
+            </Reveal>
+            <Reveal immediate delay={140}>
+              <p className="mx-auto mb-9 max-w-md text-[15px] leading-relaxed font-light text-muted-foreground md:text-[17px]">
                 Com Sòcrates, no et donem la resposta: et fem la pregunta justa perquè la trobis tu.
               </p>
-              <div className="flex flex-col justify-center gap-4 md:flex-row md:justify-start">
-                {/* El botó «Get started» de resend.com */}
+            </Reveal>
+            <Reveal immediate delay={200}>
+              <div className="glass inline-flex items-center gap-1.5 rounded-2xl p-1.5">
                 <Link
                   href="/app/"
-                  className="relative inline-flex h-12 items-center justify-center gap-1 rounded-2xl border-[2px] border-white/5 bg-[linear-gradient(104deg,rgba(253,253,253,0.05)_5%,rgba(240,240,228,0.1)_100%)] bg-origin-border px-5 text-base font-semibold text-white shadow-sm backdrop-blur-[25px] transition-all duration-200 ease-in-out select-none after:pointer-events-none after:absolute after:top-[-2px] after:left-[-2px] after:h-[calc(100%+4px)] after:w-[calc(100%+4px)] after:rounded-[1rem] after:bg-[url('/static/texture-btn.png')] after:bg-repeat hover:bg-white/90 hover:text-black hover:shadow-button focus-visible:bg-white/90 focus-visible:text-black focus-visible:ring-4 focus-visible:ring-white/30 focus-visible:outline-hidden"
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#1c1c1d] px-5 py-2.5 text-sm font-medium text-white transition-[opacity,transform] duration-150 hover:opacity-90 active:scale-[0.98]"
                 >
-                  Comença
+                  Comença <ArrowUpRight className="size-4" />
                 </Link>
-                {/* El botó «Documentation» de resend.com */}
                 <Link
                   href="/#com-funciona"
-                  className="relative inline-flex h-12 items-center justify-center gap-1 rounded-2xl border border-transparent bg-transparent px-5 text-base font-semibold text-[#a1a4a5] transition duration-200 ease-in-out select-none hover:text-[#f0f0f0] focus-visible:ring-4 focus-visible:ring-white/10 focus-visible:outline-hidden"
+                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium text-[#1c1c1d] transition-colors hover:bg-black/5"
                 >
                   Com funciona
                 </Link>
               </div>
-            </div>
-
-            {/* El cub: a dalt al mòbil, a la dreta a l'escriptori (com a resend.com) */}
-            <div className="order-1 md:order-2 md:ml-10 md:max-w-[700px] md:min-w-0 md:flex-1">
-              <ResendCube className="h-[240px] w-[240px] md:h-[550px] md:w-full" />
-            </div>
+            </Reveal>
           </div>
 
-          <div className="absolute inset-x-0 bottom-6 z-20 hidden justify-center md:flex">
-            <ChevronDown className="size-5 animate-bounce text-white/40" />
+          <div className="absolute inset-x-0 bottom-6 flex justify-center">
+            <ChevronDown className="size-5 animate-bounce text-foreground/40" />
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function FloatingChips() {
+  return (
+    <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
+      <Chip className="top-[24%] left-[9%]" delay="0s">
+        <span className="flex size-6 items-center justify-center rounded-full bg-success text-white">
+          <Check className="size-3.5" strokeWidth={3} />
+        </span>
+        <span>
+          <span className="block font-medium text-foreground">Era la C!</span>
+          <span className="text-muted-foreground">Al primer intent · Elo +18</span>
+        </span>
+      </Chip>
+      <Chip className="top-[58%] left-[6%]" delay="1.2s">
+        <span className="flex size-6 items-center justify-center rounded-full bg-accent/10 text-accent">
+          <Lightbulb className="size-3.5" />
+        </span>
+        <span>
+          <span className="block font-medium text-foreground">Pista 2 de 5</span>
+          <span className="text-muted-foreground">La dada clau de l&apos;enunciat</span>
+        </span>
+      </Chip>
+      <Chip className="top-[30%] right-[8%]" delay="0.6s">
+        <span className="flex size-6 items-center justify-center rounded-full bg-accent/10 text-accent">
+          <Sparkles className="size-3.5" />
+        </span>
+        <span>
+          <span className="block font-medium text-foreground">Com ho has pensat?</span>
+          <span className="text-muted-foreground">Pregunta de la IA de la placa</span>
+        </span>
+      </Chip>
+      <Chip className="top-[62%] right-[10%]" delay="1.8s">
+        <span className="flex size-6 items-center justify-center rounded-full bg-black/[0.06] text-foreground">
+          <WifiOff className="size-3.5" />
+        </span>
+        <span>
+          <span className="block font-medium text-foreground">Sense internet</span>
+          <span className="text-muted-foreground">Tot passa a la placa</span>
+        </span>
+      </Chip>
+    </div>
+  );
+}
+
+function Chip({ className, delay, children }: { className: string; delay: string; children: React.ReactNode }) {
+  return (
+    <div className={`absolute ${className}`}>
+      <div
+        className="glass flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[12px] leading-tight animate-float"
+        style={{ animationDelay: delay }}
+      >
+        {children}
+      </div>
+    </div>
   );
 }

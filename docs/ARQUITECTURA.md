@@ -299,7 +299,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 
 | Ruta | Què és |
 |---|---|
-| `/` | Landing: navbar de vidre, hero de resend.com tal qual (amb permís): fons negre amb les seves capes de llum, text a l'esquerra i el seu cub 3D de Spline a la dreta; després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
+| `/` | Landing: navbar de vidre, hero clar de Faktu (cangur quiet, «Matemàtiques socràtiques» i quatre xips de vidre); després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
 | `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
@@ -314,13 +314,6 @@ lectura fàcil, sortir). A `/placa/` el navbar amaga «Veure la placa».
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
   - prompt-kit (MIT): compositor i contenidor del xat.
-  - El cub de Resend (amb permís): `@splinetool/runtime` 2.0.126 (versió fixa), amb
-    `renderer: "webgl"` forçat: amb WebGPU, que el motor tria sol, el cub sortia en blanc a
-    Safari de manera intermitent.
-    - Els `.wasm` del motor estan copiats a `web/public/spline/` (`wasmPath`), perquè
-      no vagi al CDN.
-    - Si no hi ha WebGL, es mostra el bucle `cube.mp4`.
-    - Comprovat: totes les peticions de la landing són locals.
   - Streamdown + KaTeX: markdown i fórmules.
 - Recorregut provat a Safari el 14/11 al vespre sobre l'exportació estàtica, amb un
   llama-server simulat: onboarding, Repte (fallar, Elo, ajudes 1–2),

@@ -45,10 +45,8 @@ Així es pot navegar i dissenyar sense l'Arduino: n'hi ha prou amb `pnpm dev`, s
 
 Llenguatge visual de **Faktu** (`~/Desktop/Faktu`), en mode clar.
 
-L'excepció és el primer requadre de la landing: és el **hero de resend.com tal qual**
-(amb permís de Resend), fosc. Hi ha el fons `#000` amb les seves capes de llum, el seu
-CSS (bloc «Hero de resend.com» a `globals.css`) i el seu cub 3D (`resend-cube.tsx`).
-Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
+També el primer requadre de la landing: el hero de Faktu en clar (`hero.tsx`), amb
+el cangur quiet, quatre xips de vidre i el navbar sempre amb tinta fosca.
 
 - **Tokens:** `src/app/globals.css`.
   - Colors: fons `#f0f1f0`, tinta `#1a1a1a`, accent **taronja de zernio.com** `#eb3514` (abans, el blau de Faktu). Tots els taronges
@@ -83,7 +81,7 @@ Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 | `src/components/app/` | Barra de l'app, targetes de mode |
 | `src/components/brand/` | Logo, cangur i `nav-logo.tsx` (logo + «DEMO», només en mode demo) |
 | `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
-| `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís); `visuals.tsx`, les il·lustracions animades; `mini-product.tsx`, les rèpliques en miniatura del Repte i del xat que surten a «Dos modes»; `smooth-scroll.tsx`, el smooth scroll de Faktu (Lenis) |
+| `src/components/marketing/` | Navbar, hero i seccions de la landing; `visuals.tsx`, les il·lustracions animades; `mini-product.tsx`, les rèpliques en miniatura del Repte i del xat que surten a «Dos modes»; `smooth-scroll.tsx`, el smooth scroll de Faktu (Lenis) |
 | `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) |
 
 ## Regles
