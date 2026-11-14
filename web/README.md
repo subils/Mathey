@@ -69,7 +69,7 @@ Llenguatge visual de **Faktu** (`~/Desktop/Faktu`), en mode clar.
 | `src/lib/session.ts`, `use-student.ts` | Sessió de l'alumne al navegador; si la placa no el coneix, torna a l'onboarding |
 | `src/components/app/` | Barra de l'app, targetes de mode, matriu LED |
 | `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
-| `src/components/marketing/` | Navbar, hero i seccions de la landing |
+| `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís) |
 | `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) |
 
 ## Regles

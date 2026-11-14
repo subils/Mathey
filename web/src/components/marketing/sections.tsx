@@ -479,6 +479,7 @@ export function SiteFooter() {
           <p className="text-sm font-light text-gray-600">Subils · Alex · Dídac · David</p>
           <p className="text-[12px] leading-relaxed font-light text-gray-500">
             Problemes: M3Kang (Torres-Camps et al., 2026), només per a recerca. Model: Qwen3.5 0.8B amb llama.cpp.
+            Cub 3D: Resend, amb el seu permís · Made with Spline.
           </p>
         </div>
       </div>

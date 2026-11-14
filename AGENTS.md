@@ -57,6 +57,13 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
 - 14/11/2026, ~19:30: **sense placa, la web ha de funcionar igualment en «mode
   demo»**, i ho ha d'indicar. Ha de ser navegable sencera per poder dissenyar.
   Ho fa `web/src/lib/demo.ts`, amb problemes inventats, no de M3Kang.
+- 14/11/2026, ~20:00: segons el fundador, **Resend ha autoritzat l'equip a fer
+  servir el disseny de resend.com**, inclòs el cub 3D del seu hero.
+  - Els fitxers originals són a `web/public/static/`: `cube.splinecode`, `cube.mp4`
+    i `cube-fallback.jpg`.
+  - Es pinten amb `@splinetool/runtime`; els `.wasm` són a `web/public/spline/`,
+    sense CDN.
+  - Crèdit al peu de la landing.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.
