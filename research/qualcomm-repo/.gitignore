@@ -1,0 +1,16 @@
+# Data from M3Kang is for research use only: never commit it
+data/*
+!data/sample_problems.jsonl
+!data/README.md
+
+# Results are created on each board
+results/*
+!results/.gitkeep
+
+# Models live in ~/models, but just in case
+*.gguf
+*.db
+
+__pycache__/
+.venv/
+.DS_Store
