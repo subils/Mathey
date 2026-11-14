@@ -162,14 +162,34 @@ def create_session(params):
         raise UserError(400, "cal un àlies")
     if grade not in config.GRADE_LEVEL:
         raise UserError(400, f"curs desconegut: tria'n un de {', '.join(config.GRADE_LEVEL)}")
-    level = min(config.GRADE_LEVEL[grade], config.MAX_LEVEL)
     easy = 1 if params.get("easy_mode") else 0
-    rating = elo.initial_student_elo(level)
+    # El curs només serveix per triar l'Elo inicial; a partir d'aquí tot va per Elo
+    rating = elo.initial_elo_for_grade(grade, config.MAX_LEVEL)
+    # La columna `level` és el número de la matriu de LEDs (derivat de l'Elo)
     sid = store.execute(store.state(),
                         "INSERT INTO students (alias, grade, level, easy_mode, elo, elo_attempts) "
-                        "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, level, easy, rating))
-    return {"student": sid, "alias": alias, "grade": grade, "level": level, "elo": rating,
-            "easy_mode": bool(easy), "matrix": _set_matrix(matrix.level(level))}
+                        "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, _led_level(rating), easy, rating))
+    return {"student": sid, "alias": alias, "grade": grade, "elo": rating, "streak": 0,
+            "easy_mode": bool(easy), "matrix": _set_matrix(_led_frame(rating))}
+
+
+def _led_level(rating):
+    """El número que surt a la matriu de LEDs: el nivell del Cangur que correspon a l'Elo."""
+    return elo.led_level(rating, config.MAX_LEVEL)
+
+
+def _led_frame(rating, streak=0):
+    return matrix.level(_led_level(rating), streak)
+
+
+def _elo_range():
+    """[mínim, màxim] de l'Elo dels problemes amb contingut verificat (on es pot practicar)."""
+    rows = store.query(store.bank(), """
+        SELECT c.id FROM content c JOIN problems p ON p.id = c.id AND p.lang = 'cat'
+        WHERE c.verified = 1 AND p.level <= ?""", (config.MAX_LEVEL,))
+    current = _problem_elos()
+    values = [current.get(r["id"], _initial_problem_elo(r["id"])) for r in rows]
+    return [round(min(values)), round(max(values))] if values else None
 
 
 def _topic_scores(sid):
@@ -223,9 +243,10 @@ def next_problem(params):
         pid = _pick(student["id"], target)
     if not pid:
         return {"problem": None, "message": "Has fet tots els problemes! Parla amb el teu mestre."}
-    return {"problem": _public(pid), "level": student["level"],
-            "elo": _student_elo(student), "target_elo": target,
-            "matrix": _set_matrix(matrix.level(student["level"], student["streak_ok"]))}
+    rating = _student_elo(student)
+    return {"problem": _public(pid), "elo": rating, "target_elo": target, "elo_range": _elo_range(),
+            "streak": student["streak_ok"],
+            "matrix": _set_matrix(_led_frame(rating, student["streak_ok"]))}
 
 
 def get_problem(params):
@@ -255,20 +276,9 @@ def answer(params):
                           (student["id"], pid))["n"] == 0
     hints_used = store.one(db, "SELECT COUNT(DISTINCT rung) AS n FROM hints WHERE student_id = ? AND problem_id = ?",
                            (student["id"], pid))["n"]
-    level, ok, bad, change = student["level"], student["streak_ok"], student["streak_bad"], 0
-    if first_try:
-        if correct:
-            bad = 0
-            if hints_used == 0:
-                ok += 1
-                if ok >= 2 and level < config.MAX_LEVEL:
-                    level, ok, change = level + 1, 0, 1
-        else:
-            ok, bad = 0, bad + 1
-            if bad >= 2 and level > 0:
-                level, bad, change = level - 1, 0, -1
-    store.execute(db, "UPDATE students SET level = ?, streak_ok = ?, streak_bad = ? WHERE id = ?",
-                  (level, ok, bad, student["id"]))
+    # Ratxa (per a la web i la barra de la matriu): encerts seguits al primer intent i
+    # sense ajudes. Ja no fa pujar ni baixar res: l'únic que mana és l'Elo.
+    streak = student["streak_ok"]
 
     # Elo, com als escacs: una partida per problema, la primera resposta. Qui ha
     # vist la solució abans de respondre la perd; cada ajuda resta (elo.score).
@@ -276,13 +286,19 @@ def answer(params):
     problem_before = _problem_elo(pid)
     rating_after, problem_after = rating_before, problem_before
     if first_try:
+        if correct and hints_used == 0:
+            streak += 1
+        elif not correct:
+            streak = 0
         saw_solution = store.one(db, "SELECT COUNT(*) AS n FROM hints WHERE student_id = ? AND problem_id = ? "
                                      "AND rung = 5", (student["id"], pid))["n"] > 0
         result_score = 0.0 if saw_solution else elo.score(correct, hints_used)
         rating_after, problem_after = elo.update(rating_before, problem_before, result_score,
                                                  student.get("elo_attempts") or 0)
-        store.execute(db, "UPDATE students SET elo = ?, elo_attempts = COALESCE(elo_attempts, 0) + 1 "
-                          "WHERE id = ?", (rating_after, student["id"]))
+        # `level` només és el número de la matriu de LEDs, derivat del nou Elo
+        store.execute(db, "UPDATE students SET elo = ?, elo_attempts = COALESCE(elo_attempts, 0) + 1, "
+                          "level = ?, streak_ok = ?, streak_bad = 0 WHERE id = ?",
+                      (rating_after, _led_level(rating_after), streak, student["id"]))
         store.execute(db, """INSERT INTO problem_elo (id, elo, attempts) VALUES (?, ?, 1)
                              ON CONFLICT(id) DO UPDATE SET elo = excluded.elo, attempts = attempts + 1""",
                       (pid, problem_after))
@@ -296,8 +312,8 @@ def answer(params):
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                   (student["id"], pid, letter, int(correct), int(first_try), hints_used, seconds,
                    row["level"], content["topic"], rating_before, rating_after, problem_before))
-    result = {"correct": correct, "first_try": first_try, "level": level, "level_change": change,
-              "streak": ok, "elo": rating_after, "elo_change": rating_after - rating_before,
+    result = {"correct": correct, "first_try": first_try,
+              "streak": streak, "elo": rating_after, "elo_change": rating_after - rating_before,
               "problem_elo": problem_before,
               "matrix": _set_matrix(matrix.check() if correct else matrix.cross())}
     if correct:
@@ -307,20 +323,22 @@ def answer(params):
 
 
 def _germa(pid, content, student_id):
-    """El problema germà: mateix tema, més fàcil (o igual de nivell), el més semblant."""
-    row = _problem_row(pid)
+    """El problema germà: mateix tema, Elo més baix (o igual), el més semblant."""
+    here = _problem_elo(pid)
+    current = _problem_elos()
     solved = {r["problem_id"] for r in store.query(
         store.state(), "SELECT problem_id FROM attempts WHERE student_id = ? AND correct = 1", (student_id,))}
     candidates = store.query(store.bank(), """
-        SELECT n.neighbor_id AS id, n.score, p.level, c.topic FROM neighbors n
+        SELECT n.neighbor_id AS id, n.score, c.topic FROM neighbors n
         JOIN content c ON c.id = n.neighbor_id AND c.verified = 1
         JOIN problems p ON p.id = n.neighbor_id AND p.lang = 'cat'
         WHERE n.id = ? ORDER BY n.rank""", (pid,))
     best = None
     for c in candidates:
-        if c["id"] in solved or c["level"] > row["level"]:
+        rating = current.get(c["id"], _initial_problem_elo(c["id"]))
+        if c["id"] in solved or rating > here:
             continue
-        key = (c["topic"] == content["topic"], c["level"] < row["level"], c["score"])
+        key = (c["topic"] == content["topic"], rating < here, c["score"])
         if best is None or key > best[0]:
             best = (key, c["id"])
     return _public(best[1]) if best else None
@@ -414,11 +432,18 @@ def profile(params):
         WHERE student_id = ? AND first_try = 1 GROUP BY topic ORDER BY topic""", (sid,))
     total = sum(r["n"] for r in rows)
     ok = sum(r["ok"] or 0 for r in rows)
-    recent = store.query(store.state(), """SELECT problem_id, letter, correct, hints_used, topic, level, ts
+    recent = store.query(store.state(), """SELECT problem_id, letter, correct, hints_used, topic,
+        problem_elo, elo_before, elo_after, ts
         FROM attempts WHERE student_id = ? AND first_try = 1 ORDER BY id DESC LIMIT 10""", (sid,))
+    rating = _student_elo(student)
+    history = store.query(store.state(), """SELECT elo_before, elo_after FROM attempts
+        WHERE student_id = ? AND first_try = 1 AND elo_after IS NOT NULL ORDER BY id""", (sid,))
     return {
-        "alias": student["alias"], "grade": student["grade"], "level": student["level"],
-        "elo": _student_elo(student),
+        "alias": student["alias"], "grade": student["grade"],
+        "elo": rating,
+        # Elo amb què va començar i el més alt que ha tingut
+        "elo_start": round(history[0]["elo_before"]) if history else rating,
+        "elo_peak": round(max([rating] + [h["elo_after"] for h in history])),
         "streak": student["streak_ok"], "attempts": total, "correct": ok,
         "accuracy": round(ok / total, 3) if total else None,
         "by_topic": [{"topic": r["topic"], "attempts": r["n"], "correct": r["ok"] or 0,
@@ -428,11 +453,34 @@ def profile(params):
     }
 
 
+def _teacher_cells(db):
+    """Encerts al primer intent per tema i franja d'Elo del problema (en el moment de fer-lo)."""
+    rows = store.query(db, """SELECT problem_id, topic, correct, hints_used, problem_elo
+        FROM attempts WHERE first_try = 1""")
+    cells = {}
+    for r in rows:
+        rating = r["problem_elo"] if r["problem_elo"] is not None else _initial_problem_elo(r["problem_id"])
+        cell = cells.setdefault((r["topic"], elo.band(rating)), {"n": 0, "ok": 0, "hints": 0})
+        cell["n"] += 1
+        cell["ok"] += r["correct"] or 0
+        cell["hints"] += r["hints_used"] or 0
+    return [{"topic": topic, "band": b, "attempts": c["n"], "correct": c["ok"],
+             "accuracy": round(c["ok"] / c["n"], 3), "avg_hints": round(c["hints"] / c["n"], 2)}
+            for (topic, b), c in sorted(cells.items())]
+
+
+def _teacher_bands(cells):
+    """Les franges d'Elo del mapa: totes les dels problemes amb contingut i les que tinguin intents."""
+    span = _elo_range()
+    bands = {c["band"] for c in cells}
+    if span:
+        bands |= set(range(elo.band(span[0]), elo.band(span[1]) + 1, elo.BAND))
+    return sorted(bands)
+
+
 def teacher(_params):
     db = store.state()
-    cells = store.query(db, """
-        SELECT topic, level, COUNT(*) AS n, SUM(correct) AS ok, AVG(hints_used) AS hints
-        FROM attempts WHERE first_try = 1 GROUP BY topic, level ORDER BY topic, level""")
+    cells = _teacher_cells(db)
     wrong = store.query(db, """
         SELECT problem_id, letter, COUNT(*) AS n FROM attempts
         WHERE first_try = 1 AND correct = 0 GROUP BY problem_id, letter ORDER BY n DESC LIMIT 8""")
@@ -447,17 +495,20 @@ def teacher(_params):
         traps.append({"problem_id": w["problem_id"], "letter": w["letter"], "count": w["n"],
                       "share": round(w["n"] / tried, 3) if tried else None,
                       "trap": content["traps"].get(w["letter"], ""), "topic": content["topic"],
-                      "level": row["level"], "image_url": f"/api/image?id={w['problem_id']}&lang=cat"})
+                      "problem_elo": _problem_elo(w["problem_id"]),
+                      "image_url": f"/api/image?id={w['problem_id']}&lang=cat"})
     students = store.one(db, "SELECT COUNT(*) AS n FROM students")["n"]
     attempts = store.one(db, "SELECT COUNT(*) AS n FROM attempts WHERE first_try = 1")["n"]
+    # Elo mitjà de la classe: només alumnes que ja han fet algun problema
+    avg = store.one(db, "SELECT AVG(elo) AS e FROM students WHERE elo IS NOT NULL AND elo_attempts > 0")["e"]
     return {
         "students": students, "attempts": attempts,
-        "cells": [{"topic": c["topic"], "level": c["level"], "attempts": c["n"], "correct": c["ok"] or 0,
-                   "accuracy": round((c["ok"] or 0) / c["n"], 3), "avg_hints": round(c["hints"] or 0, 2)}
-                  for c in cells],
+        "avg_elo": round(avg) if avg is not None else None,
+        "cells": cells,
         "traps": traps,
         "topics": config.TOPICS,
-        "levels": list(range(config.MAX_LEVEL + 1)),
+        "bands": _teacher_bands(cells),
+        "band_width": elo.BAND,
     }
 
 
@@ -513,6 +564,10 @@ def stats(_params):
 
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 MAX_OWN_WORDS = 45
+# Problemes semblants: se'n busquen uns quants i es prefereixen els que no passen
+# de l'Elo de l'alumne més aquest marge (un pèl més difícils encara serveixen)
+OWN_CANDIDATES = 20
+OWN_ELO_MARGIN = 100
 
 
 def own_ocr(params):
@@ -566,11 +621,13 @@ def own_match(params):
     text = text[:2000]
     from . import retrieval  # import tardà: construeix l'índex el primer cop
     topic, confidence = retrieval.guess_topic(text)
-    # Primer, problemes del nivell de l'alumne o més fàcils; si no n'hi ha de prou semblants, tots
-    hits = retrieval.find_similar(text, k=3, max_level=student["level"])
+    # Primer, problemes fins a l'Elo de l'alumne (+ un marge); si no n'hi ha de prou semblants, tots
+    candidates = retrieval.find_similar(text, k=OWN_CANDIDATES)
+    ceiling = _student_elo(student) + OWN_ELO_MARGIN
+    hits = [h for h in candidates if _problem_elo(h["id"]) <= ceiling][:3]
     low = getattr(retrieval, "LOW_SCORE", 0.0)
     if not hits or hits[0]["score"] < low:
-        wider = retrieval.find_similar(text, k=3)
+        wider = candidates[:3]
         if wider and (not hits or wider[0]["score"] > hits[0]["score"]):
             hits = wider
     found = bool(hits) and hits[0]["score"] >= low

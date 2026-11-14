@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 import type { Session } from "./api";
 
 // L'alumne es guarda al navegador només per no haver d'entrar cada vegada.
-// Les dades de veritat (intents, nivell) viuen a la placa.
+// Les dades de veritat (intents, Elo) viuen a la placa: aquí només n'hi ha una còpia.
 const KEY = "mathey-session";
 const listeners = new Set<() => void>();
 

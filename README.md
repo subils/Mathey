@@ -30,13 +30,13 @@ student data ever leaves the device.
 
 | For | What |
 |---|---|
-| Student | Practice at their level; answer A–E; the LED matrix shows ✓ / ✗, level and streak |
+| Student | Practice at their Elo; answer A–E; the LED matrix shows ✓ / ✗, the Kangaroo level that matches their Elo, and their streak |
 | Student | "How did you think about it?" → one Socratic question from the **on-board model** |
 | Student | Five-rung help ladder; the solution only on explicit request |
 | Student | Easy-reading mode (dyslexia): short sentences, one idea per line, large type |
-| Student | Adaptive path: two correct answers without help → level up; two wrong → level down; weakest topic first; per-student and per-problem Elo |
+| Student | Adaptive path by Elo: every first answer updates the student's and the problem's rating; the next problem is an unseen one near the student's Elo, weakest topic first |
 | Student | **Bring your own problem** (chat): paste or snap a photo of homework → on-board OCR → a Kangaroo problem with the same idea → the on-board model works through it step by step, streamed and clearly labelled "may be wrong, check each step" |
-| Teacher | Class map (topic × level) and the traps the class falls into most, with the mistaken reasoning behind each |
+| Teacher | Class map (topic × problem Elo band), class average Elo, and the traps the class falls into most, with the mistaken reasoning behind each |
 
 ## How we use M3Kang
 
@@ -108,7 +108,7 @@ if rejected or late, the mentor falls back to the prepared typical-mistake feedb
 | Easy-reading (dyslexia) versions | words per sentence 13.2 → 7.8; long words per sentence 0.79 → 0.27; all statement numbers kept in 507/509 | `scripts/readability.py` |
 | Socratic question latency on the board | `TODO` cold / warm | `scripts/measure_socratic.py` |
 | Socratic question quality | `TODO` useful / useless / misleading of 30 | judged by hand |
-| Adaptive engine convergence | in all 8 simulated profiles, the last-10 mean level is within 0.6 of the true level; a level-0 student claiming 8th grade settles by problem 9 | `scripts/simulate_students.py` (5 students × 25 problems per profile) |
+| Adaptive engine convergence (Elo) | `TODO`: rerun on the real bank (the previous figures measured the old level system) | `scripts/simulate_students.py` (5 students × 30 problems per profile) |
 | RAM with everything running | `TODO` | `free -m` on the board |
 
 ## Error analysis

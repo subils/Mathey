@@ -80,6 +80,30 @@ def initial_student_elo(level):
     return round(BASE + LEVEL_STEP * level + SPREAD * (1 / 6))
 
 
+def initial_elo_for_grade(grade, max_level=7):
+    """Elo inicial d'un alumne a partir del curs que diu fer (5è, 6è, 1r ESO...)."""
+    return initial_student_elo(min(GRADE_LEVEL[grade], max_level))
+
+
+def led_level(rating, max_level=7):
+    """El nivell del Cangur que correspon a un Elo. NOMÉS per a la matriu de LEDs.
+
+    És l'invers d'initial_student_elo(): un alumne nou de 6è (985) surt nivell 1, i
+    a mesura que el seu Elo puja o baixa, el número de la matriu el segueix. Res
+    més del mentor fa servir nivells d'alumne: tot es decideix amb l'Elo.
+    """
+    level = round((rating - BASE - SPREAD / 6) / LEVEL_STEP)
+    return max(0, min(max_level, level))
+
+
+BAND = 100  # amplada de les franges d'Elo del mapa del mestre
+
+
+def band(rating):
+    """Franja d'Elo (inici) on cau un valor: 1234 -> 1200."""
+    return int(rating // BAND * BAND)
+
+
 def expected(student_elo, problem_elo_value):
     """Probabilitat d'encert, comptant que a l'atzar s'encerta 1 de cada 5."""
     chess = 1 / (1 + 10 ** ((problem_elo_value - student_elo) / SCALE))

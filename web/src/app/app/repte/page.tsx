@@ -34,7 +34,6 @@ import {
   type NextResult,
   type Problem,
 } from "@/lib/api";
-import { levelName } from "@/lib/school";
 import { now, saveSession } from "@/lib/session";
 import { useStudent } from "@/lib/use-student";
 import { cn } from "@/lib/utils";
@@ -61,6 +60,9 @@ const DIFFICULTY = [
 type Difficulty = (typeof DIFFICULTY)[number]["key"];
 
 type Phase = "loading" | "answering" | "wrong" | "correct" | "done" | "error";
+
+/** Ha creuat una centena cap amunt (p. ex. de 1185 a 1203)? */
+const passedHundred = (before: number, after: number) => Math.floor(after / 100) > Math.floor(before / 100);
 
 export default function Repte() {
   const { session, onApiError } = useStudent();
@@ -147,11 +149,11 @@ export default function Repte() {
       const r = await api.answer(session.student, problem.id, letter, seconds);
       setResult(r);
       setMatrix(r.matrix);
-      saveSession({ ...session, level: r.level, elo: r.elo ?? session.elo, streak: r.streak });
-      setEloChange(r.first_try && r.elo_change !== undefined ? r.elo_change : null);
+      saveSession({ ...session, elo: r.elo, streak: r.streak });
+      setEloChange(r.first_try ? r.elo_change : null);
       if (r.correct) {
         setPhase("correct");
-        setNotice(r.level_change > 0 ? `Puges de nivell: ara fas problemes de ${levelName(r.level)}.` : "");
+        setNotice(passedHundred(r.elo - r.elo_change, r.elo) ? `Has arribat a Elo ${Math.floor(r.elo / 100) * 100}!` : "");
       } else {
         setWrongLetters((w) => [...w, letter]);
         setShake(letter);
@@ -159,7 +161,7 @@ export default function Repte() {
         setExplained(null);
         setExplainText("");
         setPhase("wrong");
-        setNotice(r.level_change < 0 ? `Baixem un nivell per agafar confiança: ${levelName(r.level)}.` : "");
+        setNotice("");
         // Cada intent compta el temps des d'aquí, no des que es va obrir el problema
         shownAt.current = now();
       }
@@ -244,7 +246,6 @@ export default function Repte() {
       <section className="flex min-w-0 flex-col gap-4">
         <TopBar
           problem={problem}
-          level={session.level}
           elo={session.elo}
           eloChange={eloChange}
           difficulty={difficulty}
@@ -394,7 +395,6 @@ export default function Repte() {
 
 function TopBar({
   problem,
-  level,
   elo,
   eloChange,
   difficulty,
@@ -402,7 +402,6 @@ function TopBar({
   original,
 }: {
   problem: Problem | null;
-  level: number;
   elo?: number;
   eloChange: number | null;
   difficulty: Difficulty;
@@ -415,9 +414,6 @@ function TopBar({
         {problem && (
           <span className="rounded-lg bg-foreground px-2.5 py-1 font-medium text-background">{cap(problem.topic)}</span>
         )}
-        <span className="rounded-lg border border-black/[0.06] bg-white/70 px-2.5 py-1 text-muted-foreground">
-          {levelName(level)}
-        </span>
         {elo !== undefined && (
           <span className="relative inline-flex items-center gap-1.5 rounded-lg border border-black/[0.06] bg-white/70 px-2.5 py-1">
             <span className="text-muted-foreground">Elo</span>
@@ -490,8 +486,7 @@ function ProblemCard({
     <DoubleCard plain className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-3">
         <Eyebrow>
-          Cangur {problem.year} · nivell {problem.level}
-          {problem.elo !== undefined && <> · Elo {problem.elo}</>}
+          Cangur {problem.year} · Elo {problem.elo}
         </Eyebrow>
         {problem.easy_text && (
           <Button variant="ghost" size="sm" onClick={onToggleEasy}>

@@ -205,7 +205,7 @@ function RepteMock() {
   return (
     <div className="flex w-full max-w-md flex-col gap-3">
       <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-black/[0.05]">
-        <Eyebrow>Cangur 2019 · nivell 1</Eyebrow>
+        <Eyebrow>Cangur 2019 · Elo 1047</Eyebrow>
         <p className="mt-2 text-[14px] leading-relaxed">
           La Laia té 3 germans. Cada germà té 2 germanes. Quants fills hi ha a la família?
         </p>
@@ -433,8 +433,10 @@ export function BoardSection() {
 export function TeacherSection() {
   const { data } = useLive(() => api.teacher(), 10000);
   const topics = data?.topics ?? ["aritmètica", "àlgebra", "geometria", "combinatòria i probabilitat", "lògica"];
-  const levels = data?.levels ?? [0, 1, 2, 3];
-  const cell = (topic: string, level: number) => data?.cells.find((c) => c.topic === topic && c.level === level);
+  // Franges d'Elo del problema (de 100 en 100): les columnes del mapa
+  const bands = data?.bands ?? [800, 900, 1000, 1100, 1200, 1300, 1400, 1500];
+  const width = data?.band_width ?? 100;
+  const cell = (topic: string, band: number) => data?.cells.find((c) => c.topic === topic && c.band === band);
   return (
     <section id="mestre" className={cn(CONTAINER, "scroll-mt-24")}>
       <SectionHeader
@@ -444,7 +446,7 @@ export function TeacherSection() {
             On s&apos;encalla la classe, <span className="text-gradient">sense corregir res.</span>
           </>
         }
-        lead="Una sola pantalla: el mapa de temes per nivells i les trampes on cau més la classe, amb la idea equivocada que hi porta. Només àlies, cap nom real."
+        lead="Una sola pantalla: el mapa de temes per franges d'Elo i les trampes on cau més la classe, amb la idea equivocada que hi porta. Només àlies, cap nom real."
       />
       <Reveal>
         <DoubleCard plain className="grid gap-8 p-6 md:grid-cols-[1.4fr_1fr] md:items-center md:p-10">
@@ -453,9 +455,9 @@ export function TeacherSection() {
               <thead>
                 <tr>
                   <th />
-                  {levels.map((l) => (
-                    <th key={l} className="pb-1 text-center text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                      Nivell {l}
+                  {bands.map((b) => (
+                    <th key={b} className="pb-1 text-center text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                      {b}–{b + width - 1}
                     </th>
                   ))}
                 </tr>
@@ -464,12 +466,12 @@ export function TeacherSection() {
                 {topics.map((t) => (
                   <tr key={t}>
                     <td className="pr-3 text-right whitespace-nowrap text-muted-foreground">{cap(t)}</td>
-                    {levels.map((l) => {
-                      const c = cell(t, l);
+                    {bands.map((b) => {
+                      const c = cell(t, b);
                       const acc = c && c.attempts ? c.accuracy : null;
                       return (
                         <td
-                          key={l}
+                          key={b}
                           className="h-10 min-w-16 rounded-lg text-center font-mono text-[12px] tabular-nums"
                           style={{
                             background:

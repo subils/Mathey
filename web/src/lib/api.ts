@@ -26,8 +26,9 @@ export type Health = {
 
 export type Problem = {
   id: string;
+  /** Nivell de l'examen del Cangur d'on surt el problema (dada del problema, no de l'alumne). */
   level: number;
-  elo?: number;
+  elo: number;
   year: number;
   topic: string;
   has_figure: boolean;
@@ -41,8 +42,7 @@ export type Session = {
   student: number;
   alias: string;
   grade: string;
-  level: number;
-  elo?: number;
+  elo: number;
   easy_mode: boolean;
   matrix?: Matrix;
   /** Només al navegador: la ratxa que ha tornat l'última resposta. */
@@ -51,9 +51,11 @@ export type Session = {
 
 export type NextResult = {
   problem: Problem | null;
-  level?: number;
   elo?: number;
   target_elo?: number;
+  /** [mínim, màxim] de l'Elo dels problemes on es pot practicar. */
+  elo_range?: [number, number] | null;
+  streak?: number;
   message?: string;
   matrix?: Matrix;
 };
@@ -61,12 +63,10 @@ export type NextResult = {
 export type AnswerResult = {
   correct: boolean;
   first_try: boolean;
-  level: number;
-  level_change: number;
   streak: number;
-  elo?: number;
-  elo_change?: number;
-  problem_elo?: number;
+  elo: number;
+  elo_change: number;
+  problem_elo: number;
   matrix: Matrix;
   answer?: Letter;
   answer_text?: string;
@@ -96,23 +96,28 @@ export type ExplainResult = {
 export type Profile = {
   alias: string;
   grade: string;
-  level: number;
-  elo?: number;
+  elo: number;
+  elo_start: number;
+  elo_peak: number;
   streak: number;
   attempts: number;
   correct: number;
   accuracy: number | null;
   by_topic: { topic: string; attempts: number; correct: number; accuracy: number; avg_hints: number }[];
-  recent: { problem_id: string; letter: string; correct: number; hints_used: number; topic: string; level: number; ts: string }[];
+  recent: { problem_id: string; letter: string; correct: number; hints_used: number; topic: string;
+    problem_elo: number | null; elo_before: number | null; elo_after: number | null; ts: string }[];
 };
 
 export type Teacher = {
   students: number;
   attempts: number;
-  cells: { topic: string; level: number; attempts: number; correct: number; accuracy: number; avg_hints: number }[];
-  traps: { problem_id: string; letter: string; count: number; share: number | null; trap: string; topic: string; level: number; image_url: string }[];
+  avg_elo: number | null;
+  /** Franja d'Elo del problema: `band` és l'inici (1200 = de 1200 a 1299). */
+  cells: { topic: string; band: number; attempts: number; correct: number; accuracy: number; avg_hints: number }[];
+  traps: { problem_id: string; letter: string; count: number; share: number | null; trap: string; topic: string; problem_elo: number; image_url: string }[];
   topics: string[];
-  levels: number[];
+  bands: number[];
+  band_width: number;
 };
 
 export type Stats = {

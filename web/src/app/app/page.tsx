@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { DoubleCard, Eyebrow } from "@/components/ui/surface";
 import { api, type Health, type Session } from "@/lib/api";
-import { GRADES, levelName, type Grade } from "@/lib/school";
+import { GRADES, type Grade } from "@/lib/school";
 import { clearSession, saveSession, useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, BookOpenText, Check, RotateCw, Type, WifiOff } from "lucide-react";
@@ -96,7 +96,6 @@ function Hub({ session }: { session: Session }) {
           Què fem avui?
         </h1>
         <div className="mt-1 flex flex-wrap gap-2 text-[13px]">
-          <Stat label="Nivell" value={levelName(session.level)} />
           {session.elo !== undefined && <Stat label="Elo" value={String(session.elo)} mono />}
           {session.easy_mode && <Stat label="Lectura" value="fàcil" />}
         </div>
@@ -212,7 +211,7 @@ function Onboarding({ health }: { health: Health | null }) {
 
               {step === 1 && (
                 <>
-                  <StepTitle eyebrow="Pas 2 de 4" title={`Quin curs fas, ${alias.trim()}?`} text="Començaràs amb problemes del teu curs i el nivell s'anirà ajustant." />
+                  <StepTitle eyebrow="Pas 2 de 4" title={`Quin curs fas, ${alias.trim()}?`} text="Començaràs amb problemes del teu curs i el teu Elo s'anirà ajustant." />
                   <div className="grid grid-cols-2 gap-2.5">
                     {GRADES.map((g) => (
                       <Choice key={g.value} selected={grade === g.value} onClick={() => setGrade(g.value)}>

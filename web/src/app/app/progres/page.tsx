@@ -7,7 +7,6 @@ import { HoppingKangaroo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { DoubleCard, Eyebrow } from "@/components/ui/surface";
 import { api, cap, type Profile } from "@/lib/api";
-import { levelName } from "@/lib/school";
 import { loadSession, saveSession } from "@/lib/session";
 import { useStudent } from "@/lib/use-student";
 import { cn } from "@/lib/utils";
@@ -24,10 +23,10 @@ export default function Progres() {
     if (!student) return;
     api.profile(student).then((p) => {
       setProfile(p);
-      // La barra de l'app llegeix la ratxa, el nivell i l'Elo de la sessió: es posen al dia
+      // La barra de l'app llegeix la ratxa i l'Elo de la sessió: es posen al dia
       const current = loadSession();
-      if (current && (current.streak !== p.streak || current.level !== p.level || current.elo !== p.elo))
-        saveSession({ ...current, streak: p.streak, level: p.level, elo: p.elo ?? current.elo });
+      if (current && (current.streak !== p.streak || current.elo !== p.elo))
+        saveSession({ ...current, streak: p.streak, elo: p.elo });
     }, (e: Error) => {
       if (!onApiError(e)) setError(e.message);
     });
@@ -58,8 +57,8 @@ export default function Progres() {
         <>
           <div className="grid grid-cols-2 gap-px md:grid-cols-4">
             {[
-              { label: "Nivell", value: levelName(profile.level), mono: false },
-              { label: "Elo", value: profile.elo !== undefined ? String(profile.elo) : "—", mono: true },
+              { label: "Elo", value: String(profile.elo), mono: true },
+              { label: "Elo màxim", value: String(profile.elo_peak), mono: true },
               { label: "Problemes", value: String(profile.attempts), mono: true },
               { label: "Al primer intent", value: pct(profile.accuracy), mono: true },
             ].map((t, i) => (
@@ -131,7 +130,20 @@ export default function Progres() {
                           <Lightbulb className="size-3" /> {r.hints_used}
                         </span>
                       )}
-                      <span className="font-mono text-[12px] text-muted-foreground">niv. {r.level}</span>
+                      {r.elo_before !== null && r.elo_after !== null && r.elo_after !== r.elo_before && (
+                        <span
+                          className={cn(
+                            "font-mono text-[12px] tabular-nums",
+                            r.elo_after > r.elo_before ? "text-success" : "text-destructive",
+                          )}
+                        >
+                          {r.elo_after > r.elo_before ? "+" : ""}
+                          {Math.round(r.elo_after - r.elo_before)}
+                        </span>
+                      )}
+                      {r.problem_elo !== null && (
+                        <span className="font-mono text-[12px] text-muted-foreground">Elo {Math.round(r.problem_elo)}</span>
+                      )}
                     </li>
                   ))}
                 </ul>

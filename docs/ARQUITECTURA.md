@@ -115,16 +115,16 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 |---|---|---|
 | ✅ Practicar: imatge del problema, respondre A–E, saber si és correcte | SQLite | mil·lisegons |
 | ✅ Lectura fàcil (dislèxia): enunciat adaptat, lletra gran | Contingut preparat | mil·lisegons |
-| ✅ Matriu LED: ✓ / ✗, nivell i ratxa, «pensant» | Bridge + microcontrolador (a la web, simulada) | mil·lisegons |
-| ✅ Següent problema adaptatiu: puja amb 2 encerts seguits sense ajuda, baixa amb 2 errors; tria el tema més fluix | `mentor/service.py` | mil·lisegons |
+| ✅ Matriu LED: ✓ / ✗, nivell (el que correspon a l'Elo de l'alumne) i ratxa, «pensant» | Bridge + microcontrolador (a la web, simulada) | mil·lisegons |
+| ✅ Següent problema adaptatiu per **Elo**: cada primera resposta mou l'Elo de l'alumne i el del problema (`mentor/elo.py`); es tria un problema no fet a ±100 de l'Elo de l'alumne (s'amplia a ±200 i ±400) i, dins d'aquesta finestra, del tema més fluix | `mentor/service.py`, `mentor/elo.py` | mil·lisegons |
 | ✅ «Com ho has pensat?» → una pregunta socràtica | **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | ~10 s estimats a la placa |
 | ✅ Graó 1 · Estratègia | Contingut preparat | mil·lisegons |
 | ✅ Graó 2 · Dada clau | Contingut preparat | mil·lisegons |
-| ✅ Graó 3 · Problema germà més fàcil | Semblança del mètode (TF-IDF) + mateix tema + nivell ≤ | mil·lisegons |
+| ✅ Graó 3 · Problema germà més fàcil | Semblança del mètode (TF-IDF) + mateix tema + Elo ≤ el del problema | mil·lisegons |
 | ✅ Graó 4 · Primer pas | Contingut preparat | mil·lisegons |
 | ✅ Graó 5 · Solució, només si es confirma | Contingut preparat | mil·lisegons |
-| ✅ Perfil de l'alumne per tema | SQLite a la placa | mil·lisegons |
-| ✅ Vista del mestre: mapa tema × nivell i trampes més triades | SQLite a la placa | mil·lisegons |
+| ✅ Perfil de l'alumne: Elo (actual, inicial i màxim) i encerts per tema | SQLite a la placa | mil·lisegons |
+| ✅ Vista del mestre: mapa tema × franja d'Elo del problema, Elo mitjà de la classe i trampes més triades | SQLite a la placa | mil·lisegons |
 | Veu (llegir i escoltar) | Piper i Whisper a la placa | pendent dels mentors |
 | ✅ Sala de màquines (pàgina «La placa») | `/api/stats` | mil·lisegons |
 | «Porta el teu problema»: foto → text | Tesseract a la placa (servei `math-ocr`, port 8084) | per mesurar a la placa |
@@ -304,16 +304,16 @@ la pinta als LEDs.
 | Mètode i ruta | Entrada | Sortida |
 |---|---|---|
 | `GET /api/health` | — | estat; problemes amb contingut verificat; si la IA respon |
-| `POST /api/session` | `alias`, `grade` (5è, 6è, 1r ESO, 2n ESO), `easy_mode` | `student`, nivell inicial |
-| `GET /api/next` | `student`, `id` opcional | problema (sense la resposta), nivell |
+| `POST /api/session` | `alias`, `grade` (5è, 6è, 1r ESO, 2n ESO), `easy_mode` | `student`, `elo` inicial (segons el curs) |
+| `GET /api/next` | `student`, `id` opcional, `elo` objectiu opcional | problema (sense la resposta, amb el seu `elo`), `elo` de l'alumne, `target_elo`, `elo_range`, `streak` |
 | `GET /api/problem` | `id`, `lang` | un problema concret |
 | `GET /api/image` | `id`, `lang` | PNG del problema |
-| `POST /api/answer` | `student`, `problem_id`, `letter`, `seconds` | `correct`, nivell, canvi de nivell, ratxa; si encerta, la solució |
+| `POST /api/answer` | `student`, `problem_id`, `letter`, `seconds` | `correct`, `elo`, `elo_change`, `problem_elo`, `streak`; si encerta, la solució |
 | `POST /api/hint` | `student`, `problem_id`, `rung` (1–5), `confirm` (cal per al 5) | el graó: text, problema germà o solució |
 | `POST /api/explain` | `student`, `problem_id`, `letter`, `text` | `reply`, `source` (`placa` o `preparat`), segons, motiu de rebuig |
 | `POST /api/warm` | `problem_id` | la IA llegeix el problema per endavant |
-| `GET /api/profile` | `student` | encerts per tema, últims intents |
-| `GET /api/teacher` | — | mapa tema × nivell, trampes més triades |
+| `GET /api/profile` | `student` | `elo`, `elo_start`, `elo_peak`, encerts per tema, últims intents (amb Elo abans i després) |
+| `GET /api/teacher` | — | mapa tema × franja d'Elo (`bands`, `cells`), `avg_elo`, trampes més triades |
 | `GET /api/matrix` | — | el dibuix actual de la matriu |
 | `GET /api/stats` | — | sala de màquines: memòria, IA activa, banc, preguntes de la IA (mediana de segons, quantes de reserva) |
 | `POST /api/own/ocr` | `student`, `image` (base64 o data URI, màx. 8 MB) | text llegit; el servei OCR és a `MENTOR_OCR_URL` (a la placa, `http://<host>:8084`) |
@@ -358,8 +358,9 @@ Dos fitxers, cap a GitHub (contenen M3Kang o dades d'alumnes):
 
 | Taula | Contingut |
 |---|---|
-| `students` | àlies, curs, nivell, ratxes, lectura fàcil |
-| `attempts` | cada resposta: correcta, primer intent, ajudes usades, segons, tema, nivell |
+| `students` | àlies, curs, `elo` i `elo_attempts`, `level` (només el número de la matriu, derivat de l'Elo), ratxa, lectura fàcil |
+| `attempts` | cada resposta: correcta, primer intent, ajudes usades, segons, tema, nivell de l'examen, Elo de l'alumne abans i després i Elo del problema |
+| `problem_elo` | Elo actual de cada problema que ja ha rebut respostes (la resta: l'Elo inicial, calculat de l'id) |
 | `hints` | cada graó demanat |
 | `explanations` | què ha dit l'alumne, què ha respost el mentor, d'on ha sortit i en quant temps |
 | `own_problems`, `own_helps`, `ocr_reads` | «Porta el teu problema»: el text, els semblants trobats i la puntuació; cada dubte i la pista; cada lectura d'OCR |

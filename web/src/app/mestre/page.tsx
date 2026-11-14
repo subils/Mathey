@@ -33,6 +33,7 @@ export default function Mestre() {
             <Pill className="px-2.5 py-1 text-[10px]">
               <RefreshCw className="size-3" /> {data.attempts} problemes
             </Pill>
+            {data.avg_elo !== null && <Pill className="px-2.5 py-1 text-[10px]">Elo mitjà {data.avg_elo}</Pill>}
           </div>
         )
       }
@@ -42,16 +43,16 @@ export default function Mestre() {
         <div className="flex flex-col gap-px">
           <DoubleCard plain className="overflow-x-auto p-6 md:p-8">
             <div className="mb-5 flex flex-col gap-1">
-              <h2 className="text-lg font-medium">Encerts al primer intent, per tema i nivell</h2>
+              <h2 className="text-lg font-medium">Encerts al primer intent, per tema i Elo del problema</h2>
               <p className="text-sm font-light text-muted-foreground">Sota de cada percentatge: intents i ajudes per problema.</p>
             </div>
             <table className="w-full min-w-[620px] border-separate border-spacing-1.5 text-[13px]">
               <thead>
                 <tr>
                   <th />
-                  {data.levels.map((l) => (
-                    <th key={l} className="pb-1 text-center text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                      Nivell {l}
+                  {data.bands.map((b) => (
+                    <th key={b} className="pb-1 text-center text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                      {b}–{b + data.band_width - 1}
                     </th>
                   ))}
                 </tr>
@@ -60,11 +61,11 @@ export default function Mestre() {
                 {data.topics.map((topic) => (
                   <tr key={topic}>
                     <td className="pr-3 text-right whitespace-nowrap text-muted-foreground">{cap(topic)}</td>
-                    {data.levels.map((l) => {
-                      const cell = data.cells.find((c) => c.topic === topic && c.level === l);
+                    {data.bands.map((b) => {
+                      const cell = data.cells.find((c) => c.topic === topic && c.band === b);
                       return (
                         <td
-                          key={l}
+                          key={b}
                           className="h-16 rounded-xl text-center tabular-nums"
                           style={{ background: cell ? cellColor(cell.accuracy) : "rgb(0 0 0 / 0.035)" }}
                         >
@@ -102,7 +103,7 @@ export default function Mestre() {
                 <DoubleCard key={`${t.problem_id}-${t.letter}`} index={i} className="flex flex-col gap-4 p-6">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-[12px]">
                     <span className="rounded-md bg-black/[0.05] px-2 py-0.5 font-medium">
-                      {cap(t.topic)} · nivell {t.level}
+                      {cap(t.topic)} · Elo {t.problem_elo}
                     </span>
                     <span className="text-muted-foreground">
                       <strong className="font-semibold text-foreground">{t.count}</strong> alumnes ({pct(t.share)}) han triat la{" "}
