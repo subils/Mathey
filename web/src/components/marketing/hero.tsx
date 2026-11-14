@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- exportació estàtica: sense optimitzador d'imatges */
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { ResendCube } from "./resend-cube";
 
@@ -42,30 +42,26 @@ export function Hero() {
 
           {/* Composició de resend.com: mx-auto max-w-7xl, dues columnes */}
           <div className="relative z-20 mx-auto flex h-full max-w-5xl flex-col items-center justify-start px-6 pt-24 pb-8 md:max-w-7xl md:flex-row md:justify-between md:pt-16 md:pb-12">
-            <div className="order-2 max-w-3xl origin-[center_left] animate-hero-text-slide-up-fade md:order-1 md:max-w-[36rem] md:shrink-0 lg:pl-16 xl:max-w-[40rem]">
+            <div className="order-2 max-w-3xl origin-[center_left] animate-hero-text-slide-up-fade sm:shrink-0 md:order-1 lg:pl-16">
               <div className="flex items-center justify-center md:inline-flex">
                 <Link
                   href="/#com-funciona"
                   className="rainbow-border relative mb-8 inline-flex items-center justify-center rounded-full text-sm leading-none after:absolute after:inset-0 after:-z-10 after:block after:rounded-full"
                 >
                   <span className="m-[1px] inline-flex items-center gap-1 rounded-full px-3 py-1 whitespace-nowrap">
-                    Datathon FME 2026 · Repte Qualcomm
+                    Datathon FME 2026
+                    <ChevronRight className="size-3" strokeWidth={2.5} />
                   </span>
                 </Link>
               </div>
-              <h1
-                className="effect-font-styling effect-font-gradient relative pb-3 text-center md:text-left"
-                style={{ fontSize: "clamp(40px, 5.2vw, 76px)", fontWeight: 500, letterSpacing: "-0.035em", lineHeight: 1.02 }}
-              >
-                No et donem
+              <h1 className="effect-font-styling effect-font-gradient relative pb-3 text-center text-[4rem] leading-[100%] font-medium tracking-[-0.035em] md:text-left md:text-[6rem]">
+                Mates per
                 <br />
-                la resposta.
-                <br />
-                T&apos;ajudem a <span className="whitespace-nowrap">trobar-la</span>.
+                pensar
               </h1>
               <p className="relative mt-2 mb-8 max-w-[30rem] text-center text-base leading-7 font-normal text-[#a1a4a5] md:text-left md:text-[1.125rem] md:leading-[1.5]">
-                Un mentor de matemàtiques que viu dins d&apos;una placa a l&apos;aula. Problemes del Cangur al teu
-                nivell, pistes quan t&apos;encalles i cap dada que surti de l&apos;escola. Sense internet.
+                No et donem la resposta: t&apos;ajudem a trobar-la. Un mentor de matemàtiques que viu dins la placa
+                de l&apos;aula.
               </p>
               <div className="flex flex-col justify-center gap-4 md:flex-row md:justify-start">
                 {/* El botó «Get started» de resend.com */}
