@@ -85,7 +85,8 @@ def _migrate_state(db):
         if column not in have:
             db.execute(f"ALTER TABLE students ADD COLUMN {column} {kind}")
     have = {row["name"] for row in db.execute("PRAGMA table_info(attempts)")}
-    for column in ("elo_before", "elo_after", "problem_elo"):
+    # elo_score: el resultat de la resposta per a l'Elo (1, 0 o entremig amb ajudes)
+    for column in ("elo_before", "elo_after", "problem_elo", "elo_score"):
         if column not in have:
             db.execute(f"ALTER TABLE attempts ADD COLUMN {column} REAL")
     db.commit()

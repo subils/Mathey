@@ -26,7 +26,12 @@ gairebé el màxim.
 
 Els Elo inicials són una estimació. Amb respostes reals, l'Elo dels problemes també
 s'actualitza (amb una K petita), com fan les webs d'escacs amb els problemes tàctics.
+
+L'Elo de l'ALUMNE no se suma i resta resposta a resposta (vegeu estimate()): cada
+cop es torna a calcular amb totes les seves respostes, les recents pesant més. Així
+l'Elo de partida (el del curs) deixa de pesar de seguida si no era el bo.
 """
+import math
 
 BASE = 800
 # 110 i no 150: els problemes que surten el mateix any en dos nivells seguits (31
@@ -40,7 +45,8 @@ SCALE = 400
 QUESTIONS = {0: 24, 1: 24}  # la resta de nivells: 30
 DEFAULT_QUESTIONS = 30
 
-# K de l'alumne: com més problemes fa, menys es mou l'Elo per cada resposta.
+# K de l'alumne (només per a update(), el mètode clàssic; el mentor fa servir
+# estimate()): com més problemes fa, menys es mou l'Elo per cada resposta.
 # 1. Col·locació (els PLACEMENT_ATTEMPTS primers): K molt alta, perquè l'Elo inicial
 #    només ve del curs que diu fer l'alumne i pot estar lluny del real. Amb alumnes
 #    simulats (scripts/simulate_students.py), passar de 40 a 100 en aquests problemes
@@ -127,8 +133,56 @@ def k_student(attempts):
     return K_STABLE
 
 
+# --------------------------------------------------- Elo de l'alumne: estimació
+#
+# En comptes de sumar i restar K × (resultat − esperat) a cada resposta, es busca
+# l'Elo que millor explica TOTES les respostes de l'alumne alhora (com fan els
+# tests adaptatius tipus PISA). Es prova cada Elo possible de GRID i es mira:
+#   - com d'acord està amb l'Elo de partida (el del curs), amb marge PRIOR_SD;
+#   - com de probables són les seves respostes si l'alumne tingués aquest Elo.
+# El resultat és la mitjana de tots els Elo possibles ponderada per aquesta
+# probabilitat.
+#
+# Les respostes antigues pesen menys (meitat cada HALF_LIFE respostes): un alumne
+# que aprèn no queda frenat per com responia fa setmanes.
+#
+# Amb alumnes simulats (30 problemes), l'error dels que comencen lluny del seu Elo
+# real baixa de ~97 a ~75 punts, prop del mínim teòric amb 30 respostes A–E (~77),
+# sense empitjorar els que comencen a prop.
+
+PRIOR_SD = 250
+HALF_LIFE = 40
+GRID = range(300, 2501, 5)
+MAX_ANSWERS = 4 * HALF_LIFE  # més enllà, el pes és < 1/16: no val la pena comptar-les
+
+
+def estimate(start, answers, prior_sd=PRIOR_SD, half_life=HALF_LIFE):
+    """Elo de l'alumne a partir de totes les seves respostes.
+
+    `start`: l'Elo de partida (el del curs).
+    `answers`: [(Elo del problema quan el va fer, resultat de score()), ...], de la
+    més antiga a la més recent.
+    """
+    answers = list(answers)[-MAX_ANSWERS:]
+    n = len(answers)
+    weighted = [(p, s, 0.5 ** ((n - 1 - i) / half_life)) for i, (p, s) in enumerate(answers)]
+    logs = []
+    for t in GRID:
+        lp = -0.5 * ((t - start) / prior_sd) ** 2
+        for p, s, w in weighted:
+            e = min(max(expected(t, p), 1e-9), 1 - 1e-9)
+            lp += w * (s * math.log(e) + (1 - s) * math.log(1 - e))
+        logs.append(lp)
+    top = max(logs)
+    weights = [math.exp(x - top) for x in logs]
+    return round(sum(t * x for t, x in zip(GRID, weights)) / sum(weights))
+
+
 def update(student_elo, problem_elo_value, result, attempts=NEW_ATTEMPTS):
-    """Torna (nou Elo de l'alumne, nou Elo del problema).
+    """Torna (nou Elo de l'alumne, nou Elo del problema), a l'estil dels escacs.
+
+    El mentor en fa servir el NOU ELO DEL PROBLEMA; el de l'alumne el calcula amb
+    estimate(). La part de l'alumne es manté per comparar els dos mètodes.
 
     `result` és 1 (encert), 0 (errada) o un valor entremig de score().
     `attempts` és quants problemes ha fet l'alumne abans d'aquest.

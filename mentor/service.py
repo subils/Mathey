@@ -98,6 +98,28 @@ def _student_elo(student):
     return elo.initial_student_elo(student["level"])  # alumnes d'abans de l'Elo
 
 
+def _start_elo(student):
+    """Elo de partida de l'alumne (el del seu curs): el punt de partida d'elo.estimate()."""
+    if student.get("grade") in config.GRADE_LEVEL:
+        return elo.initial_elo_for_grade(student["grade"], config.MAX_LEVEL)
+    return elo.initial_student_elo(student["level"])
+
+
+def _elo_answers(sid):
+    """Les respostes que compten per a l'Elo (el primer intent de cada problema), de la
+    més antiga a la més recent: [(Elo del problema quan el va fer, resultat), ...]."""
+    rows = store.query(store.state(), """SELECT problem_id, correct, hints_used, problem_elo, elo_score
+        FROM attempts WHERE student_id = ? AND first_try = 1 ORDER BY id DESC LIMIT ?""",
+                       (sid, elo.MAX_ANSWERS))
+    answers = []
+    for r in reversed(rows):
+        rating = r["problem_elo"] if r["problem_elo"] is not None else _initial_problem_elo(r["problem_id"])
+        # Intents d'abans de desar elo_score: el resultat es refà amb encert i ajudes
+        result = r["elo_score"] if r["elo_score"] is not None else elo.score(r["correct"], r["hints_used"] or 0)
+        answers.append((rating, result))
+    return answers
+
+
 def _target_elo(params, student):
     """L'Elo que l'alumne vol practicar (paràmetre `elo`) o, si no en tria cap, el seu."""
     raw = params.get("elo")
@@ -284,7 +306,7 @@ def answer(params):
     # vist la solució abans de respondre la perd; cada ajuda resta (elo.score).
     rating_before = _student_elo(student)
     problem_before = _problem_elo(pid)
-    rating_after, problem_after = rating_before, problem_before
+    rating_after, problem_after, result_score = rating_before, problem_before, None
     if first_try:
         if correct and hints_used == 0:
             streak += 1
@@ -293,8 +315,10 @@ def answer(params):
         saw_solution = store.one(db, "SELECT COUNT(*) AS n FROM hints WHERE student_id = ? AND problem_id = ? "
                                      "AND rung = 5", (student["id"], pid))["n"] > 0
         result_score = 0.0 if saw_solution else elo.score(correct, hints_used)
-        rating_after, problem_after = elo.update(rating_before, problem_before, result_score,
-                                                 student.get("elo_attempts") or 0)
+        # El problema: Elo clàssic (K petita). L'alumne: estimació amb totes les respostes.
+        _, problem_after = elo.update(rating_before, problem_before, result_score)
+        rating_after = elo.estimate(_start_elo(student),
+                                    _elo_answers(student["id"]) + [(problem_before, result_score)])
         # `level` només és el número de la matriu de LEDs, derivat del nou Elo
         store.execute(db, "UPDATE students SET elo = ?, elo_attempts = COALESCE(elo_attempts, 0) + 1, "
                           "level = ?, streak_ok = ?, streak_bad = 0 WHERE id = ?",
@@ -308,10 +332,10 @@ def answer(params):
     except (TypeError, ValueError):
         seconds = 0.0
     store.execute(db, """INSERT INTO attempts (student_id, problem_id, letter, correct, first_try,
-                         hints_used, seconds, level, topic, elo_before, elo_after, problem_elo)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                         hints_used, seconds, level, topic, elo_before, elo_after, problem_elo, elo_score)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                   (student["id"], pid, letter, int(correct), int(first_try), hints_used, seconds,
-                   row["level"], content["topic"], rating_before, rating_after, problem_before))
+                   row["level"], content["topic"], rating_before, rating_after, problem_before, result_score))
     result = {"correct": correct, "first_try": first_try,
               "streak": streak, "elo": rating_after, "elo_change": rating_after - rating_before,
               "problem_elo": problem_before,
