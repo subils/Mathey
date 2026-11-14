@@ -13,6 +13,22 @@ import { cn } from "@/lib/utils";
 
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? "–" : `${Math.round(x * 100)}%`);
 
+/** L'Elo amb què va començar (el del curs) i quant ha canviat des d'aleshores. */
+function EloSinceStart({ profile }: { profile: Profile }) {
+  const change = profile.elo - profile.elo_start;
+  return (
+    <span className="font-mono text-[12px] text-muted-foreground tabular-nums">
+      Inicial {profile.elo_start}
+      {change !== 0 && (
+        <span className={cn("ml-1.5 font-semibold", change > 0 ? "text-success" : "text-destructive")}>
+          {change > 0 ? "+" : ""}
+          {change}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export default function Progres() {
   const { session, onApiError } = useStudent();
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -57,20 +73,23 @@ export default function Progres() {
         <>
           <div className="grid grid-cols-2 gap-px md:grid-cols-4">
             {[
-              { label: "Elo", value: String(profile.elo), mono: true },
+              { label: "Elo", value: String(profile.elo), mono: true, sub: <EloSinceStart profile={profile} /> },
               { label: "Elo màxim", value: String(profile.elo_peak), mono: true },
               { label: "Problemes", value: String(profile.attempts), mono: true },
               { label: "Al primer intent", value: pct(profile.accuracy), mono: true },
             ].map((t, i) => (
               <DoubleCard key={t.label} index={i} className="flex flex-col gap-6 p-6">
                 <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">{t.label}</span>
-                <span
-                  className={cn(
-                    "font-semibold tracking-[-0.02em] tabular-nums",
-                    t.mono ? "font-mono text-[32px]" : "text-[22px] leading-tight",
-                  )}
-                >
-                  {t.value}
+                <span className="flex flex-col gap-1">
+                  <span
+                    className={cn(
+                      "font-semibold tracking-[-0.02em] tabular-nums",
+                      t.mono ? "font-mono text-[32px]" : "text-[22px] leading-tight",
+                    )}
+                  >
+                    {t.value}
+                  </span>
+                  {t.sub}
                 </span>
               </DoubleCard>
             ))}

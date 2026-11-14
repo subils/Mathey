@@ -32,7 +32,7 @@ import {
   type NextResult,
   type Problem,
 } from "@/lib/api";
-import { now, saveSession } from "@/lib/session";
+import { loadSession, now, saveSession } from "@/lib/session";
 import { useStudent } from "@/lib/use-student";
 import { cn } from "@/lib/utils";
 
@@ -76,6 +76,7 @@ export default function Repte() {
   const [original, setOriginal] = useState<Problem | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>("mine");
   const [eloChange, setEloChange] = useState<number | null>(null);
+  const [eloRange, setEloRange] = useState<[number, number] | null>(null);
   const shownAt = useRef(0);
   const easy = session?.easy_mode ?? false;
 
@@ -93,6 +94,12 @@ export default function Repte() {
   };
 
   const applyNext = useCallback((next: NextResult) => {
+    if (next.elo_range) setEloRange(next.elo_range);
+    // La barra de l'app i el hub llegeixen l'Elo i la ratxa de la sessió: es posen
+    // al dia amb els de la placa, que és qui mana
+    const current = loadSession();
+    if (current && next.elo !== undefined && (current.elo !== next.elo || current.streak !== next.streak))
+      saveSession({ ...current, elo: next.elo, streak: next.streak ?? current.streak });
     if (!next.problem) {
       setProblem(null);
       setMessage(next.message ?? "No queden problemes.");
@@ -236,6 +243,7 @@ export default function Repte() {
           elo={session.elo}
           eloChange={eloChange}
           difficulty={difficulty}
+          eloRange={eloRange}
           onDifficulty={(d) => {
             setDifficulty(d);
             if (phase !== "loading") goTo(undefined, d);
@@ -380,6 +388,7 @@ function TopBar({
   elo,
   eloChange,
   difficulty,
+  eloRange,
   onDifficulty,
   original,
 }: {
@@ -387,9 +396,16 @@ function TopBar({
   elo?: number;
   eloChange: number | null;
   difficulty: Difficulty;
+  /** [mínim, màxim] de l'Elo dels problemes del banc (de /api/next). */
+  eloRange: [number, number] | null;
   onDifficulty: (d: Difficulty) => void;
   original: Problem | null;
 }) {
+  // Sense problemes més difícils (o més fàcils) que l'Elo de l'alumne, l'opció no canviaria res
+  const unavailable = (key: Difficulty) =>
+    elo !== undefined &&
+    eloRange !== null &&
+    ((key === "harder" && elo >= eloRange[1]) || (key === "easier" && elo <= eloRange[0]));
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex flex-wrap items-center gap-2 text-[13px]">
@@ -433,10 +449,18 @@ function TopBar({
             key={d.key}
             role="radio"
             aria-checked={difficulty === d.key}
+            disabled={unavailable(d.key)}
+            title={
+              unavailable(d.key)
+                ? d.key === "harder"
+                  ? "Ja ets al nivell dels problemes més difícils"
+                  : "Ja ets al nivell dels problemes més fàcils"
+                : undefined
+            }
             onClick={() => onDifficulty(d.key)}
             className={cn(
-              "relative rounded-lg px-2.5 py-1 text-[12px] font-medium transition-colors",
-              difficulty === d.key ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+              "relative rounded-lg px-2.5 py-1 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+              difficulty === d.key ? "text-foreground" : "text-muted-foreground enabled:hover:text-foreground",
             )}
           >
             {difficulty === d.key && (
