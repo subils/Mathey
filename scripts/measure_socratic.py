@@ -64,7 +64,7 @@ def run(case, warm_first):
     said = f"He fet això: {case['trap'][0].lower()}{case['trap'][1:]}"
     text, timings = llm.socratic(case["text"], case["solution"], chosen, case["trap"], said)
     correct_option = case["options"].get(case["label"], "")
-    reason = filters.leaks(text, case["label"], correct_option, case["text"]) or (
+    reason = filters.leaks(text, case["label"], correct_option, case["text"], strict = True) or (
         "" if filters.is_question(text) else "no és una pregunta curta")
     return text, timings, warm_s, reason, said
 

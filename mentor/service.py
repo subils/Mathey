@@ -306,7 +306,7 @@ def explain(params):
     _set_matrix(matrix.thinking())
     try:
         text, timings = llm.socratic(row["text"], content["solution"], chosen, trap, said)
-        rejected = filters.leaks(text, label, option, row["text"]) or (
+        rejected = filters.leaks(text, label, option, row["text"], strict = True) or (
             "" if filters.is_question(text) else "no és una pregunta curta")
         if not rejected:
             reply = text
