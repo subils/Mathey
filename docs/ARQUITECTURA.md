@@ -227,7 +227,7 @@ demo, o bé es desactiva el Receptor AirPlay, o bé es reenvia a un altre port:
 |---|---|---|---|
 | Navegador | App a la placa | `adb forward tcp:7000 tcp:7000` per USB-C, o `http://<ip>:7000` per Wi-Fi | Documentat a la guia |
 | Pàgina | API | `fetch` al mateix origen, rutes `/api/...` | Verificat al codi del brick |
-| Pàgina | Text en streaming | Resposta en streaming del brick, o Socket.IO | **Per provar** |
+| Pàgina | Text en streaming | NDJSON per `fetch` (`/api/own/chat`): `StreamingResponse` a la placa, escriptura a trossos al portàtil | Provat al portàtil amb un llama-server simulat; **a la placa, per provar** |
 | App (contenidor) | `llama-server` (amfitrió) | HTTP cap a l'amfitrió | **Risc núm. 1, per provar** |
 | Python | Matriu LED | `Bridge.call("draw", frame)` | Exemple oficial al repo |
 | Portàtil | Placa (fitxers) | `adb push` o `scp` | Documentat a la guia |
@@ -259,9 +259,39 @@ La configuració de la placa es pot posar a `data/mentor.env` dins de l'app.
 |---|---|
 | `output: 'export'`, `trailingSlash: true`, `images.unoptimized: true` | El brick serveix carpetes amb `index.html`; no hi ha servidor Node |
 | Sense rutes d'API de Next, accions de servidor ni middleware | No hi ha servidor Node |
-| Sense rutes dinàmiques: l'`id` va a la query (`/practica/?id=...`) | L'exportació no pot generar 1.747 pàgines amb dades que no són al repo |
+| Sense rutes dinàmiques: l'`id` va a la query (`/app/repte/?id=...`) | L'exportació no pot generar 1.747 pàgines amb dades que no són al repo |
 | Fonts i icones locals; cap CDN, cap analítica | Ha de funcionar sense xarxa |
 | Totes les dades via `fetch` a `/api` | Les dades viuen a la placa, no al build |
+
+### 4.5 La web (frontend nou, 14/11 al vespre)
+
+Llenguatge visual de Faktu (`~/Desktop/Faktu`).
+- Mode clar, fons `#f0f1f0`, accent `#0171e3`.
+- Targetes de doble capa, vidre (`.glass`, `.navbar-glass`) i moviment «sense talls, però ràpid».
+- Tipografia Geist, del paquet `geist`: fonts locals, sense xarxa.
+- Tokens a `web/src/app/globals.css`. Detalls a [web/README.md](../web/README.md).
+
+| Ruta | Què és |
+|---|---|
+| `/` | Landing: navbar de vidre, hero, escala d'ajudes, modes, la placa en directe (`/api/stats`, `/api/matrix`), mapa del mestre |
+| `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
+| `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
+| `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
+| `/app/progres/` | Progrés de l'alumne |
+| `/mestre/`, `/placa/` | Vista del mestre i sala de màquines (amb el navbar de la landing) |
+| `/practica/`, `/el-meu-problema/`, `/perfil/` | Rutes antigues: redirigeixen a les noves conservant la query |
+
+A l'alumne no se li mostren «Mestre» ni «Placa»: la barra de l'app només té el
+mode, la ratxa i el seu menú.
+
+- Components de tercers copiats al repo (sense xarxa en temps d'execució):
+  - prompt-kit (MIT): compositor i contenidor del xat.
+  - Aceternity UI, només els gratuïts: el focus de llum del hero.
+  - Streamdown + KaTeX: markdown i fórmules.
+- Recorregut provat a Safari el 14/11 al vespre sobre l'exportació estàtica, amb un
+  llama-server simulat: onboarding, Repte (fallar, matriu ✗, Elo, ajudes 1–2),
+  xat (enganxar una foto, semblant, resolució en streaming amb fórmules), mestre,
+  placa, progrés i la redirecció de `/practica/?id=`.
 
 ---
 

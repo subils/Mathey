@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mathey — la web
 
-## Getting Started
+Next.js 16 amb **exportació estàtica** (`output: 'export'`). La serveix la placa
+(port 7000) i funciona **sense internet**: cap CDN, cap font remota, cap analítica.
+Totes les dades venen de `/api` (el mentor en Python). Contracte:
+[docs/ARQUITECTURA.md §5](../docs/ARQUITECTURA.md).
 
-First, run the development server:
+## Engegar-la
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+python3 scripts/dev_server.py   # (des de l'arrel) API a http://127.0.0.1:7000; també serveix web/out
+pnpm dev                        # web a http://localhost:3000, crida l'API del 7000
+pnpm build                      # exporta a web/out (és el que es desplega a la placa)
+pnpm lint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Al Mac, feu servir `127.0.0.1` i no `localhost:7000` (AirPlay escolta al 7000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Rutes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Ruta | Què és |
+|---|---|
+| `/` | Landing (pitch i aula) |
+| `/app/` | Onboarding o hub |
+| `/app/repte/` | Mode 1 · Repte Cangur (`?id=` opcional) |
+| `/app/xat/` | Mode 2 · Porta el teu problema (la IA resol pas a pas, en streaming) |
+| `/app/progres/` | Progrés de l'alumne |
+| `/mestre/`, `/placa/` | Vista del mestre, sala de màquines |
 
-## Learn More
+## Disseny
 
-To learn more about Next.js, take a look at the following resources:
+Llenguatge visual de **Faktu** (`~/Desktop/Faktu`), en mode clar.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Tokens:** `src/app/globals.css`.
+  - Colors: fons `#f0f1f0`, tinta `#1a1a1a`, accent `#0171e3`.
+  - Radis i moviment, i el degradat superior del `body`.
+- **Materials:**
+  - `.navbar-glass` (el navbar de Faktu) i `.glass` (compositor, xips): blur + saturate i una llum interior.
+  - `DoubleCard` (`components/ui/surface.tsx`): la targeta de doble capa de Faktu, amb els gradients malva i sàlvia.
+- **Tipografia:** Geist Sans i Geist Mono amb el paquet `geist` (`next/font/local`).
+  - Titulars amb tracking negatiu.
+  - Entradetes en pes 300.
+  - Etiquetes superiors a 10 px en majúscules.
+- **Moviment:** «sense talls, però ràpid», amb la corba `cubic-bezier(.16,1,.3,1)`.
+  - `Reveal` a la landing.
+  - `motion` a l'app.
+  - Es respecta `prefers-reduced-motion`.
+- **Cap emoji a la interfície.** Icones de `lucide-react`.
+- **El cangur:** `components/brand/` (separat de `branding/Mathey logo.svg`). `HoppingKangaroo` és el carregador.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## On és cada cosa
 
-## Deploy on Vercel
+| Carpeta | Contingut |
+|---|---|
+| `src/lib/api.ts` | L'únic lloc que sap on és l'API. `ownChat` llegeix l'NDJSON del xat |
+| `src/lib/session.ts`, `use-student.ts` | Sessió de l'alumne al navegador; si la placa no el coneix, torna a l'onboarding |
+| `src/components/app/` | Barra de l'app, targetes de mode, matriu LED |
+| `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
+| `src/components/marketing/` | Navbar, hero i seccions de la landing |
+| `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) i Aceternity (només gratuïts) |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Regles
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- No importeu mai `data/problems_elo.json` ni cap respost a la web: la resposta
+  correcta no viatja al navegador fins que l'alumne l'encerta o demana el graó 5.
+- Sense `next/image` (no hi ha servidor), sense `next/font/google`, sense rutes
+  dinàmiques (l'`id` va a la query).

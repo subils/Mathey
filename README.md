@@ -34,7 +34,8 @@ student data ever leaves the device.
 | Student | "How did you think about it?" → one Socratic question from the **on-board model** |
 | Student | Five-rung help ladder; the solution only on explicit request |
 | Student | Easy-reading mode (dyslexia): short sentences, one idea per line, large type |
-| Student | Adaptive path: two correct answers without help → level up; two wrong → level down; weakest topic first |
+| Student | Adaptive path: two correct answers without help → level up; two wrong → level down; weakest topic first; per-student and per-problem Elo |
+| Student | **Bring your own problem** (chat): paste or snap a photo of homework → on-board OCR → a Kangaroo problem with the same idea → the on-board model works through it step by step, streamed and clearly labelled "may be wrong, check each step" |
 | Teacher | Class map (topic × level) and the traps the class falls into most, with the mistaken reasoning behind each |
 
 ## How we use M3Kang
@@ -76,7 +77,9 @@ content is in this repository.
                                  Microcontroller (STM32) ── Bridge ── 8×13 LED matrix
 ```
 
-- `web/` — Next.js static export (no Node on the board).
+- `web/` — Next.js static export (no Node on the board): landing at `/`, the app at
+  `/app/` (Kangaroo challenge, chat), `/mestre/` and `/placa/`. Light "liquid glass"
+  design with local Geist fonts; see [web/README.md](web/README.md).
 - `mentor/` — the mentor logic: API routes, adaptive engine, help ladder, leak
   filter, similarity, LED frames, model client.
 - `app/` — the Arduino App Lab app (Python adapter + LED sketch).
@@ -129,7 +132,7 @@ wrong answers explained one by one.
 4. `python3 scripts/build_bank.py` → `data/mentor.db`.
 5. Expose the models to the app container: see [app/README.md](app/README.md) (plan A).
 6. `scripts/deploy_board.sh` (USB) or `BOARD_SSH=arduino@<ip> scripts/deploy_board.sh`.
-7. `adb forward tcp:7070 tcp:7000` and open `http://127.0.0.1:7070`.
+7. `adb forward tcp:7070 tcp:7000` and open `http://127.0.0.1:7070` (landing; students start at `/app/`).
 
 ## Team
 
