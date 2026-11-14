@@ -1,17 +1,17 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, BookOpenText, Check, RotateCw, Type, WifiOff } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
 import { ModeCards } from "@/components/app/mode-cards";
 import { HoppingKangaroo, Mark } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import { DoubleCard, Eyebrow } from "@/components/ui/surface";
 import { api, type Health, type Session } from "@/lib/api";
-import { GRADES, type Grade, levelName } from "@/lib/school";
+import { GRADES, levelName, type Grade } from "@/lib/school";
 import { clearSession, saveSession, useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { ArrowLeft, ArrowRight, BookOpenText, Check, RotateCw, Type, WifiOff } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useEffect, useState } from "react";
 
 type Boot = "loading" | "ready" | "offline";
 
@@ -202,7 +202,7 @@ function Onboarding({ health }: { health: Health | null }) {
                     value={alias}
                     onChange={(e) => setAlias(e.target.value)}
                     maxLength={30}
-                    placeholder="Per exemple: Llamp"
+                    placeholder="Per exemple: Mathew"
                     aria-label="Sobrenom"
                     className="h-14 text-lg"
                   />
