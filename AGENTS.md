@@ -51,6 +51,12 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   - Mode clar, vidre i tipografia Geist (local).
   - Landing a `/`, servida només per la placa; l'app és a `/app/`.
   - Aceternity UI: **només components gratuïts**, sense comprar All-Access.
+- 14/11/2026, ~19:30: **de moment s'elimina per complet tota la funcionalitat
+  per al professor**: vista del mestre, secció de la landing i `GET /api/teacher`.
+  El producte és només per a l'alumne.
+- 14/11/2026, ~19:30: **sense placa, la web ha de funcionar igualment en «mode
+  demo»**, i ho ha d'indicar. Ha de ser navegable sencera per poder dissenyar.
+  Ho fa `web/src/lib/demo.ts`, amb problemes inventats, no de M3Kang.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.

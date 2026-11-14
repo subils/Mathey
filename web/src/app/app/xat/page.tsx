@@ -507,8 +507,8 @@ function MatchCard({ topic, sibling, sameIdea }: { topic: string; sibling: Probl
           És un problema de <strong className="font-semibold">{topic}</strong>.
           {sibling
             ? sameIdea
-              ? " He trobat un problema del Cangur que fa servir la mateixa idea:"
-              : " Aquest problema del Cangur és del mateix tema, per si vols practicar:"
+              ? ` He trobat un problema ${sibling.image_url ? "del Cangur" : "d'exemple"} que fa servir la mateixa idea:`
+              : ` Aquest problema ${sibling.image_url ? "del Cangur" : "d'exemple"} és del mateix tema, per si vols practicar:`
             : " No he trobat cap problema del Cangur prou semblant, però el resolem igualment."}
         </p>
         {sibling && (
@@ -516,15 +516,19 @@ function MatchCard({ topic, sibling, sameIdea }: { topic: string; sibling: Probl
             href={`/app/repte/?id=${encodeURIComponent(sibling.id)}`}
             className="group flex items-center gap-4 rounded-2xl border border-black/[0.06] bg-white p-3 pr-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors hover:bg-white/70"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element -- exportació estàtica */}
+            {sibling.image_url && (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- exportació estàtica */}
             <img
               src={imageUrl(sibling)}
               alt=""
               className="h-20 w-28 shrink-0 rounded-lg border border-black/[0.05] bg-white object-contain"
             />
+              </>
+            )}
             <span className="flex min-w-0 flex-1 flex-col gap-0.5">
               <span className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                Cangur {sibling.year} · {cap(sibling.topic)}
+                {sibling.image_url ? `Cangur ${sibling.year}` : "Exemple"} · {cap(sibling.topic)}
               </span>
               <span className="line-clamp-2 text-[14px] leading-snug">{sibling.text.replace(/^\d+\.\s*/, "")}</span>
             </span>

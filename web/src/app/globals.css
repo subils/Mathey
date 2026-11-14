@@ -161,6 +161,13 @@
   --motion-dialog: 180ms;
 }
 
+/* Keyframes fets servir des d'estils en línia (Tailwind només emet els de @theme
+   que fa servir alguna classe): l'emplenat del cangur després de dibuixar-lo. */
+@keyframes mark-fill {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 /* ------------------------------------------------------------------ */
 /* Base                                                               */
 /* ------------------------------------------------------------------ */

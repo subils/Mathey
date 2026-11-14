@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Mark } from "@/components/brand/logo";
+import { DemoBadge } from "./demo-badge";
 import { cn } from "@/lib/utils";
 import { clearSession, saveSession, useSession } from "@/lib/session";
 
@@ -15,7 +16,7 @@ const MODES = [
 ];
 
 /**
- * Barra de l'app: mínima a propòsit. L'alumne no veu ni «Mestre» ni «Placa».
+ * Barra de l'app: mínima a propòsit. L'alumne no veu la sala de màquines.
  * Esquerra: el cangur (torna al hub). Centre: el mode. Dreta: ratxa i menú.
  */
 export function AppBar() {
@@ -37,6 +38,7 @@ export function AppBar() {
         {session && <ModeSwitch pathname={pathname} />}
 
         <div className="flex shrink-0 items-center gap-1.5">
+          <DemoBadge />
           {session ? (
             <>
               <StreakChip streak={session.streak ?? 0} />

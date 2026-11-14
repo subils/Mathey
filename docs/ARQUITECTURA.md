@@ -124,7 +124,6 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 | ✅ Graó 4 · Primer pas | Contingut preparat | mil·lisegons |
 | ✅ Graó 5 · Solució, només si es confirma | Contingut preparat | mil·lisegons |
 | ✅ Perfil de l'alumne: Elo (actual, inicial i màxim) i encerts per tema | SQLite a la placa | mil·lisegons |
-| ✅ Vista del mestre: mapa tema × franja d'Elo del problema, Elo mitjà de la classe i trampes més triades | SQLite a la placa | mil·lisegons |
 | Veu (llegir i escoltar) | Piper i Whisper a la placa | pendent dels mentors |
 | ✅ Sala de màquines (pàgina «La placa») | `/api/stats` | mil·lisegons |
 | «Porta el teu problema»: foto → text | Tesseract a la placa (servei `math-ocr`, port 8084) | per mesurar a la placa |
@@ -273,15 +272,15 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 
 | Ruta | Què és |
 |---|---|
-| `/` | Landing: navbar de vidre, hero, escala d'ajudes, modes, la placa en directe (`/api/stats`, `/api/matrix`), mapa del mestre |
+| `/` | Landing: navbar de vidre, hero, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
 | `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
 | `/app/progres/` | Progrés de l'alumne |
-| `/mestre/`, `/placa/` | Vista del mestre i sala de màquines (amb el navbar de la landing) |
+| `/placa/` | Sala de màquines (amb el navbar de la landing) |
 | `/practica/`, `/el-meu-problema/`, `/perfil/` | Rutes antigues: redirigeixen a les noves conservant la query |
 
-A l'alumne no se li mostren «Mestre» ni «Placa»: la barra de l'app només té el
+A l'alumne no se li mostra la sala de màquines: la barra de l'app només té el
 mode, la ratxa i el seu menú.
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
@@ -290,8 +289,20 @@ mode, la ratxa i el seu menú.
   - Streamdown + KaTeX: markdown i fórmules.
 - Recorregut provat a Safari el 14/11 al vespre sobre l'exportació estàtica, amb un
   llama-server simulat: onboarding, Repte (fallar, matriu ✗, Elo, ajudes 1–2),
-  xat (enganxar una foto, semblant, resolució en streaming amb fórmules), mestre,
-  placa, progrés i la redirecció de `/practica/?id=`.
+  xat (enganxar una foto, semblant, resolució en streaming amb fórmules), placa,
+  progrés i la redirecció de `/practica/?id=`.
+
+**La vista del mestre s'ha tret** (ordre del fundador, 14/11 ~19:30): ni pàgina,
+ni secció a la landing, ni `GET /api/teacher`.
+
+**Mode demo (sense placa).** Si l'API no respon (connexió refusada, o la web
+servida sense el mentor al darrere), `web/src/lib/api.ts` passa sola al mode demo.
+- Totes les crides van a `web/src/lib/demo.ts`: un backend simulat al navegador amb
+  el mateix contracte, 8 problemes **inventats per nosaltres** (no de M3Kang, sense
+  imatge: la web n'ensenya el text), Elo, ratxa, ajudes, matriu, OCR i xat simulats.
+- A la barra es veu «Mode demo»; en clicar-hi es pot tornar a buscar la placa.
+- `?demo=1` el força. Mentre no se sap si hi ha placa, l'espera màxima és de 4 s.
+- Serveix per navegar i dissenyar sense l'Arduino; **no és el que es presenta**.
 
 ---
 
@@ -313,7 +324,6 @@ la pinta als LEDs.
 | `POST /api/explain` | `student`, `problem_id`, `letter`, `text` | `reply`, `source` (`placa` o `preparat`), segons, motiu de rebuig |
 | `POST /api/warm` | `problem_id` | la IA llegeix el problema per endavant |
 | `GET /api/profile` | `student` | `elo`, `elo_start`, `elo_peak`, encerts per tema, últims intents (amb Elo abans i després) |
-| `GET /api/teacher` | — | mapa tema × franja d'Elo (`bands`, `cells`), `avg_elo`, trampes més triades |
 | `GET /api/matrix` | — | el dibuix actual de la matriu |
 | `GET /api/stats` | — | sala de màquines: memòria, IA activa, banc, preguntes de la IA (mediana de segons, quantes de reserva) |
 | `POST /api/own/ocr` | `student`, `image` (base64 o data URI, màx. 8 MB) | text llegit; el servei OCR és a `MENTOR_OCR_URL` (a la placa, `http://<host>:8084`) |

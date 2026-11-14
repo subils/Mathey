@@ -52,8 +52,7 @@ export function Mark({
             />
             <path
               d={KANGAROO_D}
-              className="opacity-0 transition-opacity duration-500"
-              style={{ animation: "page-enter 600ms var(--motion-ease-enter) 1.4s forwards" }}
+              style={{ animation: "mark-fill 500ms var(--motion-ease-enter) 1.1s both" }}
             />
           </>
         ) : (

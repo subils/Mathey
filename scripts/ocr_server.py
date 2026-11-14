@@ -31,8 +31,9 @@ Motors (--engine):
 
 El text es neteja molt poc (espais, línies buides): no s'intenta «arreglar» les
 matemàtiques. Si hi ha Pillow (python3-pil), abans de llegir es gira la foto
-segons l'EXIF del mòbil i s'encongeix si és enorme; si no n'hi ha, la imatge
-passa tal qual i és la web qui l'ha d'enviar dreta i petita.
+segons l'EXIF del mòbil, s'encongeix si és enorme i un fons transparent es pinta
+de blanc; si no n'hi ha, la imatge passa tal qual i és la web qui l'ha d'enviar
+dreta i petita.
 
 Només biblioteca estàndard (els motors s'importen o es criden quan toquen).
 """
@@ -127,8 +128,9 @@ def prepare(data, max_side):
     """Deixa la foto dreta i d'una mida raonable. Torna (bytes, nota).
 
     Els mòbils desen la foto «de costat» i apunten el gir a l'EXIF; cap dels
-    motors el llegeix. Amb Pillow es gira i, si el costat llarg passa de
-    `max_side`, s'encongeix. Sense Pillow la imatge passa tal qual.
+    motors el llegeix. Amb Pillow es gira, si el costat llarg passa de
+    `max_side` s'encongeix, i un fons transparent es pinta de blanc. Sense
+    Pillow la imatge passa tal qual.
     """
     try:
         from PIL import Image, ImageOps
@@ -138,10 +140,12 @@ def prepare(data, max_side):
         image = Image.open(io.BytesIO(data))
         orientation = image.getexif().get(0x0112, 1)
         too_big = bool(max_side) and max(image.size) > max_side
-        if orientation in (None, 1) and not too_big:
+        # Un PNG amb fons transparent: els motors el pinten de negre o l'esvaeixen
+        transparent = image.mode in ("RGBA", "LA") or "transparency" in image.info
+        if orientation in (None, 1) and not too_big and not transparent:
             return data, ""
         image = ImageOps.exif_transpose(image)
-        if image.mode in ("RGBA", "LA", "P"):  # la transparència, sobre blanc
+        if transparent or image.mode == "P":  # la transparència, sobre blanc
             image = image.convert("RGBA")
             white = Image.new("RGBA", image.size, (255, 255, 255, 255))
             image = Image.alpha_composite(white, image).convert("RGB")
@@ -154,6 +158,8 @@ def prepare(data, max_side):
         note = f"girada segons l'EXIF ({orientation})" if orientation not in (None, 1) else ""
         if too_big:
             note = (note + ", " if note else "") + f"encongida a {image.size[0]}x{image.size[1]}"
+        if transparent:
+            note = (note + ", " if note else "") + "fons transparent pintat de blanc"
         return out.getvalue(), note
     except Exception as error:  # Pillow no l'entén: que ho digui el motor
         return data, f"Pillow no l'ha pogut preparar ({type(error).__name__})"

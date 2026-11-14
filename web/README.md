@@ -25,7 +25,20 @@ Al Mac, feu servir `127.0.0.1` i no `localhost:7000` (AirPlay escolta al 7000).
 | `/app/repte/` | Mode 1 · Repte Cangur (`?id=` opcional) |
 | `/app/xat/` | Mode 2 · Porta el teu problema (la IA resol pas a pas, en streaming) |
 | `/app/progres/` | Progrés de l'alumne |
-| `/mestre/`, `/placa/` | Vista del mestre, sala de màquines |
+| `/placa/` | Sala de màquines |
+
+## Mode demo (sense placa)
+
+Si l'API no respon, la web passa sola al **mode demo**: `src/lib/demo.ts` fa de
+backend dins del navegador, amb el mateix contracte que `/api`.
+- Fa servir 8 problemes inventats per nosaltres (no de M3Kang).
+- L'Elo, les ajudes, la matriu, l'OCR i el xat són simulats.
+- A la barra surt «Mode demo» (`components/app/demo-badge.tsx`); en clicar-hi es
+  pot tornar a buscar la placa.
+- `?demo=1` el força.
+
+Així es pot navegar i dissenyar sense l'Arduino: n'hi ha prou amb `pnpm dev`, sense
+`dev_server.py`.
 
 ## Disseny
 

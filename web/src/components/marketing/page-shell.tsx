@@ -2,7 +2,7 @@ import { Eyebrow } from "@/components/ui/surface";
 import { SiteFooter } from "./sections";
 import { SiteNavbar } from "./site-navbar";
 
-/** Pàgines públiques fora del producte (/mestre/, /placa/): el navbar i el peu de la landing. */
+/** Pàgines públiques fora del producte (/placa/): el navbar i el peu de la landing. */
 export function PageShell({
   eyebrow,
   title,

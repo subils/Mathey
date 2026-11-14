@@ -80,7 +80,6 @@ ROUTES = {
     ("POST", "/api/explain"): _wrap(service.explain),
     ("POST", "/api/warm"): _wrap(service.warm),
     ("GET", "/api/profile"): _wrap(service.profile),
-    ("GET", "/api/teacher"): _wrap(service.teacher),
     ("GET", "/api/matrix"): _wrap(service.current_matrix),
     ("GET", "/api/stats"): _wrap(service.stats),
     # «Porta el teu problema»: foto -> text -> problemes semblants -> pista de la IA

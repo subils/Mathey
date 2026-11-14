@@ -453,65 +453,6 @@ def profile(params):
     }
 
 
-def _teacher_cells(db):
-    """Encerts al primer intent per tema i franja d'Elo del problema (en el moment de fer-lo)."""
-    rows = store.query(db, """SELECT problem_id, topic, correct, hints_used, problem_elo
-        FROM attempts WHERE first_try = 1""")
-    cells = {}
-    for r in rows:
-        rating = r["problem_elo"] if r["problem_elo"] is not None else _initial_problem_elo(r["problem_id"])
-        cell = cells.setdefault((r["topic"], elo.band(rating)), {"n": 0, "ok": 0, "hints": 0})
-        cell["n"] += 1
-        cell["ok"] += r["correct"] or 0
-        cell["hints"] += r["hints_used"] or 0
-    return [{"topic": topic, "band": b, "attempts": c["n"], "correct": c["ok"],
-             "accuracy": round(c["ok"] / c["n"], 3), "avg_hints": round(c["hints"] / c["n"], 2)}
-            for (topic, b), c in sorted(cells.items())]
-
-
-def _teacher_bands(cells):
-    """Les franges d'Elo del mapa: totes les dels problemes amb contingut i les que tinguin intents."""
-    span = _elo_range()
-    bands = {c["band"] for c in cells}
-    if span:
-        bands |= set(range(elo.band(span[0]), elo.band(span[1]) + 1, elo.BAND))
-    return sorted(bands)
-
-
-def teacher(_params):
-    db = store.state()
-    cells = _teacher_cells(db)
-    wrong = store.query(db, """
-        SELECT problem_id, letter, COUNT(*) AS n FROM attempts
-        WHERE first_try = 1 AND correct = 0 GROUP BY problem_id, letter ORDER BY n DESC LIMIT 8""")
-    traps = []
-    for w in wrong:
-        content = _content(w["problem_id"])
-        row = _problem_row(w["problem_id"])
-        if not content or not row:
-            continue
-        tried = store.one(db, "SELECT COUNT(*) AS n FROM attempts WHERE first_try = 1 AND problem_id = ?",
-                          (w["problem_id"],))["n"]
-        traps.append({"problem_id": w["problem_id"], "letter": w["letter"], "count": w["n"],
-                      "share": round(w["n"] / tried, 3) if tried else None,
-                      "trap": content["traps"].get(w["letter"], ""), "topic": content["topic"],
-                      "problem_elo": _problem_elo(w["problem_id"]),
-                      "image_url": f"/api/image?id={w['problem_id']}&lang=cat"})
-    students = store.one(db, "SELECT COUNT(*) AS n FROM students")["n"]
-    attempts = store.one(db, "SELECT COUNT(*) AS n FROM attempts WHERE first_try = 1")["n"]
-    # Elo mitjà de la classe: només alumnes que ja han fet algun problema
-    avg = store.one(db, "SELECT AVG(elo) AS e FROM students WHERE elo IS NOT NULL AND elo_attempts > 0")["e"]
-    return {
-        "students": students, "attempts": attempts,
-        "avg_elo": round(avg) if avg is not None else None,
-        "cells": cells,
-        "traps": traps,
-        "topics": config.TOPICS,
-        "bands": _teacher_bands(cells),
-        "band_width": elo.BAND,
-    }
-
-
 def current_matrix(_params):
     return {"matrix": _current_matrix}
 

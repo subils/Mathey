@@ -6,7 +6,6 @@ import {
   ModesSection,
   SectionDivider,
   SiteFooter,
-  TeacherSection,
   TrustBar,
 } from "@/components/marketing/sections";
 import { SiteNavbar } from "@/components/marketing/site-navbar";
@@ -26,8 +25,6 @@ export default function Landing() {
         <ModesSection />
         <SectionDivider />
         <BoardSection />
-        <SectionDivider />
-        <TeacherSection />
         <SectionDivider />
         <FinalCta />
       </main>

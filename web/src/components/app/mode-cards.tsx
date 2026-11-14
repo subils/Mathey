@@ -6,7 +6,16 @@ import { DoubleCard, Eyebrow } from "@/components/ui/surface";
 import { cn } from "@/lib/utils";
 
 /** Les dues portes del producte. Es fan servir al hub, a l'onboarding i a la landing. */
-export function ModeCards({ className, compact = false }: { className?: string; compact?: boolean }) {
+export function ModeCards({
+  className,
+  compact = false,
+  onSelect,
+}: {
+  className?: string;
+  compact?: boolean;
+  /** Si hi és, el clic no navega sol: el pare decideix (l'onboarding desa la sessió i després navega). */
+  onSelect?: (href: string) => void;
+}) {
   return (
     <div className={cn("grid grid-cols-1 gap-px md:grid-cols-2", className)}>
       <ModeCard
@@ -17,6 +26,7 @@ export function ModeCards({ className, compact = false }: { className?: string; 
         text="Problemes del Cangur al teu nivell. Si t'equivoques, no et diem la resposta: et fem una pregunta i tens cinc ajudes."
         visual={<ChoicesVisual />}
         compact={compact}
+        onSelect={onSelect}
       />
       <ModeCard
         href="/app/xat/"
@@ -26,6 +36,7 @@ export function ModeCards({ className, compact = false }: { className?: string; 
         text="Fes una foto o escriu un problema dels deures. La IA de la placa el llegeix i el resol pas a pas amb tu."
         visual={<ComposerVisual />}
         compact={compact}
+        onSelect={onSelect}
       />
     </div>
   );
@@ -39,6 +50,7 @@ function ModeCard({
   text,
   visual,
   compact,
+  onSelect,
 }: {
   href: string;
   index: number;
@@ -47,9 +59,20 @@ function ModeCard({
   text: string;
   visual: React.ReactNode;
   compact: boolean;
+  onSelect?: (href: string) => void;
 }) {
   return (
-    <Link href={href} className="block rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-accent/40">
+    <Link
+      href={href}
+      onClick={
+        onSelect
+          ? (e) => {
+              e.preventDefault();
+              onSelect(href);
+            }
+          : undefined
+      }
+      className="block rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-accent/40">
       <DoubleCard
         index={index}
         className={cn(

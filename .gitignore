@@ -14,9 +14,6 @@ data/*
 results/*
 !results/.gitkeep
 
-# Material de recerca clonat (repos i docs de tercers)
-# research/
-
 # Secrets
 .env
 .env.*

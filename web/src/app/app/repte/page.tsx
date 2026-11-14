@@ -486,7 +486,7 @@ function ProblemCard({
     <DoubleCard plain className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-3">
         <Eyebrow>
-          Cangur {problem.year} · Elo {problem.elo}
+          {problem.image_url ? `Cangur ${problem.year}` : "Problema d'exemple"} · Elo {problem.elo}
         </Eyebrow>
         {problem.easy_text && (
           <Button variant="ghost" size="sm" onClick={onToggleEasy}>
@@ -509,14 +509,17 @@ function ProblemCard({
               <p className="text-[clamp(20px,2.4vw,26px)] leading-[1.55] tracking-wide whitespace-pre-line">
                 {problem.easy_text}
               </p>
-              {problem.has_figure && (
+              {problem.has_figure && problem.image_url && (
                 // eslint-disable-next-line @next/next/no-img-element -- exportació estàtica
                 <img src={imageUrl(problem)} alt="Figura del problema" className="w-full rounded-xl bg-white" />
               )}
             </div>
-          ) : (
+          ) : problem.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element -- exportació estàtica
             <img src={imageUrl(problem)} alt={problem.text} className="w-full rounded-xl bg-white" />
+          ) : (
+            // Sense imatge (problemes del mode demo): l'enunciat en text
+            <p className="text-[clamp(18px,2vw,22px)] leading-relaxed tracking-[-0.005em]">{problem.text}</p>
           )}
         </motion.div>
       </AnimatePresence>
@@ -752,8 +755,12 @@ function HintBody({ hint, onSibling }: { hint: HintResult; onSibling: (p: Proble
         {hint.text && <span>{hint.text}</span>}
         {hint.problem && (
           <>
-            {/* eslint-disable-next-line @next/next/no-img-element -- exportació estàtica */}
-            <img src={imageUrl(hint.problem)} alt="Problema germà" className="rounded-lg border border-black/[0.06] bg-white" />
+            {hint.problem.image_url ? (
+              // eslint-disable-next-line @next/next/no-img-element -- exportació estàtica
+              <img src={imageUrl(hint.problem)} alt="Problema germà" className="rounded-lg border border-black/[0.06] bg-white" />
+            ) : (
+              <p className="rounded-lg border border-black/[0.06] bg-white p-3">{hint.problem.text}</p>
+            )}
             <Button size="sm" variant="accent" className="self-start" onClick={() => onSibling(hint.problem as Problem)}>
               Fes aquest primer <ArrowRight />
             </Button>

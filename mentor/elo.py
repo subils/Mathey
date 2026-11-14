@@ -105,14 +105,6 @@ def led_level(rating, max_level=7):
     return max(0, min(max_level, level))
 
 
-BAND = 100  # amplada de les franges d'Elo del mapa del mestre
-
-
-def band(rating):
-    """Franja d'Elo (inici) on cau un valor: 1234 -> 1200."""
-    return int(rating // BAND * BAND)
-
-
 def expected(student_elo, problem_elo_value):
     """Probabilitat d'encert, comptant que a l'atzar s'encerta 1 de cada 5."""
     chess = 1 / (1 + 10 ** ((problem_elo_value - student_elo) / SCALE))

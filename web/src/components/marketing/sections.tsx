@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { LedMatrix } from "@/components/app/led-matrix";
 import { Logo, Mark } from "@/components/brand/logo";
 import { DoubleCard, Eyebrow, Pill } from "@/components/ui/surface";
-import { api, cap } from "@/lib/api";
+import { api, cap, useBackendMode } from "@/lib/api";
 import { useLive } from "@/lib/use-live";
 import { cn } from "@/lib/utils";
 import { Reveal } from "./reveal";
@@ -346,6 +346,7 @@ export function HowSection() {
 export function BoardSection() {
   const { data: stats, error } = useLive(() => api.stats(), 4000);
   const { data: frame } = useLive(() => api.matrix(), 2000);
+  const demo = useBackendMode() === "demo";
   const q = stats?.questions;
   const mem = stats?.memory;
   const tiles = [
@@ -385,7 +386,7 @@ export function BoardSection() {
     <section id="placa" className={cn(CONTAINER, "scroll-mt-24")}>
       <SectionHeader
         eyebrow="La placa"
-        pill={error ? "Sense connexió" : "En directe"}
+        pill={demo ? "Mode demo" : error ? "Sense connexió" : "En directe"}
         title={
           <>
             Tot passa aquí. <span className="text-gradient">Ara mateix.</span>
@@ -421,87 +422,6 @@ export function BoardSection() {
             ))}
           </div>
         </div>
-      </Reveal>
-    </section>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/* Mestre                                                             */
-/* ------------------------------------------------------------------ */
-
-export function TeacherSection() {
-  const { data } = useLive(() => api.teacher(), 10000);
-  const topics = data?.topics ?? ["aritmètica", "àlgebra", "geometria", "combinatòria i probabilitat", "lògica"];
-  // Franges d'Elo del problema (de 100 en 100): les columnes del mapa
-  const bands = data?.bands ?? [800, 900, 1000, 1100, 1200, 1300, 1400, 1500];
-  const width = data?.band_width ?? 100;
-  const cell = (topic: string, band: number) => data?.cells.find((c) => c.topic === topic && c.band === band);
-  return (
-    <section id="mestre" className={cn(CONTAINER, "scroll-mt-24")}>
-      <SectionHeader
-        eyebrow="Per al mestre"
-        title={
-          <>
-            On s&apos;encalla la classe, <span className="text-gradient">sense corregir res.</span>
-          </>
-        }
-        lead="Una sola pantalla: el mapa de temes per franges d'Elo i les trampes on cau més la classe, amb la idea equivocada que hi porta. Només àlies, cap nom real."
-      />
-      <Reveal>
-        <DoubleCard plain className="grid gap-8 p-6 md:grid-cols-[1.4fr_1fr] md:items-center md:p-10">
-          <div className="overflow-x-auto">
-            <table className="w-full border-separate border-spacing-1.5 text-[13px]">
-              <thead>
-                <tr>
-                  <th />
-                  {bands.map((b) => (
-                    <th key={b} className="pb-1 text-center text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                      {b}–{b + width - 1}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {topics.map((t) => (
-                  <tr key={t}>
-                    <td className="pr-3 text-right whitespace-nowrap text-muted-foreground">{cap(t)}</td>
-                    {bands.map((b) => {
-                      const c = cell(t, b);
-                      const acc = c && c.attempts ? c.accuracy : null;
-                      return (
-                        <td
-                          key={b}
-                          className="h-10 min-w-16 rounded-lg text-center font-mono text-[12px] tabular-nums"
-                          style={{
-                            background:
-                              acc === null
-                                ? "rgb(0 0 0 / 0.035)"
-                                : `color-mix(in oklab, hsl(${Math.round(acc * 130)} 70% 50%) ${18 + acc * 22}%, white)`,
-                          }}
-                        >
-                          {acc === null ? "" : `${Math.round(acc * 100)}%`}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-col gap-4">
-            <p className="text-[15px] leading-relaxed font-light text-muted-foreground">
-              Cada casella és el percentatge d&apos;encerts al primer intent. Les trampes del Cangur es converteixen en
-              dades: «el 40% ha triat la B: han sumat només dos dies».
-            </p>
-            <Link
-              href="/mestre/"
-              className="inline-flex w-fit items-center gap-2 rounded-xl bg-[#1c1c1d] px-5 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-            >
-              Obre la vista del mestre <ArrowUpRight className="size-4" />
-            </Link>
-          </div>
-        </DoubleCard>
       </Reveal>
     </section>
   );
@@ -552,7 +472,6 @@ export function SiteFooter() {
         <div className="flex flex-col gap-2.5">
           <p className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">Producte</p>
           <Link href="/app/" className="text-sm font-light text-gray-600 hover:text-foreground">Comença</Link>
-          <Link href="/mestre/" className="text-sm font-light text-gray-600 hover:text-foreground">Vista del mestre</Link>
           <Link href="/placa/" className="text-sm font-light text-gray-600 hover:text-foreground">Sala de màquines</Link>
         </div>
         <div className="flex flex-col gap-2.5">

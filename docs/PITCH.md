@@ -33,8 +33,6 @@ Wi-Fi apagat. Problema triat i provat el mateix dia.
    «Aquest problema és més fàcil i fa servir la mateixa idea. El trobem perquè
    hem relacionat els 1.747 problemes pel *mètode* de resolució, no per la història.»
 6. **Encertar.** La matriu marca ✓ i puja la ratxa.
-7. **Vista del mestre**, 10 segons: «el mestre veu on s'encalla la classe i
-   quina trampa és la més triada, amb l'error de raonament que hi porta.»
 
 ## 1:50 – 2:30 · Els números (qui: ___)
 

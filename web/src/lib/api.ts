@@ -2,7 +2,9 @@
 //
 // A la placa, la web i l'API comparteixen origen (port 7000), així que la base
 // és buida. Amb `pnpm dev`, la web corre al 3000 i l'API al 7000.
-import { clearSession } from "./session";
+import { useSyncExternalStore } from "react";
+import { DEMO_STUDENT, DemoError, demoCall, demoChat, resetDemo } from "./demo";
+import { clearSession, loadSession } from "./session";
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ??
@@ -108,18 +110,6 @@ export type Profile = {
     problem_elo: number | null; elo_before: number | null; elo_after: number | null; ts: string }[];
 };
 
-export type Teacher = {
-  students: number;
-  attempts: number;
-  avg_elo: number | null;
-  /** Franja d'Elo del problema: `band` és l'inici (1200 = de 1200 a 1299). */
-  cells: { topic: string; band: number; attempts: number; correct: number; accuracy: number; avg_hints: number }[];
-  traps: { problem_id: string; letter: string; count: number; share: number | null; trap: string; topic: string; problem_elo: number; image_url: string }[];
-  topics: string[];
-  bands: number[];
-  band_width: number;
-};
-
 export type Stats = {
   host: string;
   llm: "up" | "down";
@@ -171,13 +161,84 @@ export const isUnknownStudent = (error: unknown) =>
  *  timeout de la IA de la placa, 40 s, i el de l'OCR, 60 s). */
 export type CallOptions = { signal?: AbortSignal; timeoutMs?: number };
 
+/* ------------------------------------------------------------------ */
+/* Placa o mode demo                                                   */
+/* ------------------------------------------------------------------ */
+//
+// Si no hi ha cap placa (l'API no respon), la web passa sola al mode demo:
+// un backend simulat al navegador (lib/demo.ts) amb problemes inventats. Així
+// es pot navegar i dissenyar sense l'Arduino. `?demo=1` el força.
+
+export type BackendMode = "unknown" | "live" | "demo";
+let mode: BackendMode = "unknown";
+const modeListeners = new Set<() => void>();
+const FORCE_KEY = "mathey-force-demo";
+
+function forced() {
+  try {
+    if (new URLSearchParams(window.location.search).get("demo") === "1") sessionStorage.setItem(FORCE_KEY, "1");
+    return sessionStorage.getItem(FORCE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setMode(next: BackendMode) {
+  if (mode === next) return;
+  mode = next;
+  modeListeners.forEach((l) => l());
+}
+
+/** "unknown" fins a la primera crida; després "live" (placa) o "demo". */
+export function useBackendMode(): BackendMode {
+  return useSyncExternalStore(
+    (l) => {
+      modeListeners.add(l);
+      return () => modeListeners.delete(l);
+    },
+    () => mode,
+    () => "unknown",
+  );
+}
+
+/** Torna a buscar la placa. Si respon, surt del mode demo (i l'alumne de demo torna a l'entrada). */
+export async function retryLive(): Promise<boolean> {
+  try {
+    sessionStorage.removeItem(FORCE_KEY);
+  } catch {
+    /* res */
+  }
+  try {
+    const r = await fetch(`${API_BASE}/api/health`, { cache: "no-store", signal: AbortSignal.timeout(3000) });
+    if (!r.ok || !(r.headers.get("content-type") ?? "").includes("json")) return false;
+    if (loadSession()?.student === DEMO_STUDENT) clearSession();
+    resetDemo();
+    setMode("live");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function viaDemo<T>(method: string, path: string, body?: object): Promise<T> {
+  setMode("demo");
+  try {
+    return (await demoCall(method, path, body as Record<string, unknown>)) as T;
+  } catch (error) {
+    if (error instanceof DemoError) throw new ApiError(error.status, error.message);
+    throw error;
+  }
+}
+
 async function call<T>(
   method: "GET" | "POST",
   path: string,
   body?: object,
   { signal, timeoutMs = 70_000 }: CallOptions = {},
 ): Promise<T> {
-  const timeout = AbortSignal.timeout(timeoutMs);
+  if (mode === "demo" || (mode === "unknown" && forced())) return viaDemo<T>(method, path, body);
+  // Mentre no se sap si hi ha placa, l'espera és curta: sense placa, a la demo de seguida
+  const timeout = AbortSignal.timeout(mode === "unknown" ? Math.min(timeoutMs, 4000) : timeoutMs);
   let response: Response;
   try {
     response = await fetch(`${API_BASE}/api${path}`, {
@@ -188,10 +249,15 @@ async function call<T>(
       signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
     });
   } catch (error) {
-    if (timeout.aborted) throw new ApiError(504, "La placa ha trigat massa a respondre.");
     if (signal?.aborted) throw error;
+    if (mode !== "live") return viaDemo<T>(method, path, body); // no hi ha placa
+    if (timeout.aborted) throw new ApiError(504, "La placa ha trigat massa a respondre.");
     throw new ApiError(0, "No hi ha connexió amb la placa.");
   }
+  const isJson = (response.headers.get("content-type") ?? "").includes("json");
+  // Una web servida sense el mentor al darrere (p. ex. un servidor estàtic): també és demo
+  if (!isJson && mode !== "live") return viaDemo<T>(method, path, body);
+  setMode("live");
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     const message = (data as { error?: string }).error ?? response.statusText;
@@ -232,6 +298,7 @@ async function ownChat(
     onEvent: (event: ChatEvent) => void;
   },
 ) {
+  if (mode === "demo") return demoChat(own_id, { message, history, signal, onEvent });
   let response: Response;
   try {
     response = await fetch(`${API_BASE}/api/own/chat`, {
@@ -268,7 +335,8 @@ async function ownChat(
 /** Primera lletra en majúscula (el CSS `capitalize` faria «Combinatòria I Probabilitat»). */
 export const cap = (text: string) => (text ? text[0].toUpperCase() + text.slice(1) : text);
 
-export const imageUrl = (problem: Pick<Problem, "image_url">) => `${API_BASE}${problem.image_url}`;
+/** URL de la imatge del problema, o "" si no en té (els problemes del mode demo són només text). */
+export const imageUrl = (problem: Pick<Problem, "image_url">) => (problem.image_url ? `${API_BASE}${problem.image_url}` : "");
 
 export const api = {
   health: () => call<Health>("GET", "/health"),
@@ -287,7 +355,6 @@ export const api = {
     call<ExplainResult>("POST", "/explain", { student, problem_id, letter, text }, options),
   warm: (problem_id: string) => call<{ started: boolean }>("POST", "/warm", { problem_id }),
   profile: (student: number) => call<Profile>("GET", `/profile?student=${student}`),
-  teacher: () => call<Teacher>("GET", "/teacher"),
   matrix: () => call<{ matrix: Matrix }>("GET", "/matrix"),
   stats: () => call<Stats>("GET", "/stats"),
   ownOcr: (student: number, image: string, options?: CallOptions) =>
@@ -298,6 +365,3 @@ export const api = {
     call<OwnHelp>("POST", "/own/help", { student, own_id, doubt }, options),
   ownChat,
 };
-
-// Per a la pàgina antiga d'estat
-export const getHealth = api.health;

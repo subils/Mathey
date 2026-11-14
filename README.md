@@ -36,7 +36,6 @@ student data ever leaves the device.
 | Student | Easy-reading mode (dyslexia): short sentences, one idea per line, large type |
 | Student | Adaptive path by Elo: every first answer updates the student's and the problem's rating; the next problem is an unseen one near the student's Elo, weakest topic first |
 | Student | **Bring your own problem** (chat): paste or snap a photo of homework → on-board OCR → a Kangaroo problem with the same idea → the on-board model works through it step by step, streamed and clearly labelled "may be wrong, check each step" |
-| Teacher | Class map (topic × problem Elo band), class average Elo, and the traps the class falls into most, with the mistaken reasoning behind each |
 
 ## How we use M3Kang
 
@@ -51,8 +50,8 @@ the model: **it is the mentor.**
    matches the official one: **509 of 517 verified (98.5%)**.
 2. **"Sibling" problems.** Problems are linked by similarity of *method* (key idea +
    solution), not of story, so an easier problem with the same idea is one click away.
-3. **Traps as data.** Kangaroo distractors become feedback for the student and a
-   class-level map for the teacher.
+3. **Traps as data.** Kangaroo distractors become feedback for the student: each
+   wrong option comes with the typical mistake behind it.
 4. **Topics for error analysis.** All 1,747 problems carry one of five topics.
 5. **We found errors in M3Kang's answer key.** Of the 8 problems where the blind
    solution disagreed with the official answer, 6 come from the same exam (level 2,
@@ -78,7 +77,8 @@ content is in this repository.
 ```
 
 - `web/` — Next.js static export (no Node on the board): landing at `/`, the app at
-  `/app/` (Kangaroo challenge, chat), `/mestre/` and `/placa/`. Light "liquid glass"
+  `/app/` (Kangaroo challenge, chat) and `/placa/`. Without a board it switches to a
+  demo mode with made-up problems, so it can be browsed and designed anywhere. Light "liquid glass"
   design with local Geist fonts; see [web/README.md](web/README.md).
 - `mentor/` — the mentor logic: API routes, adaptive engine, help ladder, leak
   filter, similarity, LED frames, model client.

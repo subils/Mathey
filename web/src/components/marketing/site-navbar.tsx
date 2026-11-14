@@ -4,15 +4,15 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DemoBadge } from "@/components/app/demo-badge";
 import { Logo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 
-// Rutes absolutes (`/#id`): des de /mestre/ o /placa/ també porten a la secció de la landing.
+// Rutes absolutes (`/#id`): des de /placa/ també porten a la secció de la landing.
 const NAV_LINKS = [
   { href: "/#com-funciona", label: "Com funciona" },
   { href: "/#modes", label: "Modes" },
   { href: "/#placa", label: "La placa" },
-  { href: "/#mestre", label: "Mestre" },
 ];
 
 const EASE = "ease-[cubic-bezier(0.16,1,0.3,1)]";
@@ -68,6 +68,7 @@ export function SiteNavbar() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <DemoBadge />
             <Link
               href="/placa/"
               className="hidden items-center rounded-lg bg-black/5 px-3.5 py-1.5 text-[14px] font-medium text-[#1c1c1d] transition-colors hover:bg-black/10 md:inline-flex"

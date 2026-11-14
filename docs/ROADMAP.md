@@ -143,7 +143,7 @@ Triar els problemes de la demo i provar-los a la placa. Tres assajos amb cronòm
 |---|---|---|
 | **P0** | Pràctica amb imatges i correcció · matriu ✓/✗ · següent problema adaptatiu · pistes sense model · tot servit per la placa sense xarxa · `predict.py` intacte | no hi ha demo |
 | **P1** | Reformulació en directe amb preescalfament · pistes precalculades amb control de filtració · perfil per tema · `predict.py` per sobre del 25% · català i anglès · tots els números mesurats | hi ha demo però no guanya |
-| **P2** | Sala de màquines · castellà · mode aula amb vots · mode dislèxia · vista del professor · veu | no passa res |
+| **P2** | Sala de màquines · castellà · mode aula amb vots · mode dislèxia · ~~vista del professor~~ (eliminada el 14/11) · veu | no passa res |
 
 Ordre de tall si anem tard: P2 sencer → castellà → perfil detallat → pista generada (queda la reformulació) → reformulació en directe. El P0 no es talla.
 

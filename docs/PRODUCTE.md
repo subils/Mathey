@@ -28,7 +28,7 @@ la trobis tu.** Fa servir els 1.747 problemes del Cangur com a gimnàs.
 | Qui | Què hi fa | Què hi guanya |
 |---|---|---|
 | **Alumne de 10 a 14 anys** (5è de primària a 2n d'ESO) — usuari principal | Practica problemes al seu nivell i demana ajuda quan s'encalla | Arriba a la resposta ell sol, amb ajuda graduada; no és jutjat ni etiquetat |
-| **Mestre de matemàtiques** — qui el posa a l'aula | Engega la placa, crea la sessió de la classe i mira on s'encalla el grup | Veu per tema i nivell on falla la classe, sense corregir res a mà |
+| **Mestre de matemàtiques** — qui el posa a l'aula | Engega la placa i hi connecta la classe | Cada alumne té ajuda quan s'encalla, sense que el mestre hagi de seure al seu costat |
 | **Escola** — qui el compra | Té un aparell per aula, sense subscripcions | Cap dada d'alumnes al núvol; funciona sense xarxa |
 
 **Per què de 10 a 14 anys.** Són els nivells 0–3 del Cangur (517 problemes per
@@ -101,15 +101,12 @@ números) es manté per compatibilitat.
 classe: el problema dels deures es connecta amb un problema del Cangur ja
 verificat que fa servir la mateixa idea.
 
-## 5. Vista del mestre
+## 5. Vista del mestre (eliminada)
 
-Una sola pantalla:
-
-- **Mapa de la classe:** temes × nivells, amb el percentatge d'encerts i on més
-  ajudes es demanen.
-- **Les trampes més freqüents:** les opcions incorrectes que més tria la classe i
-  la idea equivocada que hi porta («el 40% ha triat B: han sumat només dos dies»).
-- **Sense noms reals ni dades personals**: només àlies.
+Per ordre del fundador (14/11, ~19:30), **de moment no hi ha cap funcionalitat per
+al professor**: ni mapa de la classe, ni trampes de la classe, ni ruta a l'API. El
+producte és només per a l'alumne. Les trampes de cada opció continuen servint
+com a resposta a l'alumne quan s'equivoca.
 
 ## 6. Qui fa què dins del producte
 
@@ -123,7 +120,7 @@ Una sola pantalla:
 | Llegir el text de la foto d'un problema propi | Servei OCR a la placa | Durant la sessió |
 | Trobar problemes del banc amb la mateixa idea que un problema propi | Cerca per semblança a la placa | Instantani |
 | Pista per continuar un problema propi, a partir del dubte de l'alumne | **IA de la placa, en directe**, amb el problema semblant resolt com a exemple | Durant la sessió |
-| Problema germà, nivell següent, correcció, perfil, mapa del mestre | Codi i dades a la placa | Instantani |
+| Problema germà, nivell següent, correcció, perfil | Codi i dades a la placa | Instantani |
 | ✓ / ✗, nivell, ratxa, «pensant» | Matriu de LEDs | Instantani |
 
 **Per què la IA de la placa ara sí que serveix.** Sola, encerta el 22,5%: no pot
@@ -135,11 +132,11 @@ continua fent en directe tot el que veu l'alumne, sense internet.
 
 | Camp | Per a què |
 |---|---|
-| Tema (un de 5) | Problema germà, mapa del mestre, anàlisi d'errors |
+| Tema (un de 5) | Problema germà, anàlisi d'errors |
 | Idea clau | Context per a la IA de la placa |
 | 3 pistes graduades | Graons 1, 2 i 4 de l'escala |
 | Solució pas a pas | Graó 5 i context de la IA de la placa |
-| Trampa de cada opció incorrecta | Resposta immediata quan l'alumne tria una opció concreta; mapa del mestre |
+| Trampa de cada opció incorrecta | Resposta immediata quan l'alumne tria una opció concreta |
 | Enunciat fàcil de llegir | Mode dislèxia |
 | Comprovació | La resposta de l'agent coincideix amb l'oficial? Si no, el problema queda fora |
 
@@ -179,7 +176,7 @@ Mentre l'equip no digui el contrari, s'ha aplicat l'opció recomanada (14/11, ta
 
 1. **Edat objectiu:** 10–14 anys (aplicat) o tots els nivells.
 2. **Veu:** pendent de la resposta dels mentors sobre el micròfon del portàtil.
-3. **Vista del mestre:** entra (aplicat: ja funciona) o es queda per a després.
+3. **Vista del mestre:** eliminada per ordre del fundador (14/11, ~19:30).
 4. **Abast del contingut:** els 517 problemes dels nivells 0–3 en català (en
    marxa); la resta, només si cal.
 5. **Què han aprovat exactament els mentors:** registrat com «pistes preparades
@@ -190,5 +187,6 @@ Mentre l'equip no digui el contrari, s'ha aplicat l'opció recomanada (14/11, ta
 Funciona al portàtil i provat de punta a punta a Safari: entrada, pràctica amb
 imatge i lectura fàcil, correcció amb matriu simulada, «Com ho has pensat?» (amb
 la reserva preparada; la IA de la placa encara no s'ha provat), escala de cinc
-ajudes amb problema germà, nivell adaptatiu, perfil i vista del mestre.
+ajudes amb problema germà, nivell adaptatiu i perfil. (La vista del mestre es va
+treure el 14/11 al vespre.)
 **Res s'ha provat encara a la placa.**
