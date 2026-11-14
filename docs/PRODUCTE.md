@@ -78,8 +78,8 @@ examen) i la IA de la placa fa una feina que cap contingut preparat pot fer.
    - Els passos apareixen a mesura que la IA els escriu (streaming).
    - Si el problema semblant s'hi assembla molt (puntuació ≥ 0,50), la IA el
      rep com a exemple. Amb 40 problemes propis jutjats a mà, per sota d'aquest
-     llindar el semblant ajuda amb la idea només un de cada tres cops
-     (`scripts/eval_retrieval.py`); aleshores només es proposa per practicar el tema.
+     llindar el semblant ajuda amb la idea en 7 de 34 casos (per sobre, en 4 de
+     5) (`scripts/eval_retrieval.py`); aleshores només es proposa per practicar el tema.
 5. **L'alumne pot preguntar el que no entén** («per què restes?») i la IA respon
    en dues a quatre frases sobre el seu problema.
 
