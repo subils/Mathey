@@ -58,7 +58,7 @@ export function ResendCube({ className }: { className?: string }) {
         )}
       />
       {state === "fallback" && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center mix-blend-lighten">
           <video
             autoPlay
             loop
@@ -67,7 +67,7 @@ export function ResendCube({ className }: { className?: string }) {
             poster="/static/cube-fallback.jpg"
             width={400}
             height={400}
-            className="size-[min(100%,400px)] rounded-3xl bg-black object-contain"
+            className="size-[min(100%,400px)] object-contain"
           >
             <source src="/static/cube.mp4" type="video/mp4" />
           </video>

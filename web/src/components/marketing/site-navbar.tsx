@@ -20,8 +20,9 @@ const EASE = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 /**
  * El navbar de Faktu (components/marketing/site-navbar.tsx): píndola de vidre
  * flotant, enllaços centrats amb una píndola de fons en passar el cursor, i dos
- * botons a la dreta. Damunt del hero clar de Mathey la tinta és sempre fosca; en
- * passar el hero, el vidre guanya opacitat (`.scrolled`).
+ * botons a la dreta. Damunt del hero fosc (el de resend.com) la tinta és blanca i
+ * el vidre és el de Faktu sobre el vídeo (`.on-dark`); en passar el hero, tinta
+ * fosca i vidre clar (`.scrolled`). Els mateixos jocs de colors que Faktu.
  */
 export function SiteNavbar() {
   const pathname = usePathname();
@@ -41,6 +42,11 @@ export function SiteNavbar() {
   }, [hasHero]);
 
   const overHero = hasHero && heroVisible;
+  // Faktu (site-navbar.tsx): els colors canvien segons si és damunt del hero
+  const ink = overHero ? "text-white" : "text-[#1c1c1d]";
+  const linkHover = overHero ? "before:bg-white/20" : "before:bg-black/[0.06]";
+  const ghostBtn = overHero ? "bg-white/10 text-white hover:bg-white/20" : "bg-black/5 text-[#1c1c1d] hover:bg-black/10";
+  const solidBtn = overHero ? "bg-white text-[#1c1c1d] hover:bg-white/90" : "bg-[#1c1c1d] text-white hover:opacity-90";
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 pt-4 md:pt-6">
@@ -48,10 +54,10 @@ export function SiteNavbar() {
         <nav
           className={cn(
             "navbar-glass relative flex h-[52px] items-center justify-between px-2 md:px-3",
-            !overHero && "scrolled",
+            overHero ? "on-dark" : "scrolled",
           )}
         >
-          <Link href="/" className="flex shrink-0 items-center px-1.5 text-[#1c1c1d]" aria-label="Mathey, inici">
+          <Link href="/" className={cn("flex shrink-0 items-center px-1.5 transition-colors", ink)} aria-label="Mathey, inici">
             <Logo className="h-[22px]" />
           </Link>
 
@@ -60,7 +66,11 @@ export function SiteNavbar() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="relative text-[14px] font-medium text-[#1c1c1d] transition-colors before:pointer-events-none before:absolute before:-inset-x-2 before:-inset-y-1.5 before:rounded-lg before:bg-black/[0.06] before:opacity-0 before:transition-opacity before:content-[''] hover:before:opacity-100"
+                className={cn(
+                  "relative text-[14px] font-medium transition-colors before:pointer-events-none before:absolute before:-inset-x-2 before:-inset-y-1.5 before:rounded-lg before:opacity-0 before:transition-opacity before:content-[''] hover:before:opacity-100",
+                  ink,
+                  linkHover,
+                )}
               >
                 {l.label}
               </Link>
@@ -71,13 +81,13 @@ export function SiteNavbar() {
             <DemoBadge />
             <Link
               href="/placa/"
-              className="hidden items-center rounded-lg bg-black/5 px-3.5 py-1.5 text-[14px] font-medium text-[#1c1c1d] transition-colors hover:bg-black/10 md:inline-flex"
+              className={cn("hidden items-center rounded-lg px-3.5 py-1.5 text-[14px] font-medium transition-colors md:inline-flex", ghostBtn)}
             >
               Veure la placa
             </Link>
             <Link
               href="/app/"
-              className="hidden items-center gap-1 rounded-lg bg-[#1c1c1d] px-3.5 py-1.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90 md:inline-flex"
+              className={cn("hidden items-center gap-1 rounded-lg px-3.5 py-1.5 text-[14px] font-medium transition-colors md:inline-flex", solidBtn)}
             >
               Comença <ArrowUpRight className="size-3.5" />
             </Link>
@@ -86,7 +96,7 @@ export function SiteNavbar() {
               aria-label={open ? "Tanca el menú" : "Obre el menú"}
               aria-expanded={open}
               onClick={() => setOpen((o) => !o)}
-              className="ml-1 flex size-8 flex-col items-center justify-center gap-[5px] text-[#1c1c1d] md:hidden"
+              className={cn("ml-1 flex size-8 flex-col items-center justify-center gap-[5px] md:hidden", ink)}
             >
               <span className={cn("block h-[1.5px] w-5 origin-center bg-current transition-all duration-150", EASE, open && "translate-y-[6.5px] rotate-45")} />
               <span className={cn("block h-[1.5px] w-5 bg-current transition-all duration-150", EASE, open && "opacity-0")} />

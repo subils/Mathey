@@ -59,8 +59,11 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   Ho fa `web/src/lib/demo.ts`, amb problemes inventats, no de M3Kang.
 - 14/11/2026, ~20:00: segons el fundador, **Resend ha autoritzat l'equip a fer
   servir el disseny de resend.com**, inclòs el cub 3D del seu hero.
-  - Els fitxers originals són a `web/public/static/`: `cube.splinecode`, `cube.mp4`
-    i `cube-fallback.jpg`.
+  - Els fitxers originals són a `web/public/static/`: `cube.splinecode`, `cube.mp4`,
+    `cube-fallback.jpg`, `texture-btn.png` i `landing-page/` (`bg-hero-1.jpg`,
+    `bg-light.avif`).
+  - El primer requadre de la landing és el hero de Resend tal qual: fons negre,
+    les seves capes de llum i el seu CSS (`globals.css`, bloc «Hero de resend.com»).
   - Es pinten amb `@splinetool/runtime`; els `.wasm` són a `web/public/spline/`,
     sense CDN.
   - Crèdit al peu de la landing.

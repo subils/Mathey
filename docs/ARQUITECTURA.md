@@ -272,7 +272,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 
 | Ruta | Què és |
 |---|---|
-| `/` | Landing: navbar de vidre, hero amb la composició de resend.com (text a l'esquerra i el seu cub 3D de Spline a la dreta, amb permís), escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
+| `/` | Landing: navbar de vidre, hero de resend.com tal qual (amb permís): fons negre amb les seves capes de llum, text a l'esquerra i el seu cub 3D de Spline a la dreta; després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
 | `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
