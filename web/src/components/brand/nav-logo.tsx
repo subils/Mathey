@@ -7,11 +7,10 @@ import { cn } from "@/lib/utils";
 import { Logo } from "./logo";
 
 /**
- * El logo dels navbars amb «BETA» en petit a baix a la dreta. Hereta el color
- * del pare (`currentColor`), així que va bé damunt del hero fosc i del vidre clar.
- *
- * El mode demo (sense placa, lib/demo.ts) no té cap insígnia pròpia: la mateixa
- * etiqueta BETA, en clicar-hi, explica que no hi ha placa i deixa tornar-la a buscar.
+ * El logo dels navbars. Només en mode demo (sense placa, lib/demo.ts) porta
+ * «DEMO» en petit a baix a la dreta; amb la placa connectada no hi ha etiqueta.
+ * Hereta el color del pare (`currentColor`), així que va bé damunt del hero fosc
+ * i del vidre clar. En clicar-hi, explica que no hi ha placa i deixa tornar-la a buscar.
  */
 export function NavLogo({ className }: { className?: string }) {
   return (
@@ -19,14 +18,14 @@ export function NavLogo({ className }: { className?: string }) {
       <Link href="/" className="flex items-center" aria-label="Mathey, inici">
         <Logo className="h-[22px]" />
       </Link>
-      <BetaTag />
+      <DemoTag />
     </div>
   );
 }
 
 const TAG = "text-[8px] leading-none font-semibold tracking-[0.14em] uppercase";
 
-function BetaTag() {
+function DemoTag() {
   const demo = useBackendMode() === "demo";
   const [open, setOpen] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -48,9 +47,8 @@ function BetaTag() {
     };
   }, [open]);
 
-  if (!demo) {
-    return <span className={cn(TAG, "mb-[2px] opacity-45")}>Beta</span>;
-  }
+  // Amb la placa (o mentre encara no se sap si hi és) no hi ha cap etiqueta.
+  if (!demo) return null;
 
   async function retry() {
     setChecking(true);
@@ -67,13 +65,13 @@ function BetaTag() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label="Versió beta, mode demo: no hi ha cap placa connectada"
+        aria-label="Mode demo: no hi ha cap placa connectada"
         className={cn(
           TAG,
           "relative opacity-45 transition-opacity duration-200 before:absolute before:-inset-2 before:content-[''] hover:opacity-80 aria-expanded:opacity-80",
         )}
       >
-        Beta
+        Demo
       </button>
 
       <div

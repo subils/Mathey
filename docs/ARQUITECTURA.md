@@ -318,8 +318,9 @@ servida sense el mentor al darrere), `web/src/lib/api.ts` passa sola al mode dem
 - Totes les crides van a `web/src/lib/demo.ts`: un backend simulat al navegador amb
   el mateix contracte, 8 problemes **inventats per nosaltres** (no de M3Kang, sense
   imatge: la web n'ensenya el text), Elo, ratxa, ajudes, OCR i xat simulats.
-- Sense insígnia pròpia: el logo dels navbars porta sempre «BETA» en petit, i en
-  mode demo, en clicar-hi, explica que no hi ha placa i la deixa tornar a buscar.
+- Sense insígnia pròpia: només en mode demo, el logo dels navbars porta «DEMO» en
+  petit; en clicar-hi, explica que no hi ha placa i la deixa tornar a buscar. Amb
+  placa, el logo va sense etiqueta.
 - `?demo=1` el força. Mentre no se sap si hi ha placa, l'espera màxima és de 4 s.
 - Serveix per navegar i dissenyar sense l'Arduino; **no és el que es presenta**.
 

@@ -33,9 +33,9 @@ Si l'API no respon, la web passa sola al **mode demo**: `src/lib/demo.ts` fa de
 backend dins del navegador, amb el mateix contracte que `/api`.
 - Fa servir 8 problemes inventats per nosaltres (no de M3Kang).
 - L'Elo, les ajudes, l'OCR i el xat són simulats.
-- No hi ha cap insígnia pròpia: al costat del logo dels navbars hi ha sempre
-  «BETA» en petit (`components/brand/nav-logo.tsx`). En mode demo s'hi pot clicar:
-  explica que no hi ha placa i la deixa tornar a buscar.
+- No hi ha cap insígnia pròpia: només en mode demo, al costat del logo dels navbars
+  hi ha «DEMO» en petit (`components/brand/nav-logo.tsx`); amb placa no hi ha res.
+  S'hi pot clicar: explica que no hi ha placa i la deixa tornar a buscar.
 - `?demo=1` el força.
 
 Així es pot navegar i dissenyar sense l'Arduino: n'hi ha prou amb `pnpm dev`, sense
@@ -81,7 +81,7 @@ Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 | `src/lib/api.ts` | L'únic lloc que sap on és l'API. `ownChat` llegeix l'NDJSON del xat |
 | `src/lib/session.ts`, `use-student.ts` | Sessió de l'alumne al navegador; si la placa no el coneix, torna a l'onboarding |
 | `src/components/app/` | Barra de l'app, targetes de mode |
-| `src/components/brand/` | Logo, cangur i `nav-logo.tsx` (logo + «BETA», que fa d'avís del mode demo) |
+| `src/components/brand/` | Logo, cangur i `nav-logo.tsx` (logo + «DEMO», només en mode demo) |
 | `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
 | `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís); `visuals.tsx`, les il·lustracions animades; `mini-product.tsx`, les rèpliques en miniatura del Repte i del xat que surten a «Dos modes»; `smooth-scroll.tsx`, el smooth scroll de Faktu (Lenis) |
 | `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) |
