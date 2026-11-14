@@ -76,6 +76,7 @@ def main():
             "BASE": elo.BASE, "LEVEL_STEP": elo.LEVEL_STEP, "SPREAD": elo.SPREAD,
             "GUESS": elo.GUESS, "SCALE": elo.SCALE,
             "questions_per_exam": {str(lv): elo.questions_in_exam(lv) for lv in range(8)},
+            "K_student_placement": elo.K_PLACEMENT, "placement_attempts": elo.PLACEMENT_ATTEMPTS,
             "K_student_new": elo.K_NEW, "K_student_stable": elo.K_STABLE,
             "new_student_attempts": elo.NEW_ATTEMPTS, "K_problem": elo.K_PROBLEM,
             "initial_student_elo": {grade: elo.initial_student_elo(lv) for grade, lv in elo.GRADE_LEVEL.items()},

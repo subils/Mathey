@@ -40,7 +40,16 @@ SCALE = 400
 QUESTIONS = {0: 24, 1: 24}  # la resta de nivells: 30
 DEFAULT_QUESTIONS = 30
 
-# K de l'alumne: alta al principi (encara no sabem el seu nivell) i després més estable
+# K de l'alumne: com més problemes fa, menys es mou l'Elo per cada resposta.
+# 1. Col·locació (els PLACEMENT_ATTEMPTS primers): K molt alta, perquè l'Elo inicial
+#    només ve del curs que diu fer l'alumne i pot estar lluny del real. Amb alumnes
+#    simulats (scripts/simulate_students.py), passar de 40 a 100 en aquests problemes
+#    redueix l'error dels mal situats de ~177 a ~109 punts després de 30 problemes,
+#    sense empitjorar els que ja comencen a prop del seu Elo real.
+# 2. Nou (fins a NEW_ATTEMPTS): encara ajustant.
+# 3. Estable: canvis petits.
+K_PLACEMENT = 100
+PLACEMENT_ATTEMPTS = 8
 K_NEW = 40
 K_STABLE = 24
 NEW_ATTEMPTS = 20
@@ -117,6 +126,15 @@ def score(correct, hints_used=0):
     return max(0.4, 1.0 - 0.15 * hints_used)
 
 
+def k_student(attempts):
+    """K de l'alumne segons quants problemes ha fet abans d'aquest."""
+    if attempts < PLACEMENT_ATTEMPTS:
+        return K_PLACEMENT
+    if attempts < NEW_ATTEMPTS:
+        return K_NEW
+    return K_STABLE
+
+
 def update(student_elo, problem_elo_value, result, attempts=NEW_ATTEMPTS):
     """Torna (nou Elo de l'alumne, nou Elo del problema).
 
@@ -124,7 +142,6 @@ def update(student_elo, problem_elo_value, result, attempts=NEW_ATTEMPTS):
     `attempts` és quants problemes ha fet l'alumne abans d'aquest.
     """
     e = expected(student_elo, problem_elo_value)
-    k = K_NEW if attempts < NEW_ATTEMPTS else K_STABLE
-    new_student = student_elo + k * (result - e)
+    new_student = student_elo + k_student(attempts) * (result - e)
     new_problem = problem_elo_value - K_PROBLEM * (result - e)
     return round(new_student), round(new_problem)
