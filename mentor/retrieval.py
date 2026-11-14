@@ -8,6 +8,7 @@ verificat que fan servir la mateixa idea.
     find_similar(text, k=3, max_level=None, exclude=())  -> [{"id", "score", "topic", "level"}, ...]
     guess_topic(text)                                    -> (tema, confiança entre 0 i 1)
     LOW_SCORE                                            -> per sota, «no he trobat res prou semblant»
+    HIGH_SCORE                                           -> per sobre, la seva idea clau guia la pista de la IA
     warm()                                               -> construeix l'índex per endavant
 
 Com funciona (només biblioteca estàndard, sense cap model):
@@ -89,6 +90,13 @@ DEFAULT = {
 # la majoria dels textos que no són problemes de matemàtiques; per sobre hi
 # queden gairebé tots els problemes de debò (els números, a la taula).
 LOW_SCORE = 0.15
+
+# Per sobre d'aquesta puntuació, la idea clau del problema trobat es passa a la IA
+# com a pista per al problema propi. Per sota, el problema només es proposa per
+# practicar el tema: amb 40 problemes propis jutjats a mà, entre 0,15 i 0,50 el
+# primer resultat ajuda amb la idea només un de cada tres cops (i en part, un
+# altre), i a partir de 0,50 en 4 de 5. Mostra petita: és una tria prudent.
+HIGH_SCORE = 0.50
 
 # ---------------------------------------------------------------------------
 # Text net

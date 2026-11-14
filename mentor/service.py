@@ -513,11 +513,13 @@ def own_match(params):
         topic_confidence, siblings, best_score, found) VALUES (?, ?, ?, ?, ?, ?, ?)""",
         (student["id"], text, topic, float(confidence), json.dumps([s["id"] for s in siblings]),
          float(hits[0]["score"]) if hits else 0.0, int(found)))
+    # Només un problema molt semblant guia la pista; els altres serveixen per practicar el tema
+    guides = found and bool(siblings) and hits[0]["score"] >= retrieval.HIGH_SCORE
     # La IA llegeix ara el problema i l'exemple, mentre l'alumne escriu el seu dubte
-    example = _example(siblings[0]["id"]) if found and siblings else None
+    example = _example(siblings[0]["id"]) if guides else None
     threading.Thread(target=llm.warm_own, args=(text, example), daemon=True).start()
     return {"own_id": own_id, "topic": topic, "topic_confidence": round(float(confidence), 2),
-            "found": found, "siblings": siblings if found else [],
+            "found": found, "same_idea": guides, "siblings": siblings if found else [],
             "strategy": strategies.for_topic(topic),
             "message": None if found else "No he trobat cap problema prou semblant al banc, "
                                           "però et puc ajudar igualment si m'expliques on t'encalles."}
@@ -537,7 +539,9 @@ def own_help(params):
     if len(doubt.split()) < 2:
         raise UserError(400, "explica on t'encalles, encara que sigui amb poques paraules")
     sibling_ids = store.loads(own["siblings"], [])
-    example = _example(sibling_ids[0]) if own["found"] and sibling_ids else None
+    from . import retrieval
+    guides = own["found"] and sibling_ids and (own["best_score"] or 0) >= retrieval.HIGH_SCORE
+    example = _example(sibling_ids[0]) if guides else None
     asked = store.one(store.state(), "SELECT COUNT(*) AS n FROM own_helps WHERE own_id = ?", (own_id,))["n"]
     strategy = strategies.for_topic(own["topic"], asked)
     reply, source, rejected, timings = None, "placa", None, {}

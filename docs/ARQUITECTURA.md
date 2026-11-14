@@ -127,6 +127,9 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 | ✅ Vista del mestre: mapa tema × nivell i trampes més triades | SQLite a la placa | mil·lisegons |
 | Veu (llegir i escoltar) | Piper i Whisper a la placa | pendent dels mentors |
 | ✅ Sala de màquines (pàgina «La placa») | `/api/stats` | mil·lisegons |
+| «Porta el teu problema»: foto → text | Tesseract a la placa (servei `math-ocr`, port 8084) | per mesurar a la placa |
+| «Porta el teu problema»: problema semblant per practicar | `mentor/retrieval.py` (paraules, trossos de 4 lletres i conceptes; sense model) | ~1,4 ms al Mac |
+| «Porta el teu problema»: pista segons el dubte | **IA de la placa en directe**; la idea del problema semblant només si la semblança és ≥ 0,50 | per mesurar a la placa |
 
 ### 3.3 Les regles del contingut i del model
 
@@ -281,6 +284,9 @@ la pinta als LEDs.
 | `GET /api/teacher` | — | mapa tema × nivell, trampes més triades |
 | `GET /api/matrix` | — | el dibuix actual de la matriu |
 | `GET /api/stats` | — | sala de màquines: memòria, IA activa, banc, preguntes de la IA (mediana de segons, quantes de reserva) |
+| `POST /api/own/ocr` | `student`, `image` (base64 o data URI, màx. 8 MB) | text llegit; el servei OCR és a `MENTOR_OCR_URL` (a la placa, `http://<host>:8084`) |
+| `POST /api/own/match` | `student`, `text` | `own_id`, tema, fins a 3 problemes semblants, `same_idea` (semblança ≥ 0,50: la seva idea guia la pista), estratègia del tema |
+| `POST /api/own/help` | `student`, `own_id`, `doubt` | `reply` (pista de la IA o reserva preparada), `source`, segons, motiu de rebuig |
 
 La resposta correcta **no viatja mai al navegador** fins que l'alumne l'encerta
 o demana la solució (graó 5, amb confirmació).
@@ -307,6 +313,7 @@ Dos fitxers, cap a GitHub (contenen M3Kang o dades d'alumnes):
 | `attempts` | cada resposta: correcta, primer intent, ajudes usades, segons, tema, nivell |
 | `hints` | cada graó demanat |
 | `explanations` | què ha dit l'alumne, què ha respost el mentor, d'on ha sortit i en quant temps |
+| `own_problems`, `own_helps`, `ocr_reads` | «Porta el teu problema»: el text, els semblants trobats i la puntuació; cada dubte i la pista; cada lectura d'OCR |
 
 Els alumnes del portàtil són de prova: `deploy_board.sh` no els copia a la placa.
 

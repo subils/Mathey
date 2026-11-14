@@ -73,8 +73,12 @@ examen) i la IA de la placa fa una feina que cap contingut preparat pot fer.
 3. **El mentor busca al banc els problemes del Cangur que fan servir la mateixa
    idea** i n'ofereix un per practicar, amb totes les ajudes de sempre.
 4. **L'alumne explica on s'encalla**, amb les seves paraules.
-5. **La IA de la placa li respon amb una pista per continuar**, fent servir com a
-   exemple el problema semblant ja resolt (idea clau i primers passos).
+5. **La IA de la placa li respon amb una pista per continuar**, a partir del seu
+   dubte i de l'estratègia del tema. Només si el problema semblant s'hi assembla
+   molt (puntuació ≥ 0,50) li passa també la seva idea clau com a exemple: amb 40
+   problemes propis jutjats a mà, per sota d'aquest llindar el semblant ajuda amb
+   la idea només un de cada tres cops, i aleshores només es proposa per practicar
+   el tema (`scripts/eval_retrieval.py`).
 
 **El que el mentor no fa:** resoldre el problema de l'alumne. No en sap la
 resposta i no l'afirma mai.
@@ -82,8 +86,9 @@ resposta i no l'afirma mai.
 **Controls.** Com que aquí no hi ha resposta oficial, el control és un altre:
 la pista de la IA no pot contenir cap número que no sigui a l'enunciat o al
 dubte de l'alumne (així no pot «inventar-se» resultats), i ha de ser curta. Si
-no el passa o la IA no respon, l'alumne rep la idea clau del problema semblant,
-presentada com el que és, o una estratègia general del tema escrita per nosaltres.
+no el passa o la IA no respon, l'alumne rep la idea clau del problema semblant
+(només si és molt semblant), presentada com el que és, o una estratègia general
+del tema escrita per nosaltres.
 
 **Per què és el millor ús de la IA de la placa.** Sola no sap resoldre (22,5%).
 Aquí no ha de resoldre: ha de **traslladar** una idea d'un problema resolt a un
