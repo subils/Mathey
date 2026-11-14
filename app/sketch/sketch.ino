@@ -1,4 +1,4 @@
-// Mentor Cangur: el microcontrolador només pinta a la matriu de LEDs 8x13 el
+// Mathey: el microcontrolador només pinta a la matriu de LEDs 8x13 el
 // dibuix que li envia el Python (python/main.py) pel Bridge. Tot el que es
 // mostra es decideix al Python.
 //

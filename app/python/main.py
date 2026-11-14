@@ -1,4 +1,4 @@
-"""Mentor Cangur: l'adaptador de la placa (app d'App Lab).
+"""Mathey: l'adaptador de la placa (app d'App Lab).
 
 Exposa les rutes de mentor/api.py (ROUTES) amb el brick web_ui (FastAPI, port
 7000), serveix la web exportada (assets/) i pinta a la matriu de LEDs el dibuix
@@ -29,14 +29,14 @@ import traceback
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))  # /app/python
-APP_DIR = os.path.dirname(HERE)  # /app = /home/arduino/ArduinoApps/mentor-cangur
+APP_DIR = os.path.dirname(HERE)  # /app = /home/arduino/ArduinoApps/mathey
 DATA_DIR = os.path.join(APP_DIR, "data")
 ASSETS_DIR = os.path.join(APP_DIR, "assets")
 NO_WEB_DIR = os.path.join(HERE, "sense_web")
 
 
 def log(message):
-    print(f"[mentor-cangur] {message}", flush=True)
+    print(f"[mathey] {message}", flush=True)
 
 
 def load_env_file(path):

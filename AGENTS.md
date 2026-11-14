@@ -1,4 +1,4 @@
-# Regles del projecte — Mentor Cangur (Datathon FME 2026, repte Qualcomm)
+# Regles del projecte — Mathey (Datathon FME 2026, repte Qualcomm)
 
 Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
 [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) i [docs/ROADMAP.md](docs/ROADMAP.md).
@@ -32,6 +32,15 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   (zona Dades i lògica). La definició del producte és a `docs/PRODUCTE.md`.
 - 14/11/2026: el material per a l'equip, en català planer i sense palla; Notion
   amb poques pàgines, cadascuna justificada.
+- 14/11/2026, 18:20: **el producte es diu Mathey** (abans «Mentor Cangur»). El
+  paquet Python continua sent `mentor/`.
+- 14/11/2026, 18:20: segons el fundador, l'equip **té autorització, de moment,
+  per tenir públics els fitxers amb problemes de M3Kang** que hi ha al
+  repositori (`data/problems_elo.json`). La regla 2 queda en suspens per a aquests
+  fitxers; abans de publicar-ne de nous o de l'entrega final, torneu-ho a confirmar.
 - 14/11/2026: tot el projecte viu en un únic repositori GitHub, `Mathey`, amb
   l'arrel local a `/Users/gsubils/Desktop/Mathey`; no es creen repositoris Git
   ni submòduls dins de cap subcarpeta.
+- 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
+  `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
+  i han de tenir sempre la versió al dia.

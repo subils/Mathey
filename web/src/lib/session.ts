@@ -5,7 +5,7 @@ import type { Session } from "./api";
 
 // L'alumne es guarda al navegador només per no haver d'entrar cada vegada.
 // Les dades de veritat (intents, nivell) viuen a la placa.
-const KEY = "mentor-cangur-session";
+const KEY = "mathey-session";
 const listeners = new Set<() => void>();
 
 let cachedRaw: string | null = null;

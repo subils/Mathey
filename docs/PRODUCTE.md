@@ -1,4 +1,4 @@
-# Producte — Mentor Cangur
+# Producte — Mathey
 
 Versió 1 · dissabte 14/11/2026, 13:45 · **esborrany per validar amb l'equip**
 

@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mentor Cangur",
+  title: "Mathey",
   description: "Un mentor de matemàtiques que viu dins d'una placa Arduino, sense internet.",
 };
 

@@ -56,7 +56,7 @@ Wi-Fi apagat. Problema triat i provat el mateix dia.
 - «El que no va funcionar: [ex. deixar-lo raonar abans de respondre; buscar
   problemes semblants per paraules de l'enunciat].»
 - «Següent pas: provar-ho amb una classe de veritat i amb un mestre.»
-- Tancar: «Mentor Cangur: no et donem la resposta. T'ajudem a trobar-la.»
+- Tancar: «Mathey: no et donem la resposta. T'ajudem a trobar-la.»
 
 ---
 

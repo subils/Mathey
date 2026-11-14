@@ -1,6 +1,6 @@
-# Arquitectura — Mentor Cangur
+# Arquitectura — Mathey
 
-Versió 1 · dissabte 14/11/2026, 12:15 · nom de treball: **Mentor Cangur**
+Versió 1 · dissabte 14/11/2026, 12:15 · nom del producte: **Mathey** (abans «Mathey»)
 
 Aquest document diu què construïm, sobre què corre i com es connecta tot.
 El calendari i el repartiment de feina són a [ROADMAP.md](ROADMAP.md).

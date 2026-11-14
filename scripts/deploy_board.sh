@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Actualitza l'app d'App Lab «Mentor Cangur» a la placa Arduino UNO Q.
+# Actualitza l'app d'App Lab «Mathey» a la placa Arduino UNO Q.
 #
 #   scripts/deploy_board.sh               # per USB (adb), el cas normal
 #   BOARD_SSH=arduino@192.168.1.131 scripts/deploy_board.sh   # per Wi-Fi (ssh/scp)
@@ -19,11 +19,11 @@
 #   IMAGES_DIR  imatges dels problemes (per defecte research/qualcomm-repo/data/images)
 #
 # Què fa: construeix la web, atura l'app, copia app/ + mentor/ + web/out + dades a
-# /home/arduino/ArduinoApps/mentor-cangur/ i torna a engegar l'app.
+# /home/arduino/ArduinoApps/mathey/ i torna a engegar l'app.
 # Detalls: app/README.md.
 set -euo pipefail
 
-APP_NAME="mentor-cangur"
+APP_NAME="mathey"
 REMOTE_APP="/home/arduino/ArduinoApps/$APP_NAME"
 APP_ID="user:$APP_NAME"
 
@@ -64,7 +64,7 @@ run() {
 if [[ -n "${BOARD_SSH:-}" ]]; then
   TRANSPORT="ssh ($BOARD_SSH)"
   # Una sola connexió per a tot el desplegament: la contrasenya es demana un cop
-  SSH_OPTS=(-o ControlMaster=auto -o "ControlPath=/tmp/mentor-cangur-ssh-%C" -o ControlPersist=120)
+  SSH_OPTS=(-o ControlMaster=auto -o "ControlPath=/tmp/mathey-ssh-%C" -o ControlPersist=120)
 else
   TRANSPORT="adb (USB)"
 fi
@@ -132,7 +132,7 @@ fi
 # --- 2. Preparar la carpeta de l'app al portàtil -------------------------------
 say "2. Preparo la carpeta de l'app (sense __pycache__ ni .DS_Store)"
 TMP_BASE="${TMPDIR:-/tmp}"
-STAGE="$(mktemp -d "${TMP_BASE%/}/mentor-cangur.XXXXXX")"
+STAGE="$(mktemp -d "${TMP_BASE%/}/mathey.XXXXXX")"
 trap 'rm -rf "$STAGE"' EXIT
 mkdir -p "$STAGE/app"
 cp "$ROOT/app/app.yaml" "$STAGE/app/"

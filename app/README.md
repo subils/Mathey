@@ -1,6 +1,6 @@
-# Mentor Cangur — l'app de la placa
+# Mathey — l'app de la placa
 
-L'app d'Arduino App Lab que fa córrer el Mentor Cangur a l'Arduino UNO Q, sense
+L'app d'Arduino App Lab que fa córrer Mathey a l'Arduino UNO Q, sense
 xarxa. Serveix la web (port 7000), respon l'API del mentor (`/api/...`) i pinta a
 la matriu de LEDs 8x13 el dibuix que tornen les rutes (clau `"matrix"`).
 
@@ -13,7 +13,7 @@ la matriu de LEDs 8x13 el dibuix que tornen les rutes (clau `"matrix"`).
 ## Què hi ha a la placa
 
 ```text
-/home/arduino/ArduinoApps/mentor-cangur/      (dins del contenidor: /app)
+/home/arduino/ArduinoApps/mathey/      (dins del contenidor: /app)
 ├─ app.yaml
 ├─ python/main.py          l'adaptador
 ├─ python/mentor/          còpia de mentor/ del repo
@@ -45,9 +45,9 @@ Obrir la web: `adb forward tcp:7070 tcp:7000` i <http://127.0.0.1:7070>
 ## Engegar, aturar, registres (a la placa)
 
 ```bash
-arduino-app-cli app start user:mentor-cangur
-arduino-app-cli app stop user:mentor-cangur
-arduino-app-cli app logs /home/arduino/ArduinoApps/mentor-cangur --all
+arduino-app-cli app start user:mathey
+arduino-app-cli app stop user:mathey
+arduino-app-cli app logs /home/arduino/ArduinoApps/mathey --all
 ```
 
 Només corre una app alhora. En engegar, el sketch es compila: pot trigar un minut.
@@ -118,11 +118,11 @@ l'`explorer` del repo dels organitzadors), i l'app d'App Lab només pinta la mat
    i reinicieu l'app. No carrega el mentor; només escolta `POST /placa/matriu` al
    port 7000.
 2. Copieu `mentor/`, `scripts/dev_server.py` i `web/out` a una carpeta de la placa
-   (per exemple `~/mentor-cangur-servidor/`, amb la mateixa estructura) i engegueu:
+   (per exemple `~/mathey-servidor/`, amb la mateixa estructura) i engegueu:
    ```bash
-   MENTOR_HOST=placa MENTOR_DB=/home/arduino/ArduinoApps/mentor-cangur/data/mentor.db \
-   MENTOR_STATE_DB=/home/arduino/ArduinoApps/mentor-cangur/data/state.db \
-   MENTOR_IMAGES=/home/arduino/ArduinoApps/mentor-cangur/data/images \
+   MENTOR_HOST=placa MENTOR_DB=/home/arduino/ArduinoApps/mathey/data/mentor.db \
+   MENTOR_STATE_DB=/home/arduino/ArduinoApps/mathey/data/state.db \
+   MENTOR_IMAGES=/home/arduino/ArduinoApps/mathey/data/images \
    python3 scripts/dev_server.py --host 0.0.0.0 --port 7070
    ```
    Aquí `127.0.0.1:8081` sí que és el model. El port 7000 és de l'app.

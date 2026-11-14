@@ -1,4 +1,4 @@
-# Mentor Cangur — a math mentor that never gives you the answer
+# Mathey — a math mentor that never gives you the answer
 
 **Datathon FME 2026 · Qualcomm challenge "Math on the Edge"** · runs entirely on an Arduino UNO Q, offline.
 
@@ -8,7 +8,7 @@
 
 <!-- TODO: photo or 20-second GIF of the board with the LED matrix and the web page -->
 
-Mentor Cangur helps students aged 10–14 learn to reason through Kangaroo
+Mathey helps students aged 10–14 learn to reason through Kangaroo
 competition problems. When a student gets stuck, it never hands over the answer:
 it asks how they thought about it, replies with one guiding question, and offers a
 ladder of help — a strategy, the key fact, an easier "sibling" problem, the first
