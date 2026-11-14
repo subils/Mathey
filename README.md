@@ -35,7 +35,7 @@ student data ever leaves the device.
 | Student | Five-rung help ladder; the solution only on explicit request |
 | Student | Easy-reading mode (dyslexia): short sentences, one idea per line, large type |
 | Student | Adaptive path by Elo: every first answer nudges the problem's rating and re-estimates the student's from all their answers (recent ones weigh more); the next problem is an unseen one near the student's Elo, weakest topic first |
-| Student | **Bring your own problem** (chat): paste or snap a photo of homework → on-board OCR → a Kangaroo problem with the same idea → the on-board model works through it step by step, streamed and clearly labelled "may be wrong, check each step" |
+| Student | **Bring your own problem** (chat): paste or snap a photo of homework → `laptop/read_image.py` reads the question and options A–E on the board and that text becomes the prompt → a Kangaroo problem with the same idea → the on-board model works through it step by step, streamed and clearly labelled "may be wrong, check each step" |
 
 ## How we use M3Kang
 

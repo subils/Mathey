@@ -1,50 +1,61 @@
 """El lector d'imatges (OCR), vist des del mentor.
 
-Per a «Porta el teu problema»: l'alumne puja la foto d'un problema i la placa en
-treu el text. El mentor no llegeix imatges ell mateix: les envia a un servei
-petit (scripts/ocr_server.py) que corre a l'amfitrió de la placa, al costat dels
-llama-server, perquè dins del contenidor d'App Lab no hi ha Tesseract.
+Per a «Porta el teu problema»: l'alumne envia al xat la foto d'un problema i el
+mentor la llegeix amb `laptop/read_image.py --image` (RapidOCR, sense xarxa).
+Aquell script torna en JSON l'enunciat i les opcions A–E; aquí es converteixen en
+el text del problema, que és el prompt amb què la IA de la placa el resol.
 
-- `read_image(bytes)`: el text de la imatge, quin motor l'ha llegit i en quant temps.
-- `available()`: si el servei respon.
-- `OcrUnavailable`: el servei no hi és, triga massa o no ha pogut llegir la imatge.
-  És un OSError, com els errors de la IA de la placa: el mentor l'atrapa i
-  ofereix a l'alumne d'escriure el problema a mà.
+Abans es llegia amb un servei HTTP a part (scripts/ocr_server.py, port 8084).
+Ja no es fa servir per al xat.
+
+- `read_image(bytes)`: el text del problema llegit de la imatge, en quant temps.
+- `to_prompt(result)`: el JSON de read_image.py -> enunciat + opcions A) … E).
+- `available()`: si hi ha l'script i l'intèrpret per executar-lo.
+- `OcrUnavailable`: no s'ha pogut llegir (falta RapidOCR, triga massa, la imatge
+  no és vàlida). És un OSError, com els errors de la IA de la placa: el mentor
+  l'atrapa i ofereix a l'alumne d'escriure el problema a mà.
 
 Configuració (variables d'entorn):
-  MENTOR_OCR_URL      on escolta el servei (per defecte http://127.0.0.1:8084)
-  MENTOR_OCR_TIMEOUT  segons que s'espera una lectura (per defecte 60)
+  MENTOR_READ_IMAGE         camí de read_image.py (per defecte el del repo,
+                            laptop/read_image.py, o el que hi ha al costat del
+                            paquet mentor/ a la placa)
+  MENTOR_READ_IMAGE_PYTHON  intèrpret que té rapidocr_onnxruntime (per defecte el
+                            mateix Python si el té; si no, el virtualenv dels
+                            organitzadors, research/qualcomm-repo/.venv)
+  MENTOR_OCR_TIMEOUT        segons que s'espera una lectura (per defecte 60)
 
-El text que torna l'OCR no és de fiar del tot (accents, símbols, ordre de les
-línies quan hi ha una figura): cal ensenyar-lo a l'alumne perquè el corregeixi
-abans de fer-lo servir.
+El model de RapidOCR és xinès i anglès: no coneix els accents catalans («àrea»
+surt «area»). Per a la IA no és un problema greu, però el text no és de fiar del tot.
 """
+import importlib.util
 import json
 import os
+import subprocess
+import sys
+import tempfile
 import time
-import urllib.error
-import urllib.request
-from urllib.parse import quote
 
-OCR_URL = os.environ.get("MENTOR_OCR_URL", "http://127.0.0.1:8084").rstrip("/")
+HERE = os.path.dirname(os.path.abspath(__file__))  # .../mentor
+ROOT = os.path.dirname(HERE)  # el repo, o /app/python a la placa
+LETTERS = "ABCDE"
+
 try:
     OCR_TIMEOUT = float(os.environ.get("MENTOR_OCR_TIMEOUT", "60"))
 except ValueError:
     OCR_TIMEOUT = 60.0
 
-# El mateix límit que el servei: una foto més gran s'ha d'encongir abans d'enviar-la
 MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 
 class OcrUnavailable(OSError):
-    """El servei de lectura d'imatges no hi és o no ha pogut llegir la imatge.
+    """No s'ha pogut llegir la imatge.
 
-    `status` és l'estat HTTP que ha tornat el servei, o 0 si no s'hi ha arribat.
-    `rejected` diu si el problema és la imatge (massa gran, no és PNG ni JPEG) i
-    no el servei: en aquest cas no serveix de res tornar-ho a provar igual.
+    `status` és com un estat HTTP: 4xx si el problema és la imatge (massa gran,
+    no és PNG ni JPEG; no serveix de res tornar-ho a provar igual), 503 si falta
+    el lector, 504 si ha trigat massa.
     """
 
-    def __init__(self, message, status=0):
+    def __init__(self, message, status=503):
         super().__init__(message)
         self.status = status
 
@@ -53,67 +64,107 @@ class OcrUnavailable(OSError):
         return 400 <= self.status < 500
 
 
-def _error_message(error):
-    """El missatge que el servei posa a {"error": ...}, o l'estat si no n'hi ha."""
-    try:
-        return str(json.loads(error.read())["error"])
-    except (OSError, ValueError, KeyError, TypeError):
-        return f"error {error.code}"
+def script_path():
+    """On és read_image.py: l'entorn, el repo o el costat de mentor/ (placa)."""
+    candidates = [os.environ.get("MENTOR_READ_IMAGE"),
+                  os.path.join(ROOT, "laptop", "read_image.py"),
+                  os.path.join(ROOT, "read_image.py")]
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return path
+    return None
 
 
-def health(timeout=1.0, url=None):
-    """El que diu GET /health (estat, motor, idiomes), o None si el servei no respon."""
-    try:
-        with urllib.request.urlopen((url or OCR_URL).rstrip("/") + "/health", timeout=timeout) as response:
-            info = json.loads(response.read())
-    except (OSError, ValueError):
-        return None
-    return info if isinstance(info, dict) else None
+def python_path():
+    """L'intèrpret que executa read_image.py: el primer que tingui RapidOCR."""
+    explicit = os.environ.get("MENTOR_READ_IMAGE_PYTHON")
+    if explicit:
+        return explicit
+    if importlib.util.find_spec("rapidocr_onnxruntime") is not None:
+        return sys.executable
+    venv = os.path.join(ROOT, "research", "qualcomm-repo", ".venv", "bin", "python")
+    return venv if os.path.isfile(venv) else sys.executable
 
 
-def available(timeout=1.0, url=None):
-    info = health(timeout, url)
-    return bool(info) and info.get("status") == "ok"
+def available():
+    return script_path() is not None and os.path.exists(python_path())
 
 
-def read_image(image_bytes, lang="cat", url=None, timeout=None):
-    """Llegeix el text d'una imatge PNG o JPEG.
+def to_prompt(result):
+    """{"question": ..., "options": {"A": ..., ...}} -> el text del problema.
 
-    Torna {"text", "engine", "seconds", "lines", "engine_seconds"}: `seconds` és
-    el que ha esperat el mentor (cua i transport inclosos) i `engine_seconds` el
-    que ha trigat el motor. `text` pot ser buit si a la imatge no hi ha text.
-    Llança OcrUnavailable si el servei no respon, triga massa o rebutja la imatge.
+    L'enunciat tal com l'ha llegit (una línia per fila) i, si s'han trobat les
+    cinc opcions, una línia per opció: «A) 12».
+    """
+    question = str(result.get("question") or "").strip()
+    options = result.get("options") or {}
+    lines = [question] if question else []
+    if isinstance(options, dict) and all(str(options.get(k) or "").strip() for k in LETTERS):
+        lines.append("")
+        lines += [f"{k}) {str(options[k]).strip()}" for k in LETTERS]
+    return "\n".join(lines).strip()
+
+
+def _image_suffix(image):
+    if image.startswith(b"\x89PNG"):
+        return ".png"
+    if image.startswith(b"\xff\xd8"):
+        return ".jpg"
+    if image[:4] == b"RIFF" and image[8:12] == b"WEBP":
+        return ".webp"
+    return ".img"
+
+
+def read_image(image_bytes, lang="cat", timeout=None):
+    """Llegeix el problema d'una imatge PNG o JPEG amb read_image.py.
+
+    Torna {"text", "question", "options", "engine", "seconds", "lines"}: `text`
+    és el prompt (enunciat + opcions) i pot ser buit si a la imatge no hi ha text.
+    `lang` no es fa servir (RapidOCR no en té); es manté per compatibilitat.
+    Llança OcrUnavailable si no es pot llegir.
     """
     image = bytes(image_bytes or b"")
     if not image:
         raise OcrUnavailable("la imatge és buida", 400)
     if len(image) > MAX_IMAGE_BYTES:
         raise OcrUnavailable("la imatge és massa gran (màxim 8 MB)", 413)
-    base = (url or OCR_URL).rstrip("/")
+    script = script_path()
+    if not script:
+        raise OcrUnavailable("no trobo read_image.py")
+    python = python_path()
     wait = OCR_TIMEOUT if timeout is None else timeout
-    request = urllib.request.Request(
-        f"{base}/ocr?lang={quote(str(lang or 'cat'))}", data=image,
-        headers={"Content-Type": "application/octet-stream"})
     started = time.perf_counter()
+    with tempfile.TemporaryDirectory(prefix="mathey-ocr-") as folder:
+        path = os.path.join(folder, "problema" + _image_suffix(image))
+        with open(path, "wb") as f:
+            f.write(image)
+        try:
+            done = subprocess.run([python, script, "--image", path], capture_output=True,
+                                  text=True, timeout=wait, cwd=folder)
+        except subprocess.TimeoutExpired as error:
+            raise OcrUnavailable(f"ha trigat més de {wait:g} s", 504) from error
+        except OSError as error:  # l'intèrpret no hi és
+            raise OcrUnavailable(f"no puc executar {python} ({error.strerror or error})") from error
+    if done.returncode != 0:
+        if "No module named" in done.stderr:
+            raise OcrUnavailable(f"falta rapidocr_onnxruntime a {python} "
+                                 "(MENTOR_READ_IMAGE_PYTHON)")
+        last = (done.stderr.strip().splitlines() or [f"codi {done.returncode}"])[-1]
+        raise OcrUnavailable(f"read_image.py ha fallat: {last[:200]}")
     try:
-        with urllib.request.urlopen(request, timeout=wait) as response:
-            result = json.loads(response.read())
-    except urllib.error.HTTPError as error:
-        raise OcrUnavailable(_error_message(error), error.code) from error
-    except TimeoutError as error:
-        raise OcrUnavailable(f"ha trigat més de {wait:g} s") from error
-    except OSError as error:  # connexió rebutjada, nom que no resol, temps esgotat en connectar
-        if "timed out" in str(error):
-            raise OcrUnavailable(f"ha trigat més de {wait:g} s") from error
-        raise OcrUnavailable(f"no respon a {base}") from error
+        result = json.loads(done.stdout)
     except ValueError as error:
-        raise OcrUnavailable("ha tornat una resposta que no entenc", 502) from error
-    if not isinstance(result, dict) or not isinstance(result.get("text"), str):
-        raise OcrUnavailable("ha tornat una resposta que no entenc", 502)
+        raise OcrUnavailable("read_image.py ha tornat una resposta que no entenc", 502) from error
+    if not isinstance(result, dict):
+        raise OcrUnavailable("read_image.py ha tornat una resposta que no entenc", 502)
+    if result.get("error"):
+        raise OcrUnavailable("no és una imatge PNG o JPEG", 415)
+    text = to_prompt(result)
     return {
-        "text": result["text"],
-        "engine": str(result.get("engine") or ""),
+        "text": text,
+        "question": str(result.get("question") or "").strip(),
+        "options": result.get("options") or {},
+        "engine": "read_image.py (RapidOCR)",
         "seconds": round(time.perf_counter() - started, 3),
-        "lines": int(result.get("lines") or len(result["text"].splitlines())),
-        "engine_seconds": result.get("seconds"),
+        "lines": len(text.splitlines()),
     }

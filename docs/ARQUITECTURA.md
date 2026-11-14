@@ -90,11 +90,18 @@ revela la resposta.** Si el frontend mostra la imatge, podem fer servir els
 i per als embeddings.
 
 Per llegir una sola imatge (d'M3Kang o una foto amb el mateix format) hi ha el mode
-`--image` de `laptop/prepare_m3kang.py`. Torna en JSON l'enunciat (el text que hi ha
+`--image` de `laptop/read_image.py`. Torna en JSON l'enunciat (el text que hi ha
 sobre les opcions) i les opcions A–E. Fa servir RapidOCR amb la mateixa preparació
 que `scripts/ocr_server.py`: amplia i reforça la nitidesa de la imatge, i no fa
 servir el classificador d'angle. Quan les opcions són dibuixos, torna `{}`. Si l'OCR
 perd una sola lletra («B)9 cm² 10 cm² D)…»), la recupera.
+
+**És el lector de fotos del xat** («Porta el teu problema»): `mentor/ocr.py` executa
+`read_image.py --image` sobre la foto que envia l'alumne i converteix el JSON en el
+prompt (l'enunciat, una línia en blanc i `A) …` a `E) …` si hi ha les cinc opcions).
+L'intèrpret ha de tenir `rapidocr_onnxruntime`: `MENTOR_READ_IMAGE_PYTHON`, o el mateix
+Python, o `research/qualcomm-repo/.venv`. Al Mac tarda ~1,1 s per imatge (15/11/2026).
+El model de RapidOCR no coneix els accents catalans.
 Prova amb 40 imatges a l'atzar (14/11/2026): ha trobat opcions a 30, i l'OCR del
 dataset en tenia 29. A 19 de les 29 coincideixen exactament; la resta són sobretot
 diferències d'espais i de «²». Encara pot quedar soroll, com un «1» solt davant d'una opció.
@@ -136,7 +143,7 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 | ✅ Perfil de l'alumne: Elo (actual, inicial i màxim) i encerts per tema | SQLite a la placa | mil·lisegons |
 | Veu (llegir i escoltar) | Piper i Whisper a la placa | pendent dels mentors |
 | ✅ Sala de màquines (pàgina «La placa») | `/api/stats` | mil·lisegons |
-| «Porta el teu problema»: foto → text | Tesseract a la placa (servei `math-ocr`, port 8084) | per mesurar a la placa |
+| «Porta el teu problema»: foto → prompt (enunciat + opcions A–E) | `laptop/read_image.py` (RapidOCR), cridat per `mentor/ocr.py` | ~1,1 s al Mac; per mesurar a la placa |
 | «Porta el teu problema»: problema semblant per practicar | `mentor/retrieval.py` (paraules, trossos de 4 lletres i conceptes; sense model) | ~1,4 ms al Mac |
 | «Porta el teu problema»: pista segons el dubte | **IA de la placa en directe**; la idea del problema semblant només si la semblança és ≥ 0,50 | per mesurar a la placa |
 
@@ -356,7 +363,7 @@ la pinta als LEDs.
 | `GET /api/profile` | `student` | `elo`, `elo_start`, `elo_peak`, encerts per tema, últims intents (amb Elo abans i després) |
 | `GET /api/matrix` | — | el dibuix actual de la matriu |
 | `GET /api/stats` | — | sala de màquines: memòria, IA activa, banc, preguntes de la IA (mediana de segons, quantes de reserva) |
-| `POST /api/own/ocr` | `student`, `image` (base64 o data URI, màx. 8 MB) | text llegit; el servei OCR és a `MENTOR_OCR_URL` (a la placa, `http://<host>:8084`) |
+| `POST /api/own/ocr` | `student`, `image` (base64 o data URI, màx. 8 MB) | `text` (el prompt: enunciat + opcions), `question`, `options`, `empty`; ho llegeix `laptop/read_image.py` (`mentor/ocr.py`) |
 | `POST /api/own/match` | `student`, `text` | `own_id`, tema, fins a 3 problemes semblants, `same_idea` (semblança ≥ 0,50: la seva idea guia la pista), estratègia del tema |
 | `POST /api/own/help` | `student`, `own_id`, `doubt` | `reply` (pista de la IA o reserva preparada), `source`, segons, motiu de rebuig |
 | `POST /api/own/chat` | `student`, `own_id`, `message` (opcional; buit = «resol-lo»), `history` (últims torns `{role, text}`) | **Streaming NDJSON** (`application/x-ndjson`): `meta` (problema semblant, estratègia), `delta` (trossos de text), `done` (`reply`, `source`, segons, `rejected`, temps i `first_token_seconds`) |

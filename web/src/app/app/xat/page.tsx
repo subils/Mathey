@@ -152,32 +152,43 @@ export default function Xat() {
     await solve(match.own_id);
   }
 
-  /* ---------------- 3. Foto → OCR → confirmar ---------------- */
+  /* ---------------- 3. Foto → read_image.py → prompt ---------------- */
+  // La placa llegeix la foto amb laptop/read_image.py (enunciat + opcions A–E) i
+  // aquest text és el prompt: es resol de seguida, com si l'alumne l'hagués escrit.
+  // Només si la lectura és massa curta es demana a l'alumne que la completi.
   async function readPhoto(file: File, preview: string, extra: string) {
     if (!session) return;
     push({ kind: "user", text: extra, image: preview });
     setBusy("ocr");
+    let text = "";
     try {
       const data = await shrinkImage(file);
       const ocr = await api.ownOcr(session.student, data);
-      const text = [ocr.text.trim(), extra.trim()].filter(Boolean).join("\n");
+      text = [ocr.text.trim(), extra.trim()].filter(Boolean).join("\n\n");
       if (ocr.empty || !ocr.text.trim()) {
+        text = "";
         push({
           kind: "note",
           tone: "info",
           text: "No he pogut llegir text en aquesta foto. Prova amb més llum i ben de cara, o escriu-me l'enunciat.",
         });
-      } else {
-        push({ kind: "ocr", text, done: false });
       }
     } catch (error) {
+      text = "";
       if (error instanceof ImageError) push({ kind: "note", tone: "error", text: error.message });
-      else if (error instanceof ApiError && error.status === 503)
+      else if (error instanceof ApiError && (error.status === 503 || error.status === 400))
         push({ kind: "note", tone: "info", text: cap(error.message) });
       else fail(error);
     } finally {
       setBusy(null);
     }
+    if (!text) return;
+    if (text.split(/\s+/).length < 4) {
+      push({ kind: "ocr", text, done: false });
+      return;
+    }
+    push({ kind: "ocr", text, done: true });
+    await startProblem(text);
   }
 
   /* ---------------- Enviar ---------------- */
@@ -276,14 +287,16 @@ export default function Xat() {
               onSubmit={submit}
               image={image?.preview}
               imageBusy={busy === "ocr"}
-              onImage={ownId === null && !pendingOcr ? attach : undefined}
+              onImage={!pendingOcr ? attach : undefined}
               onRemoveImage={removeImage}
               busy={busy !== null}
               onStop={busy === "ai" ? () => abort.current?.abort() : undefined}
               placeholder={
-                ownId === null ? "Enganxa una foto del problema o escriu-lo aquí…" : "Què no entens? Pregunta-ho…"
+                ownId === null
+                  ? "Enganxa una foto del problema o escriu-lo aquí…"
+                  : "Què no entens? Pregunta-ho, o envia la foto d'un altre problema…"
               }
-              globalDrop={ownId === null}
+              globalDrop
             />
             <p className="mt-2 text-center text-[11px] text-muted-foreground">
               La IA de la placa pot equivocar-se. Comprova cada pas.
@@ -295,9 +308,12 @@ export default function Xat() {
   );
 }
 
-/** Els últims torns (alumne i IA) per donar context a la pregunta següent. */
+/** Els últims torns (alumne i IA) del problema actual, per donar context a la pregunta següent. */
 function historyFor(messages: Msg[]): ChatTurn[] {
+  // Una foto nova a mig xat és un problema nou: només compta des de l'últim «match»
+  const start = messages.findLastIndex((m) => m.kind === "match");
   return messages
+    .slice(Math.max(start, 0))
     .flatMap((m): ChatTurn[] =>
       m.kind === "user" && m.text
         ? [{ role: "user", text: m.text }]

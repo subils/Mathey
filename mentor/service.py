@@ -541,7 +541,8 @@ def stats(_params):
 # ------------------------------------------------------- «Porta el teu problema»
 #
 # L'alumne puja la foto d'un problema seu (deures, llibre, examen):
-#   1. own_ocr    la placa llegeix el text de la imatge (servei OCR, port 8084)
+#   1. own_ocr    la placa llegeix la imatge amb laptop/read_image.py (mentor/ocr.py):
+#                 l'enunciat i les opcions A–E són el prompt del problema
 #   2. own_match  es busquen problemes semblants del banc i es desa el problema
 #   3. own_help   l'alumne diu on s'encalla i la IA de la placa, amb el problema
 #                 semblant ja resolt com a exemple, li dona una pista per continuar
@@ -568,7 +569,7 @@ def own_ocr(params):
         raise UserError(400, "falta la imatge")
     if len(image) > MAX_IMAGE_BYTES:
         raise UserError(413, "la imatge és massa gran (màxim 8 MB)")
-    from . import ocr  # import tardà: el servei OCR és opcional
+    from . import ocr  # import tardà: el lector d'imatges és opcional
     before = _current_matrix
     _set_matrix(matrix.thinking())
     try:
@@ -577,17 +578,20 @@ def own_ocr(params):
     except OSError as error:
         ok = False
         failure = str(error) or type(error).__name__
+        rejected = getattr(error, "rejected", False)  # la imatge no val: no és cosa del lector
     finally:
         _set_matrix(before)
     if not ok:
         store.execute(store.state(), "INSERT INTO ocr_reads (student_id, engine, seconds, chars, ok) VALUES (?, ?, ?, ?, 0)",
                       (student["id"], "", 0, 0))
+        if rejected:
+            raise UserError(400, f"No he pogut llegir aquesta imatge: {failure}. Prova amb una altra foto.")
         raise UserError(503, f"El lector d'imatges no està disponible ({failure}). Pots escriure el problema a mà.")
     text = (result.get("text") or "").strip()
     store.execute(store.state(), "INSERT INTO ocr_reads (student_id, engine, seconds, chars, ok) VALUES (?, ?, ?, ?, 1)",
                   (student["id"], result.get("engine", ""), result.get("seconds", 0), len(text)))
-    return {"text": text, "engine": result.get("engine"), "seconds": result.get("seconds"),
-            "empty": not text}
+    return {"text": text, "question": result.get("question", text), "options": result.get("options") or {},
+            "engine": result.get("engine"), "seconds": result.get("seconds"), "empty": not text}
 
 
 def _example(pid):

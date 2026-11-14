@@ -2,7 +2,7 @@
 
 `sample_problems.jsonl` holds five made-up problems in the M3Kang format, for smoke tests.
 
-`laptop/prepare_m3kang.py` writes `train.jsonl` and `val.jsonl` here. Don't commit them: M3Kang is licensed for research use only. See the [dataset card](https://huggingface.co/datasets/qualcomm/M3Kang).
+`laptop/read_image.py` writes `train.jsonl` and `val.jsonl` here. Don't commit them: M3Kang is licensed for research use only. See the [dataset card](https://huggingface.co/datasets/qualcomm/M3Kang).
 
 One problem per line:
 
@@ -17,5 +17,5 @@ One problem per line:
 To read a single problem image instead (question + options as JSON, nothing written here):
 
 ```bash
-research/qualcomm-repo/.venv/bin/python laptop/prepare_m3kang.py --image problem.png
+research/qualcomm-repo/.venv/bin/python laptop/read_image.py --image problem.png
 ```

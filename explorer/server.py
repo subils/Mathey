@@ -34,7 +34,7 @@ VISION_TIME_LIMIT = 300
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--input", default="data/val.jsonl", help="problems to explore")
-    p.add_argument("--images", default="data/images", help="folder written by prepare_m3kang.py --save-images")
+    p.add_argument("--images", default="data/images", help="folder written by laptop/read_image.py --save-images")
     p.add_argument("--index", default="data/index.db", help="retrieval index from build_index.py")
     p.add_argument("--host", default="127.0.0.1", help="use 0.0.0.0 to open it to your network")
     p.add_argument("--port", type=int, default=8000)

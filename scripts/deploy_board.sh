@@ -141,11 +141,13 @@ cp -R "$ROOT/app/python" "$STAGE/app/python"
 cp -R "$ROOT/app/sketch" "$STAGE/app/sketch"
 rm -rf "$STAGE/app/python/mentor"
 cp -R "$ROOT/mentor" "$STAGE/app/python/mentor"
+# El lector de fotos del xat (mentor/ocr.py el busca al costat de mentor/)
+cp "$ROOT/laptop/read_image.py" "$STAGE/app/python/read_image.py"
 if [[ -f "$ROOT/web/out/index.html" ]]; then
   cp -R "$ROOT/web/out" "$STAGE/app/assets"
 fi
 find "$STAGE" \( -name __pycache__ -o -name .DS_Store -o -name '*.pyc' \) -prune -exec rm -rf {} +
-info "app.yaml, README.md, python/ (main.py + mentor/), sketch/, assets/"
+info "app.yaml, README.md, python/ (main.py + mentor/ + read_image.py), sketch/, assets/"
 
 # --- 3. Aturar l'app ----------------------------------------------------------
 say "3. Aturo l'app (si no corria, no passa res)"

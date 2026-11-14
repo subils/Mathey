@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Servei de lectura d'imatges (OCR): la foto d'un problema -> el text que hi surt.
 
+Des del 15/11/2026 el xat ja no el fa servir: el mentor llegeix les fotos amb
+laptop/read_image.py (mentor/ocr.py). Queda per a scripts/eval_ocr.py i proves.
+
     python3 scripts/ocr_server.py                                   # tria el motor sol
     python3 scripts/ocr_server.py --engine tesseract --host 0.0.0.0  # a la placa
     research/qualcomm-repo/.venv/bin/python scripts/ocr_server.py --engine rapidocr   # al portàtil
@@ -252,7 +255,7 @@ def _distance(a, b):
 def reading_order(boxes):
     """Caixes de l'OCR -> files de dalt a baix i, dins de cada fila, d'esquerra a dreta.
 
-    És el criteri de laptop/prepare_m3kang.py dels organitzadors (una fila nova
+    És el criteri de laptop/read_image.py (abans prepare_m3kang.py, dels organitzadors) (una fila nova
     quan el centre baixa més de 0,6 alçades), amb un afegit per a les fotos
     tortes: es mesura la inclinació de les línies i es desfà abans d'agrupar.
     Cada caixa és (quatre cantonades començant per dalt a l'esquerra, text, confiança).

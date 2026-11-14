@@ -16,7 +16,8 @@ Configuració (variables d'entorn; ordre: entorn real > data/mentor.env > per de
                     que App Lab apunta a l'amfitrió). Ex.: 172.17.0.1
   MENTOR_LLM_URL    http://<MENTOR_LLM_HOST>:8081
   MENTOR_EMBED_URL  http://<MENTOR_LLM_HOST>:8082
-  MENTOR_OCR_URL    http://<MENTOR_LLM_HOST>:8084 (lectura d'imatges, opcional)
+  MENTOR_READ_IMAGE_PYTHON  Python amb rapidocr_onnxruntime per a python/read_image.py
+                    (lectura de fotos al xat; mentor/ocr.py)
   MENTOR_DB, MENTOR_STATE_DB, MENTOR_IMAGES   dins de /app/data
   MENTOR_MODE       "complet" (per defecte) o "matriu" (pla B: només la matriu)
 """
@@ -64,8 +65,6 @@ os.environ.setdefault("MENTOR_STATE_DB", os.path.join(DATA_DIR, "state.db"))
 os.environ.setdefault("MENTOR_IMAGES", os.path.join(DATA_DIR, "images"))
 LLM_URL = os.environ.setdefault("MENTOR_LLM_URL", f"http://{LLM_HOST}:8081").rstrip("/")
 EMBED_URL = os.environ.setdefault("MENTOR_EMBED_URL", f"http://{LLM_HOST}:8082").rstrip("/")
-# Servei de lectura d'imatges (scripts/ocr_server.py), al mateix amfitrió que els models
-OCR_URL = os.environ.setdefault("MENTOR_OCR_URL", f"http://{LLM_HOST}:8084").rstrip("/")
 MODE = os.environ.get("MENTOR_MODE", "complet").strip().lower()
 
 if HERE not in sys.path:

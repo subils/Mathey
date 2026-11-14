@@ -17,6 +17,8 @@ la matriu de LEDs 8x13 el dibuix que tornen les rutes (clau `"matrix"`).
 ├─ app.yaml
 ├─ python/main.py          l'adaptador
 ├─ python/mentor/          còpia de mentor/ del repo
+├─ python/read_image.py    còpia de laptop/read_image.py (llegeix les fotos del xat;
+│                          cal un Python amb rapidocr_onnxruntime: MENTOR_READ_IMAGE_PYTHON)
 ├─ python/sense_web/       pàgina d'avís si falta la web
 ├─ sketch/                 sketch.ino + sketch.yaml
 ├─ assets/                 còpia de web/out

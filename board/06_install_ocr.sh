@@ -3,6 +3,9 @@
 # castellà i anglès, i el servei systemd math-ocr, que l'ofereix per HTTP al port
 # 8084, al costat dels llama-server. Arrenca amb la placa i es reinicia si cau.
 #
+# Des del 15/11/2026 el xat no el fa servir: llegeix les fotos amb
+# python/read_image.py (mentor/ocr.py). Aquest servei queda per a proves.
+#
 #   ./board/06_install_ocr.sh              # instal·la, engega i comprova /health
 #   ./board/06_install_ocr.sh foto.png     # a més, llegeix aquesta imatge de prova
 #

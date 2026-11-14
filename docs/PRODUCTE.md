@@ -68,8 +68,10 @@ preparat. Amb aquesta funció, l'alumne porta **un problema seu** (deures, llibr
 examen) i la IA de la placa fa una feina que cap contingut preparat pot fer.
 
 1. **Fa una foto del problema** des de la pàgina (o l'escriu).
-2. **La placa llegeix el text de la imatge** (OCR) i l'ensenya perquè l'alumne el
-   repassi i el corregeixi.
+2. **La placa llegeix la imatge** amb `laptop/read_image.py` (RapidOCR): l'enunciat
+   i les opcions A–E. Aquest text és el prompt i es resol de seguida; el xat el
+   mostra a «Això és el que he llegit». Només si la lectura és massa curta es demana
+   a l'alumne que la completi. Es pot enviar una foto nova a mig xat: és un problema nou.
 3. **El mentor busca al banc els problemes del Cangur que fan servir la mateixa
    idea** i n'ofereix un per practicar, amb totes les ajudes de sempre.
 4. **La IA de la placa intenta resoldre'l pas a pas, en format xat** (ordre del
@@ -117,7 +119,7 @@ com a resposta a l'alumne quan s'equivoca.
 | Pregunta socràtica a la frase de l'alumne | **IA de la placa, en directe** (té la solució correcta com a context) | Durant la sessió, ~10 s |
 | «Torna-m'ho a dir d'una altra manera» | IA de la placa, en directe | Durant la sessió |
 | Llegir en veu alta i escoltar l'alumne | Piper i Whisper a la placa (pendent dels mentors) | Durant la sessió |
-| Llegir el text de la foto d'un problema propi | Servei OCR a la placa | Durant la sessió |
+| Llegir el text de la foto d'un problema propi | `read_image.py` (RapidOCR) a la placa | Durant la sessió |
 | Trobar problemes del banc amb la mateixa idea que un problema propi | Cerca per semblança a la placa | Instantani |
 | Pista per continuar un problema propi, a partir del dubte de l'alumne | **IA de la placa, en directe**, amb el problema semblant resolt com a exemple | Durant la sessió |
 | Problema germà, nivell següent, correcció, perfil | Codi i dades a la placa | Instantani |

@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Prepare M3Kang for the Arduino UNO Q, on your laptop.
+"""Read problem images (question + options A to E), and prepare M3Kang.
+
+The web's "Porta el teu problema" chat reads every photo the student sends with
+this script (--image mode, run by mentor/ocr.py): its JSON becomes the prompt.
+Formerly laptop/prepare_m3kang.py.
 
 M3Kang stores each problem as text plus an image. The text has the question
 but not the five answer options: those only appear in the image. This script:
@@ -12,14 +16,14 @@ but not the five answer options: those only appear in the image. This script:
 5. writes small JSONL files (no images) that you copy to the board.
 
 Usage:
-    python3 laptop/prepare_m3kang.py                      # English and Catalan
-    python3 laptop/prepare_m3kang.py --languages eng,cat,esp
-    python3 laptop/prepare_m3kang.py --val-years 2024     # hold out a whole year
+    python3 laptop/read_image.py                      # English and Catalan
+    python3 laptop/read_image.py --languages eng,cat,esp
+    python3 laptop/read_image.py --val-years 2024     # hold out a whole year
 
 Single image mode: read one or more problem images (PNG or JPEG) and print the
 question and the options A to E as JSON, without touching the dataset:
-    python3 laptop/prepare_m3kang.py --image problem.png
-    python3 laptop/prepare_m3kang.py --image a.png b.jpg   # prints a JSON list
+    python3 laptop/read_image.py --image problem.png
+    python3 laptop/read_image.py --image a.png b.jpg   # prints a JSON list
 
     {"file": "problem.png", "question": "...", "options": {"A": "12", ..., "E": "24"}}
 
