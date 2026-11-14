@@ -1,11 +1,11 @@
 "use client";
 
-import { ChevronDown, Flame, LineChart, LogOut, Type } from "lucide-react";
+import { ChevronDown, Flame, LayoutGrid, LineChart, LogOut, Type } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Mark } from "@/components/brand/logo";
+import { Logo } from "@/components/brand/logo";
 import { DemoBadge } from "./demo-badge";
 import { cn } from "@/lib/utils";
 import { clearSession, saveSession, useSession } from "@/lib/session";
@@ -17,7 +17,8 @@ const MODES = [
 
 /**
  * Barra de l'app: mínima a propòsit. L'alumne no veu la sala de màquines.
- * Esquerra: el cangur (torna al hub). Centre: el mode. Dreta: ratxa i menú.
+ * Esquerra: el mateix logo que a la landing, i porta a la landing. Centre: el
+ * mode. Dreta: ratxa i menú de l'alumne (el seu inici, progrés, lectura fàcil, sortir).
  */
 export function AppBar() {
   const session = useSession();
@@ -26,13 +27,8 @@ export function AppBar() {
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 md:px-4">
       <nav className="navbar-glass scrolled mx-auto flex h-[52px] max-w-5xl items-center justify-between gap-2 px-2 md:px-3">
-        <Link
-          href="/app/"
-          className="flex shrink-0 items-center gap-2 rounded-lg px-1.5 py-1 text-foreground transition-colors hover:bg-black/5"
-          aria-label="Mathey, inici"
-        >
-          <Mark className="h-7" />
-          <span className="hidden text-[15px] font-semibold tracking-tight sm:inline">Mathey</span>
+        <Link href="/" className="flex shrink-0 items-center px-1.5 text-[#1c1c1d]" aria-label="Mathey, inici">
+          <Logo className="h-[22px]" />
         </Link>
 
         {session && <ModeSwitch pathname={pathname} />}
@@ -44,14 +40,7 @@ export function AppBar() {
               <StreakChip streak={session.streak ?? 0} />
               <StudentMenu />
             </>
-          ) : (
-            <Link
-              href="/"
-              className="rounded-lg px-3 py-1.5 text-[14px] font-medium text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground"
-            >
-              Què és Mathey?
-            </Link>
-          )}
+          ) : null}
         </div>
       </nav>
     </header>
@@ -160,6 +149,15 @@ function StudentMenu() {
           </p>
         </div>
         <div className="my-1 h-px bg-border/70" />
+        <MenuItem
+          icon={<LayoutGrid />}
+          onClick={() => {
+            setOpen(false);
+            router.push("/app/");
+          }}
+        >
+          El meu inici
+        </MenuItem>
         <MenuItem
           icon={<LineChart />}
           onClick={() => {

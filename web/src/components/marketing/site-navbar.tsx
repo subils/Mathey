@@ -27,6 +27,8 @@ const EASE = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 export function SiteNavbar() {
   const pathname = usePathname();
   const hasHero = pathname === "/";
+  // A /placa/ no té sentit un botó que porta a /placa/
+  const onPlaca = pathname?.startsWith("/placa") ?? false;
   const [heroVisible, setHeroVisible] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -79,12 +81,14 @@ export function SiteNavbar() {
 
           <div className="flex items-center gap-2.5">
             <DemoBadge />
-            <Link
-              href="/placa/"
-              className={cn("hidden items-center rounded-lg px-3.5 py-1.5 text-[14px] font-medium transition-colors md:inline-flex", ghostBtn)}
-            >
-              Veure la placa
-            </Link>
+            {!onPlaca && (
+              <Link
+                href="/placa/"
+                className={cn("hidden items-center rounded-lg px-3.5 py-1.5 text-[14px] font-medium transition-colors md:inline-flex", ghostBtn)}
+              >
+                Veure la placa
+              </Link>
+            )}
             <Link
               href="/app/"
               className={cn("hidden items-center gap-1 rounded-lg px-3.5 py-1.5 text-[14px] font-medium transition-colors md:inline-flex", solidBtn)}
@@ -124,9 +128,11 @@ export function SiteNavbar() {
                 <Link href="/app/" className="flex-1 rounded-lg bg-[#1c1c1d] px-4 py-2.5 text-center text-sm font-medium text-white">
                   Comença
                 </Link>
-                <Link href="/placa/" className="flex-1 rounded-lg bg-black/[0.06] px-4 py-2.5 text-center text-sm font-medium text-[#1c1c1d]">
-                  La placa
-                </Link>
+                {!onPlaca && (
+                  <Link href="/placa/" className="flex-1 rounded-lg bg-black/[0.06] px-4 py-2.5 text-center text-sm font-medium text-[#1c1c1d]">
+                    La placa
+                  </Link>
+                )}
               </div>
             </div>
           </div>

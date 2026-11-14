@@ -290,8 +290,10 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 | `/placa/` | Sala de màquines (amb el navbar de la landing) |
 | `/practica/`, `/el-meu-problema/`, `/perfil/` | Rutes antigues: redirigeixen a les noves conservant la query |
 
-A l'alumne no se li mostra la sala de màquines: la barra de l'app només té el
-mode, la ratxa i el seu menú.
+El logo és el mateix a totes les barres (el de la landing) i sempre porta a la
+landing (`/`). A l'alumne no se li mostra la sala de màquines: la barra de l'app
+només té el mode, la ratxa i el seu menú (el meu inici `/app/`, el meu progrés,
+lectura fàcil, sortir). A `/placa/` el navbar amaga «Veure la placa».
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
   - prompt-kit (MIT): compositor i contenidor del xat.
