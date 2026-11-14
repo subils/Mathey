@@ -295,7 +295,9 @@ mode, la ratxa i el seu menú.
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
   - prompt-kit (MIT): compositor i contenidor del xat.
-  - El cub de Resend (amb permís): `@splinetool/runtime` 2.0.126 (versió fixa).
+  - El cub de Resend (amb permís): `@splinetool/runtime` 2.0.126 (versió fixa), amb
+    `renderer: "webgl"` forçat: amb WebGPU, que el motor tria sol, el cub sortia en blanc a
+    Safari de manera intermitent.
     - Els `.wasm` del motor estan copiats a `web/public/spline/` (`wasmPath`), perquè
       no vagi al CDN.
     - Si no hi ha WebGL, es mostra el bucle `cube.mp4`.

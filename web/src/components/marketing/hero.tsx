@@ -54,14 +54,14 @@ export function Hero() {
                   </span>
                 </Link>
               </div>
-              <h1 className="effect-font-styling effect-font-gradient relative pb-3 text-center text-[4rem] leading-[100%] font-medium tracking-[-0.035em] md:text-left md:text-[6rem]">
-                Mates per
+              {/* Mida de Resend (6rem) a l'escriptori; més petita al mòbil perquè «Matemàtiques» hi càpiga */}
+              <h1 className="effect-font-styling effect-font-gradient relative pb-3 text-center text-[2.875rem] leading-[100%] font-medium tracking-[-0.035em] sm:text-[4rem] md:text-left md:text-[5rem] lg:text-[6rem]">
+                Matemàtiques
                 <br />
-                pensar
+                socràtiques
               </h1>
               <p className="relative mt-2 mb-8 max-w-[30rem] text-center text-base leading-7 font-normal text-[#a1a4a5] md:text-left md:text-[1.125rem] md:leading-[1.5]">
-                No et donem la resposta: t&apos;ajudem a trobar-la. Un mentor de matemàtiques que viu dins la placa
-                de l&apos;aula.
+                Com Sòcrates, no et donem la resposta: et fem la pregunta justa perquè la trobis tu.
               </p>
               <div className="flex flex-col justify-center gap-4 md:flex-row md:justify-start">
                 {/* El botó «Get started» de resend.com */}

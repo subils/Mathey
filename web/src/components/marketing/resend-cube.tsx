@@ -30,7 +30,9 @@ export function ResendCube({ className }: { className?: string }) {
         // Es carrega a part: no alenteix la resta de la landing
         const { Application } = await import("@splinetool/runtime");
         if (disposed) return;
-        const instance = new Application(canvas, { wasmPath: WASM });
+        // WebGL sempre: amb WebGPU (que el motor tria sol si el navegador en té) el cub
+        // sortia en blanc de manera intermitent a Safari
+        const instance = new Application(canvas, { wasmPath: WASM, renderer: "webgl" });
         app = instance;
         await instance.load(SCENE);
         if (!disposed) setState("ready");
