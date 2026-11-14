@@ -1,0 +1,15 @@
+[Unit]
+Description=Mentor Cangur: lector d'imatges (OCR amb Tesseract, port @OCR_PORT@)
+After=local-fs.target
+
+[Service]
+Type=simple
+User=@USER@
+WorkingDirectory=@REPO_DIR@
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 @REPO_DIR@/scripts/ocr_server.py --host 0.0.0.0 --port @OCR_PORT@ --engine tesseract
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
