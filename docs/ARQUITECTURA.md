@@ -335,6 +335,9 @@ Dos fitxers, cap a GitHub (contenen M3Kang o dades d'alumnes):
 | `own_problems`, `own_helps`, `ocr_reads` | «Porta el teu problema»: el text, els semblants trobats i la puntuació; cada dubte i la pista; cada lectura d'OCR |
 
 Els alumnes del portàtil són de prova: `deploy_board.sh` no els copia a la placa.
+Si el navegador té guardat un alumne que ja no és a `state.db` (per exemple, un
+`state.db` nou), l'API respon 404 «alumne desconegut»; la web (`web/src/lib/api.ts`)
+esborra llavors la sessió guardada i torna a la pantalla d'entrada.
 
 ---
 

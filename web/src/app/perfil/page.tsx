@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api, cap, type Profile } from "@/lib/api";
+import { api, ApiError, cap, UNKNOWN_STUDENT, type Profile } from "@/lib/api";
 import { clearSession, loadSession } from "@/lib/session";
 
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? "–" : `${Math.round(x * 100)}%`);
@@ -19,7 +19,11 @@ export default function Perfil() {
       router.replace("/");
       return;
     }
-    api.profile(s.student).then(setProfile).catch((e: Error) => setError(e.message));
+    api.profile(s.student).then(setProfile).catch((e: Error) => {
+      // Alumne que ja no existeix a la placa: api.ts ja ha esborrat la sessió
+      if (e instanceof ApiError && e.message === UNKNOWN_STUDENT) router.replace("/");
+      else setError(e.message);
+    });
   }, [router]);
 
   return (

@@ -2,6 +2,8 @@
 //
 // A la placa, la web i l'API comparteixen origen (port 7000), així que la base
 // és buida. Amb `pnpm dev`, la web corre al 3000 i l'API al 7000.
+import { clearSession } from "./session";
+
 export const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE ??
   (process.env.NODE_ENV === "development" ? "http://127.0.0.1:7000" : "");
@@ -145,6 +147,9 @@ export type OwnHelp = {
   timings?: Record<string, number>;
 };
 
+/** El missatge exacte de mentor/service.py (_student) quan l'alumne no existeix. */
+export const UNKNOWN_STUDENT = "alumne desconegut";
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -182,7 +187,13 @@ async function call<T>(
   }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
-    throw new ApiError(response.status, (data as { error?: string }).error ?? response.statusText);
+    const message = (data as { error?: string }).error ?? response.statusText;
+    if (response.status === 404 && message === UNKNOWN_STUDENT) {
+      // L'alumne guardat al navegador ja no existeix a la placa (p. ex. un state.db
+      // nou després d'un desplegament). S'esborra la sessió i les pàgines tornen a l'entrada.
+      clearSession();
+    }
+    throw new ApiError(response.status, message);
   }
   return data as T;
 }
