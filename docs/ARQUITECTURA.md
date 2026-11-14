@@ -89,6 +89,16 @@ revela la resposta.** Si el frontend mostra la imatge, podem fer servir els
 1.747 problemes, també els que l'OCR no llegeix. El text només cal per al model
 i per als embeddings.
 
+Per llegir una sola imatge (d'M3Kang o una foto amb el mateix format) hi ha el mode
+`--image` de `laptop/prepare_m3kang.py`. Torna en JSON l'enunciat (el text que hi ha
+sobre les opcions) i les opcions A–E. Fa servir RapidOCR amb la mateixa preparació
+que `scripts/ocr_server.py`: amplia i reforça la nitidesa de la imatge, i no fa
+servir el classificador d'angle. Quan les opcions són dibuixos, torna `{}`. Si l'OCR
+perd una sola lletra («B)9 cm² 10 cm² D)…»), la recupera.
+Prova amb 40 imatges a l'atzar (14/11/2026): ha trobat opcions a 30, i l'OCR del
+dataset en tenia 29. A 19 de les 29 coincideixen exactament; la resta són sobretot
+diferències d'espais i de «²». Encara pot quedar soroll, com un «1» solt davant d'una opció.
+
 M3Kang és d'ús exclusiu per a recerca: **cap dada del dataset va al repo.**
 
 ---

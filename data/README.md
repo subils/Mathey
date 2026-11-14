@@ -13,3 +13,9 @@ One problem per line:
 ```
 
 `options` is `{}` when OCR couldn't read five text options, for example when the options are pictures.
+
+To read a single problem image instead (question + options as JSON, nothing written here):
+
+```bash
+research/qualcomm-repo/.venv/bin/python laptop/prepare_m3kang.py --image problem.png
+```
