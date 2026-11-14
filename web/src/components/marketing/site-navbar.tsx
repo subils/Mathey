@@ -4,8 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { DemoBadge } from "@/components/app/demo-badge";
-import { Logo } from "@/components/brand/logo";
+import { NavLogo } from "@/components/brand/nav-logo";
 import { cn } from "@/lib/utils";
 
 // Rutes absolutes (`/#id`): des de /placa/ també porten a la secció de la landing.
@@ -59,9 +58,7 @@ export function SiteNavbar() {
             overHero ? "on-dark" : "scrolled",
           )}
         >
-          <Link href="/" className={cn("flex shrink-0 items-center px-1.5 transition-colors", ink)} aria-label="Mathey, inici">
-            <Logo className="h-[22px]" />
-          </Link>
+          <NavLogo className={cn("transition-colors", ink)} />
 
           <div className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-5 md:flex">
             {NAV_LINKS.map((l) => (
@@ -80,7 +77,6 @@ export function SiteNavbar() {
           </div>
 
           <div className="flex items-center gap-2.5">
-            <DemoBadge />
             {!onPlaca && (
               <Link
                 href="/placa/"

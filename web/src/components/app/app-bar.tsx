@@ -5,8 +5,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Logo } from "@/components/brand/logo";
-import { DemoBadge } from "./demo-badge";
+import { NavLogo } from "@/components/brand/nav-logo";
 import { cn } from "@/lib/utils";
 import { clearSession, saveSession, useSession } from "@/lib/session";
 
@@ -27,14 +26,11 @@ export function AppBar() {
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 md:px-4">
       <nav className="navbar-glass scrolled mx-auto flex h-[52px] max-w-5xl items-center justify-between gap-2 px-2 md:px-3">
-        <Link href="/" className="flex shrink-0 items-center px-1.5 text-[#1c1c1d]" aria-label="Mathey, inici">
-          <Logo className="h-[22px]" />
-        </Link>
+        <NavLogo className="text-[#1c1c1d]" />
 
         {session && <ModeSwitch pathname={pathname} />}
 
         <div className="flex shrink-0 items-center gap-1.5">
-          <DemoBadge />
           {session ? (
             <>
               <StreakChip streak={session.streak ?? 0} />

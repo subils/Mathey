@@ -57,6 +57,9 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
 - 14/11/2026, ~19:30: **sense placa, la web ha de funcionar igualment en «mode
   demo»**, i ho ha d'indicar. Ha de ser navegable sencera per poder dissenyar.
   Ho fa `web/src/lib/demo.ts`, amb problemes inventats, no de M3Kang.
+- 14/11/2026, ~21:30: **l'avís del mode demo ha de ser discret**: res d'insígnies
+  taronges. El logo dels navbars porta «BETA» en molt petit a baix a la dreta, i
+  en mode demo aquesta etiqueta és la que s'explica en clicar-hi.
 - 14/11/2026, ~20:00: segons el fundador, **Resend ha autoritzat l'equip a fer
   servir el disseny de resend.com**, inclòs el cub 3D del seu hero.
   - Els fitxers originals són a `web/public/static/`: `cube.splinecode`, `cube.mp4`,
