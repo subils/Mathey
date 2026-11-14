@@ -20,7 +20,10 @@ Motors (--engine):
                tesseract-ocr-spa tesseract-ocr-eng). És el de la placa.
     rapidocr   el paquet rapidocr_onnxruntime (al portàtil, amb el virtualenv dels
                organitzadors). El seu model és xinès i anglès: no coneix els
-               accents catalans, i «àrea» surt «area».
+               accents catalans, i «àrea» surt «area». Abans de llegir, la
+               imatge s'amplia fins que les línies fan uns 48 píxels d'alt i
+               se'n reforça la nitidesa (--line-height): tal com ve, el model
+               enganxa les paraules («Lasumadedosnombres»).
     qwen       experimental: demana la transcripció a un llama-server que hi veu
                (--mmproj, port 8083). Molt lent a la placa.
     auto       tesseract si el programa hi és; si no, rapidocr si es pot importar;
@@ -279,6 +282,8 @@ def reading_order(boxes):
 
 class RapidOcr:
     name = "rapidocr"
+    MAX_ZOOM = 4.0
+    MAX_SIDE = 4000  # costat llarg màxim, en píxels, després d'ampliar
 
     def __init__(self, args):
         try:
@@ -286,21 +291,51 @@ class RapidOcr:
         except ImportError:
             raise EngineError(503, "no puc importar rapidocr_onnxruntime: engega'm amb "
                                    "research/qualcomm-repo/.venv/bin/python")
-        self.engine = RapidOCR()  # una sola instància: carregar els models triga
+        # Una sola instància: carregar els models triga. max_side_len: per defecte
+        # RapidOCR encongeix a 2.000 píxels i desfaria l'ampliació de més avall.
+        self.engine = RapidOCR(max_side_len=self.MAX_SIDE)
+        self.line_height = args.line_height
+
+    def _enhance(self, pixels):
+        """Amplia la imatge fins que les línies fan `line_height` píxels i en reforça la nitidesa.
+
+        El reconeixedor de RapidOCR només separa bé les paraules si el text li
+        arriba gran i nítid: amb les imatges de M3Kang tal com són (línies de 32
+        píxels) les enganxa gairebé totes. Primer es busca on hi ha text (només
+        el detector) per saber l'alçada de les línies; després s'amplia i es
+        passa una màscara de nitidesa proporcional a aquesta alçada.
+        """
+        if not self.line_height:
+            return pixels
+        import cv2  # ve amb rapidocr_onnxruntime
+        found, _elapsed = self.engine(pixels, use_det=True, use_cls=False, use_rec=False)
+        if not found:
+            return pixels
+        heights = sorted(min(_distance(box[0], box[3]), _distance(box[0], box[1])) for box in found)
+        height = max(heights[len(heights) // 2], 1.0)  # la mediana
+        zoom = min(self.line_height / height, self.MAX_ZOOM, self.MAX_SIDE / max(pixels.shape[:2]))
+        if zoom > 1.1:
+            pixels = cv2.resize(pixels, None, fx=zoom, fy=zoom, interpolation=cv2.INTER_LANCZOS4)
+            height *= zoom
+        soft = cv2.GaussianBlur(pixels, (0, 0), height / 24)
+        return cv2.addWeighted(pixels, 2.5, soft, -1.5, 0)
 
     def read(self, image, lang):
         try:
-            boxes, _elapsed = self.engine(image)
+            pixels = self.engine.load_img(image)  # bytes -> matriu de píxels
         except Exception as error:
             # Una imatge trencada surt com a LoadImageError o com l'OSError de Pillow
             if "LoadImage" in type(error).__name__ or isinstance(error, (OSError, SyntaxError)):
                 raise EngineError(415, "rapidocr no ha pogut obrir la imatge")
             raise
+        # use_cls=False: el classificador d'angle gira línies llargues que ja
+        # estan dretes i es perden senceres. La foto ja arriba dreta (EXIF).
+        boxes, _elapsed = self.engine(self._enhance(pixels), use_cls=False)
         rows = reading_order(boxes or [])
         return "\n".join(" ".join(it["text"] for it in row) for row in rows), "ch+en"
 
     def health(self):
-        return {"languages": ["ch", "en"], "note": "sense accents catalans"}
+        return {"languages": ["ch", "en"], "note": "sense accents catalans", "line_height": self.line_height}
 
 
 # --- Motor 3: Qwen amb visió (experimental) ----------------------------------------
@@ -510,6 +545,9 @@ def main():
                         help="tesseract: força els models, p. ex. «cat» (més ràpid que cat+spa+eng)")
     parser.add_argument("--threads", type=int, default=0,
                         help="tesseract: fils d'OpenMP (OMP_THREAD_LIMIT); 0 = els que vulgui")
+    parser.add_argument("--line-height", type=int, default=48,
+                        help="rapidocr: alçada de línia, en píxels, a què s'amplia el text abans de llegir "
+                             "(0 = llegeix la imatge tal com ve)")
     parser.add_argument("--vision-url", default=os.environ.get("OCR_VISION_URL", VISION_URL),
                         help="qwen: el llama-server que hi veu")
     args = parser.parse_args()

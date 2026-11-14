@@ -187,12 +187,17 @@ def sample(db_path, images, lang, levels, n, seed):
 
 
 def commit():
-    try:
-        done = subprocess.run(["git", "-C", ROOT, "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE,
+    """El commit del repositori; amb «+canvis» si el lector o aquest script en tenen de no desats."""
+    def git(*args):
+        done = subprocess.run(["git", "-C", ROOT] + list(args), stdout=subprocess.PIPE,
                               stderr=subprocess.DEVNULL, timeout=5)
-        return done.stdout.decode().strip() or None
+        return done.stdout.decode().strip()
+    try:
+        head = git("rev-parse", "--short", "HEAD")
+        dirty = git("status", "--porcelain", "--", "scripts/ocr_server.py", "scripts/eval_ocr.py", "mentor/ocr.py")
     except (OSError, subprocess.SubprocessError):
         return None
+    return (head + ("+canvis" if dirty else "")) or None
 
 
 def percent(part, whole):

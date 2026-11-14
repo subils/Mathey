@@ -37,3 +37,4 @@ app/assets/
 
 # Sistema
 .DS_Store
+*.png

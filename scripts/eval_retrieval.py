@@ -618,6 +618,9 @@ def table_threshold(bench, eng, loo, cat, esp, ncat):
     print(f"   LOW_SCORE actual: {R.LOW_SCORE}")
 
 
+JUDGED_SCORES = ((0.0, 0.15), (0.15, 0.25), (0.25, 0.35), (0.35, 0.50), (0.50, 1.01))
+
+
 def table_judged(bench):
     print("\n== 5. Rellevància jutjada a mà (criteri de l'agent que ho va jutjar, no una mesura objectiva) ==")
     print("   Per a cada problema propi en català: practicar el primer resultat ajudaria amb la seva idea clau?")
@@ -627,6 +630,7 @@ def table_judged(bench):
         eng = bench.engine(cfg, "bayes+lèxic")
         counts, stale = Counter(), []
         by_topic = {topic: Counter() for topic in R.TOPICS}
+        by_score = {limits: Counter() for limits in JUDGED_SCORES}
         for o in items:
             hits = eng.search(o["enunciat"], k=1)
             verdict = JUDGED.get(o["id"], {}).get(hits[0]["id"] if hits else None)
@@ -635,6 +639,9 @@ def table_judged(bench):
                 continue
             counts[verdict] += 1
             by_topic[o["tema"]][verdict] += 1
+            for limits in JUDGED_SCORES:
+                if limits[0] <= hits[0]["score"] < limits[1]:
+                    by_score[limits][verdict] += 1
         total = sum(counts.values()) or 1
         print(f"   {name:24} " + " · ".join(f"{verdict}: {counts[verdict]:2d} ({pct(counts[verdict] / total).strip()} %)"
                                               for verdict in ("sí", "en part", "no"))
@@ -643,6 +650,11 @@ def table_judged(bench):
             for topic in R.TOPICS:
                 c = by_topic[topic]
                 print(f"      {topic:30} sí {c['sí']:2d} · en part {c['en part']:2d} · no {c['no']:2d}")
+            print("      Segons la puntuació del primer resultat (pocs casos a cada tram: orientatiu):")
+            for limits in JUDGED_SCORES:
+                c = by_score[limits]
+                print(f"      puntuació {limits[0]:.2f}–{min(limits[1], 1.0):.2f}             "
+                      f"sí {c['sí']:2d} · en part {c['en part']:2d} · no {c['no']:2d}")
         if stale:
             print(f"      Sense jutjar ({len(stale)}; el primer resultat ha canviat des que es va jutjar): "
                   + ", ".join(stale))
