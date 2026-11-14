@@ -31,6 +31,7 @@ export default function Perfil() {
           <div className="grid grid-cols-3 gap-3">
             {[
               ["Nivell", String(profile.level)],
+              ["Elo", profile.elo !== undefined ? String(profile.elo) : "—"],
               ["Problemes", String(profile.attempts)],
               ["Al primer intent", pct(profile.accuracy)],
             ].map(([label, value]) => (

@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS own_problems (
 CREATE TABLE IF NOT EXISTS own_helps (
     id INTEGER PRIMARY KEY AUTOINCREMENT, own_id INTEGER, doubt TEXT, reply TEXT,
     source TEXT, seconds REAL, rejected TEXT, ts TEXT DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS problem_elo (
+    id TEXT PRIMARY KEY, elo REAL NOT NULL, attempts INTEGER DEFAULT 0);
 CREATE TABLE IF NOT EXISTS ocr_reads (
     id INTEGER PRIMARY KEY AUTOINCREMENT, student_id INTEGER, engine TEXT, seconds REAL,
     chars INTEGER, ok INTEGER, ts TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -76,10 +78,24 @@ def bank():
     return _bank
 
 
+def _migrate_state(db):
+    """Afegeix les columnes noves a una state.db creada amb una versió anterior."""
+    have = {row["name"] for row in db.execute("PRAGMA table_info(students)")}
+    for column, kind in (("elo", "REAL"), ("elo_attempts", "INTEGER DEFAULT 0")):
+        if column not in have:
+            db.execute(f"ALTER TABLE students ADD COLUMN {column} {kind}")
+    have = {row["name"] for row in db.execute("PRAGMA table_info(attempts)")}
+    for column in ("elo_before", "elo_after", "problem_elo"):
+        if column not in have:
+            db.execute(f"ALTER TABLE attempts ADD COLUMN {column} REAL")
+    db.commit()
+
+
 def state():
     global _state
     if _state is None:
         _state = _connect(config.STATE_DB, STATE_SCHEMA)
+        _migrate_state(_state)
     return _state
 
 

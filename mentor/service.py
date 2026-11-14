@@ -17,7 +17,7 @@ import base64
 import binascii
 import json
 
-from . import config, filters, llm, matrix, store, strategies
+from . import config, elo, filters, llm, matrix, store, strategies
 
 _current_matrix = matrix.idle()
 _ID = re.compile(r"^lvl-\d_\d{4}_\d+$")
@@ -53,6 +53,7 @@ def _public(pid, lang="cat"):
     return {
         "id": pid,
         "level": row["level"],
+        "elo": _problem_elo(pid),
         "year": row["year"],
         "topic": content["topic"],
         "has_figure": not row["text_only"],
@@ -72,6 +73,41 @@ def _student(params):
     if not row:
         raise UserError(404, "alumne desconegut")
     return row
+
+
+# ---------------------------------------------------------------- Elo (vegeu elo.py)
+
+def _initial_problem_elo(pid):
+    """Elo inicial a partir de l'id: lvl-<nivell>_<any>_<número de pregunta>."""
+    level, number = int(pid[4]), int(pid.rsplit("_", 1)[1])
+    return elo.problem_elo(level, number)
+
+
+def _problem_elos():
+    """Elo actual dels problemes que ja han rebut respostes (la resta: l'inicial)."""
+    return {r["id"]: r["elo"] for r in store.query(store.state(), "SELECT id, elo FROM problem_elo")}
+
+
+def _problem_elo(pid):
+    row = store.one(store.state(), "SELECT elo FROM problem_elo WHERE id = ?", (pid,))
+    return round(row["elo"]) if row else _initial_problem_elo(pid)
+
+
+def _student_elo(student):
+    if student.get("elo") is not None:
+        return round(student["elo"])
+    return elo.initial_student_elo(student["level"])  # alumnes d'abans de l'Elo
+
+
+def _target_elo(params, student):
+    """L'Elo que l'alumne vol practicar (paràmetre `elo`) o, si no en tria cap, el seu."""
+    raw = params.get("elo")
+    if raw in (None, ""):
+        return _student_elo(student)
+    try:
+        return min(max(int(float(raw)), 400), 2800)
+    except (TypeError, ValueError):
+        raise UserError(400, "l'Elo ha de ser un número")
 
 
 _matrix_listeners = []
@@ -129,10 +165,11 @@ def create_session(params):
         raise UserError(400, f"curs desconegut: tria'n un de {', '.join(config.GRADE_LEVEL)}")
     level = min(config.GRADE_LEVEL[grade], config.MAX_LEVEL)
     easy = 1 if params.get("easy_mode") else 0
+    rating = elo.initial_student_elo(level)
     sid = store.execute(store.state(),
-                        "INSERT INTO students (alias, grade, level, easy_mode) VALUES (?, ?, ?, ?)",
-                        (alias, grade, level, easy))
-    return {"student": sid, "alias": alias, "grade": grade, "level": level,
+                        "INSERT INTO students (alias, grade, level, easy_mode, elo, elo_attempts) "
+                        "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, level, easy, rating))
+    return {"student": sid, "alias": alias, "grade": grade, "level": level, "elo": rating,
             "easy_mode": bool(easy), "matrix": _set_matrix(matrix.level(level))}
 
 
@@ -143,15 +180,29 @@ def _topic_scores(sid):
     return {r["topic"]: ((r["ok"] or 0) + 1) / (r["n"] + 2) for r in rows}, {r["topic"]: r["n"] for r in rows}
 
 
-def _pick(sid, level):
+ELO_WINDOWS = (100, 200, 400)  # es busca a ±100 de l'Elo objectiu; si no n'hi ha, s'amplia
+
+
+def _pick(sid, target):
+    """Un problema no fet amb l'Elo més a prop de `target`; dins la finestra, el tema més fluix."""
     seen = {r["problem_id"] for r in store.query(
         store.state(), "SELECT DISTINCT problem_id FROM attempts WHERE student_id = ?", (sid,))}
     rows = store.query(store.bank(), """
         SELECT c.id, c.topic FROM content c JOIN problems p ON p.id = c.id AND p.lang = 'cat'
-        WHERE c.verified = 1 AND p.level = ? ORDER BY c.id""", (level,))
-    pool = [r for r in rows if r["id"] not in seen]
-    if not pool:
+        WHERE c.verified = 1 AND p.level <= ? ORDER BY c.id""", (config.MAX_LEVEL,))
+    rows = [r for r in rows if r["id"] not in seen]
+    if not rows:
         return None
+    current = _problem_elos()
+    for r in rows:
+        r["distance"] = abs(current.get(r["id"], _initial_problem_elo(r["id"])) - target)
+    pool = []
+    for window in ELO_WINDOWS:
+        pool = [r for r in rows if r["distance"] <= window]
+        if pool:
+            break
+    if not pool:  # cap prou a prop: els 5 més propers
+        pool = sorted(rows, key=lambda r: (r["distance"], r["id"]))[:5]
     scores, counts = _topic_scores(sid)
     by_topic = {}
     for r in pool:
@@ -168,18 +219,13 @@ def next_problem(params):
     if pid:
         if not _content(pid):
             raise UserError(404, "problema sense contingut verificat")
-    else:
-        pid = _pick(student["id"], student["level"])
-        # Si el nivell s'ha esgotat, mira els nivells del costat
-        for delta in (-1, 1, -2, 2, -3, 3):
-            if pid:
-                break
-            level = student["level"] + delta
-            if 0 <= level <= config.MAX_LEVEL:
-                pid = _pick(student["id"], level)
+    target = _target_elo(params, student)
+    if not pid:
+        pid = _pick(student["id"], target)
     if not pid:
         return {"problem": None, "message": "Has fet tots els problemes! Parla amb el teu mestre."}
     return {"problem": _public(pid), "level": student["level"],
+            "elo": _student_elo(student), "target_elo": target,
             "matrix": _set_matrix(matrix.level(student["level"], student["streak_ok"]))}
 
 
@@ -224,16 +270,37 @@ def answer(params):
                 level, bad, change = level - 1, 0, -1
     store.execute(db, "UPDATE students SET level = ?, streak_ok = ?, streak_bad = ? WHERE id = ?",
                   (level, ok, bad, student["id"]))
+
+    # Elo, com als escacs: una partida per problema, la primera resposta. Qui ha
+    # vist la solució abans de respondre la perd; cada ajuda resta (elo.score).
+    rating_before = _student_elo(student)
+    problem_before = _problem_elo(pid)
+    rating_after, problem_after = rating_before, problem_before
+    if first_try:
+        saw_solution = store.one(db, "SELECT COUNT(*) AS n FROM hints WHERE student_id = ? AND problem_id = ? "
+                                     "AND rung = 5", (student["id"], pid))["n"] > 0
+        result_score = 0.0 if saw_solution else elo.score(correct, hints_used)
+        rating_after, problem_after = elo.update(rating_before, problem_before, result_score,
+                                                 student.get("elo_attempts") or 0)
+        store.execute(db, "UPDATE students SET elo = ?, elo_attempts = COALESCE(elo_attempts, 0) + 1 "
+                          "WHERE id = ?", (rating_after, student["id"]))
+        store.execute(db, """INSERT INTO problem_elo (id, elo, attempts) VALUES (?, ?, 1)
+                             ON CONFLICT(id) DO UPDATE SET elo = excluded.elo, attempts = attempts + 1""",
+                      (pid, problem_after))
+
     try:
         seconds = float(params.get("seconds") or 0)
     except (TypeError, ValueError):
         seconds = 0.0
     store.execute(db, """INSERT INTO attempts (student_id, problem_id, letter, correct, first_try,
-                         hints_used, seconds, level, topic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                         hints_used, seconds, level, topic, elo_before, elo_after, problem_elo)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                   (student["id"], pid, letter, int(correct), int(first_try), hints_used, seconds,
-                   row["level"], content["topic"]))
+                   row["level"], content["topic"], rating_before, rating_after, problem_before))
     result = {"correct": correct, "first_try": first_try, "level": level, "level_change": change,
-              "streak": ok, "matrix": _set_matrix(matrix.check() if correct else matrix.cross())}
+              "streak": ok, "elo": rating_after, "elo_change": rating_after - rating_before,
+              "problem_elo": problem_before,
+              "matrix": _set_matrix(matrix.check() if correct else matrix.cross())}
     if correct:
         result.update({"answer": label, "answer_text": option,
                        "solution": content["solution"], "key_idea": content["key_idea"]})
@@ -349,6 +416,7 @@ def profile(params):
         FROM attempts WHERE student_id = ? AND first_try = 1 ORDER BY id DESC LIMIT 10""", (sid,))
     return {
         "alias": student["alias"], "grade": student["grade"], "level": student["level"],
+        "elo": _student_elo(student),
         "streak": student["streak_ok"], "attempts": total, "correct": ok,
         "accuracy": round(ok / total, 3) if total else None,
         "by_topic": [{"topic": r["topic"], "attempts": r["n"], "correct": r["ok"] or 0,

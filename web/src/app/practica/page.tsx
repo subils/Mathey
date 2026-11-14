@@ -55,6 +55,10 @@ export default function Practica() {
   const [original, setOriginal] = useState<Problem | null>(null);
   const [levelState, setLevel] = useState<number | null>(null);
   const level = levelState ?? session?.level ?? null;
+  const [eloState, setElo] = useState<number | null>(null);
+  const elo = eloState ?? session?.elo ?? null;
+  // Elo que l'alumne vol practicar; buit = el seu propi Elo
+  const [targetElo, setTargetElo] = useState("");
   const shownAt = useRef<number>(0);
 
   const resetProblemState = () => {
@@ -72,6 +76,7 @@ export default function Practica() {
   const applyNext = useCallback((next: NextResult) => {
     if (next.matrix) setMatrix(next.matrix);
     if (typeof next.level === "number") setLevel(next.level);
+    if (typeof next.elo === "number") setElo(next.elo);
     if (!next.problem) {
       setProblem(null);
       setMessage(next.message ?? "No queden problemes.");
@@ -106,7 +111,8 @@ export default function Practica() {
     if (!session) return;
     setPhase("loading");
     resetProblemState();
-    api.next(session.student, id).then(applyNext, applyError);
+    const target = Number.parseInt(targetElo, 10);
+    api.next(session.student, id, id || Number.isNaN(target) ? undefined : target).then(applyNext, applyError);
   }
 
   async function choose(letter: Letter) {
@@ -118,16 +124,29 @@ export default function Practica() {
       setResult(r);
       setMatrix(r.matrix);
       setLevel(r.level);
-      saveSession({ ...session, level: r.level });
+      if (typeof r.elo === "number") setElo(r.elo);
+      saveSession({ ...session, level: r.level, elo: r.elo ?? session.elo });
+      const eloText =
+        r.first_try && typeof r.elo === "number" && r.elo_change !== undefined
+          ? `Elo ${r.elo} (${r.elo_change >= 0 ? "+" : ""}${r.elo_change}).`
+          : "";
       if (r.correct) {
         setPhase("correct");
-        setMessage(r.level_change > 0 ? `Puges de nivell: ara fas problemes de ${LEVEL_NAMES[r.level]}!` : "");
+        setMessage(
+          [r.level_change > 0 ? `Puges de nivell: ara fas problemes de ${LEVEL_NAMES[r.level]}!` : "", eloText]
+            .filter(Boolean)
+            .join(" "),
+        );
       } else {
         setWrongLetters((w) => [...w, letter]);
         setExplained(null);
         setExplainText("");
         setPhase("wrong");
-        setMessage(r.level_change < 0 ? `Baixem un nivell per agafar confiança: ${LEVEL_NAMES[r.level]}.` : "");
+        setMessage(
+          [r.level_change < 0 ? `Baixem un nivell per agafar confiança: ${LEVEL_NAMES[r.level]}.` : "", eloText]
+            .filter(Boolean)
+            .join(" "),
+        );
       }
     } catch (e) {
       setMessage((e as Error).message);
@@ -192,8 +211,32 @@ export default function Practica() {
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-zinc-500">
           <span>
             {session.alias} · Nivell {level ?? "?"} {level !== null && `(${LEVEL_NAMES[level] ?? ""})`}
+            {elo !== null && ` · Elo ${elo}`}
             {problem && ` · ${problem.topic}`}
           </span>
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              goTo();
+            }}
+          >
+            <label htmlFor="target-elo">Practica a Elo</label>
+            <input
+              id="target-elo"
+              type="number"
+              min={400}
+              max={2800}
+              step={50}
+              placeholder={elo !== null ? String(elo) : "el meu"}
+              value={targetElo}
+              onChange={(event) => setTargetElo(event.target.value)}
+              className="w-24 rounded-full border border-zinc-300 px-3 py-1 dark:border-zinc-700 dark:bg-zinc-900"
+            />
+            <button className="rounded-full border border-zinc-300 px-3 py-1 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800">
+              Busca
+            </button>
+          </form>
           {original && (
             <span className="rounded-full bg-violet-100 px-3 py-1 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200">
               Problema germà del que estaves fent
@@ -214,6 +257,7 @@ export default function Practica() {
               <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-2 dark:border-zinc-800">
                 <span className="text-xs uppercase tracking-wide text-zinc-500">
                   Cangur {problem.year} · nivell {problem.level}
+                  {problem.elo !== undefined && ` · Elo ${problem.elo}`}
                 </span>
                 <button
                   onClick={() => setEasy(!easy)}

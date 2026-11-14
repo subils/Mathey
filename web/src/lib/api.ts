@@ -25,6 +25,7 @@ export type Health = {
 export type Problem = {
   id: string;
   level: number;
+  elo?: number;
   year: number;
   topic: string;
   has_figure: boolean;
@@ -39,11 +40,19 @@ export type Session = {
   alias: string;
   grade: string;
   level: number;
+  elo?: number;
   easy_mode: boolean;
   matrix?: Matrix;
 };
 
-export type NextResult = { problem: Problem | null; level?: number; message?: string; matrix?: Matrix };
+export type NextResult = {
+  problem: Problem | null;
+  level?: number;
+  elo?: number;
+  target_elo?: number;
+  message?: string;
+  matrix?: Matrix;
+};
 
 export type AnswerResult = {
   correct: boolean;
@@ -51,6 +60,9 @@ export type AnswerResult = {
   level: number;
   level_change: number;
   streak: number;
+  elo?: number;
+  elo_change?: number;
+  problem_elo?: number;
   matrix: Matrix;
   answer?: Letter;
   answer_text?: string;
@@ -81,6 +93,7 @@ export type Profile = {
   alias: string;
   grade: string;
   level: number;
+  elo?: number;
   streak: number;
   attempts: number;
   correct: number;
@@ -158,8 +171,11 @@ export const api = {
   health: () => call<Health>("GET", "/health"),
   session: (alias: string, grade: string, easy_mode: boolean) =>
     call<Session>("POST", "/session", { alias, grade, easy_mode }),
-  next: (student: number, id?: string) =>
-    call<NextResult>("GET", `/next?student=${student}${id ? `&id=${encodeURIComponent(id)}` : ""}`),
+  next: (student: number, id?: string, elo?: number) =>
+    call<NextResult>(
+      "GET",
+      `/next?student=${student}${id ? `&id=${encodeURIComponent(id)}` : ""}${elo ? `&elo=${elo}` : ""}`,
+    ),
   answer: (student: number, problem_id: string, letter: Letter, seconds: number) =>
     call<AnswerResult>("POST", "/answer", { student, problem_id, letter, seconds }),
   hint: (student: number, problem_id: string, rung: number, confirm = false) =>
