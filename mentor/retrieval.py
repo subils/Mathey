@@ -94,8 +94,8 @@ LOW_SCORE = 0.15
 # Per sobre d'aquesta puntuació, la idea clau del problema trobat es passa a la IA
 # com a pista per al problema propi. Per sota, el problema només es proposa per
 # practicar el tema: amb 40 problemes propis jutjats a mà, entre 0,15 i 0,50 el
-# primer resultat ajuda amb la idea només un de cada tres cops (i en part, un
-# altre), i a partir de 0,50 en 4 de 5. Mostra petita: és una tria prudent.
+# primer resultat ajuda amb la idea en 7 de 34 (en part, 10; no, 17), i a partir
+# de 0,50 en 4 de 5. Mostra petita: és una tria prudent.
 HIGH_SCORE = 0.50
 
 # ---------------------------------------------------------------------------
