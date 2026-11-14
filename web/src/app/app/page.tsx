@@ -76,7 +76,6 @@ function Hub({ session }: { session: Session }) {
         <Eyebrow>Benvingut de nou</Eyebrow>
         <h1 className="text-[clamp(30px,4.6vw,52px)] leading-[1.06] font-medium tracking-[-0.03em]">
           Hola, <span className="text-gradient">{session.alias}</span>.
-          <br />
           Què fem avui?
         </h1>
         <div className="mt-1 flex flex-wrap gap-2 text-[13px]">
