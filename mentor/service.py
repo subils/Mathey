@@ -587,7 +587,8 @@ def own_match(params):
     guides = found and bool(siblings) and hits[0]["score"] >= retrieval.HIGH_SCORE
     # La IA llegeix ara el problema i l'exemple, mentre l'alumne escriu el seu dubte
     example = _example(siblings[0]["id"]) if guides else None
-    llm.warm_own_later(text, example)  # no bloqueja i no fa cua
+    # El xat (mode 2) fa servir el prompt de resolució: és el que es llegeix per endavant
+    llm.warm_solve_later(text, example)  # no bloqueja i no fa cua
     return {"own_id": own_id, "topic": topic, "topic_confidence": round(float(confidence), 2),
             "found": found, "same_idea": guides, "siblings": siblings if found else [],
             "strategy": strategies.for_topic(topic),
@@ -649,3 +650,86 @@ def own_help(params):
             "sibling": _public(sibling_ids[0]) if example else None,
             "timings": {k: timings.get(k) for k in ("prompt_n", "prompt_per_second", "predicted_n",
                                                     "predicted_per_second", "wall_seconds") if k in timings}}
+
+
+# ------------------------------------------------------------- xat del mode 2
+#
+# Ordre del fundador (14/11/2026): al xat la IA intenta resoldre el problema
+# propi pas a pas (excepció a la regla 4 limitada a aquest mode). La resposta
+# arriba en streaming: own_chat() valida ara i torna un generador d'esdeveniments
+# (mentor/api.py l'embolica en un Stream i l'adaptador l'envia com a NDJSON):
+#   {"type": "meta", "own_id", "sibling", "strategy"}
+#   {"type": "delta", "text": "..."}            (un o més)
+#   {"type": "done", "reply", "source", "seconds", "rejected", "timings"}
+
+MAX_CHAT_CHARS = 1600
+
+
+def _chat_fallback(example, strategy):
+    """Sense IA: el problema semblant resolt, presentat com el que és, o l'estratègia."""
+    if example and example.get("key_idea"):
+        steps = "\n".join(f"{i}. {step}" for i, step in enumerate((example.get("solution") or [])[:4], 1))
+        return ("Ara mateix la IA de la placa no pot respondre. Mentrestant, mira com es resol "
+                f"un problema semblant del Cangur.\n\n**La idea clau:** {example['key_idea']}"
+                + (f"\n\n{steps}" if steps else "")
+                + "\n\nProva de fer el mateix amb el teu problema.")
+    return f"Ara mateix la IA de la placa no pot respondre. Una manera de començar: {strategy}"
+
+
+def own_chat(params):
+    student = _student(params)
+    try:
+        own_id = int(params.get("own_id"))
+    except (TypeError, ValueError):
+        raise UserError(400, "falta el problema")
+    own = store.one(store.state(), "SELECT * FROM own_problems WHERE id = ? AND student_id = ?",
+                    (own_id, student["id"]))
+    if not own:
+        raise UserError(404, "problema desconegut")
+    message = (params.get("message") or "").strip()[:300]
+    history = params.get("history") or []
+    if not isinstance(history, list):
+        history = []
+    sibling_ids = store.loads(own["siblings"], [])
+    from . import retrieval
+    guides = own["found"] and sibling_ids and (own["best_score"] or 0) >= retrieval.HIGH_SCORE
+    example = _example(sibling_ids[0]) if guides else None
+    strategy = strategies.for_topic(own["topic"])
+    return _own_chat_events(own, example, strategy, history, message,
+                            _public(sibling_ids[0]) if (own["found"] and sibling_ids) else None)
+
+
+def _own_chat_events(own, example, strategy, history, message, sibling):
+    yield {"type": "meta", "own_id": own["id"], "sibling": sibling, "strategy": strategy}
+    parts, source, rejected, timings = [], "placa", None, {}
+    started = time.perf_counter()
+    before = _current_matrix
+    _set_matrix(matrix.thinking())
+    try:
+        for piece in llm.solve_own_stream(own["text"], example, history, message):
+            if isinstance(piece, dict):
+                timings = piece.get("timings", {})
+                continue
+            parts.append(piece)
+            yield {"type": "delta", "text": piece}
+            if sum(map(len, parts)) > MAX_CHAT_CHARS:
+                rejected = "massa llarga: s'ha tallat"
+                break
+    except OSError as error:
+        rejected = f"la IA de la placa no respon ({type(error).__name__})"
+    except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
+        rejected = f"resposta inesperada de la IA ({type(error).__name__})"
+    finally:
+        _set_matrix(before)
+    reply = "".join(parts).strip()
+    if not reply:
+        source = "preparat"
+        reply = _chat_fallback(example, strategy)
+        yield {"type": "delta", "text": reply}
+    seconds = round(time.perf_counter() - started, 2)
+    store.execute(store.state(), """INSERT INTO own_helps (own_id, doubt, reply, source, seconds, rejected)
+                  VALUES (?, ?, ?, ?, ?, ?)""", (own["id"], message or "(resol-lo)", reply, source, seconds, rejected))
+    yield {"type": "done", "reply": reply, "source": source, "seconds": seconds,
+           "rejected": rejected, "timings": {k: timings.get(k) for k in (
+               "prompt_n", "prompt_per_second", "predicted_n", "predicted_per_second",
+               "wall_seconds", "first_token_seconds") if k in timings}}

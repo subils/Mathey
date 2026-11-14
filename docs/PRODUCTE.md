@@ -72,28 +72,34 @@ examen) i la IA de la placa fa una feina que cap contingut preparat pot fer.
    repassi i el corregeixi.
 3. **El mentor busca al banc els problemes del Cangur que fan servir la mateixa
    idea** i n'ofereix un per practicar, amb totes les ajudes de sempre.
-4. **L'alumne explica on s'encalla**, amb les seves paraules.
-5. **La IA de la placa li respon amb una pista per continuar**, a partir del seu
-   dubte i de l'estratègia del tema. Només si el problema semblant s'hi assembla
-   molt (puntuació ≥ 0,50) li passa també la seva idea clau com a exemple: amb 40
-   problemes propis jutjats a mà, per sota d'aquest llindar el semblant ajuda amb
-   la idea només un de cada tres cops, i aleshores només es proposa per practicar
-   el tema (`scripts/eval_retrieval.py`).
+4. **La IA de la placa intenta resoldre'l pas a pas, en format xat** (ordre del
+   fundador, 14/11 ~19:00). Fa com a màxim cinc passos curts i acaba amb
+   «Resultat: …».
+   - Els passos apareixen a mesura que la IA els escriu (streaming).
+   - Si el problema semblant s'hi assembla molt (puntuació ≥ 0,50), la IA el
+     rep com a exemple. Amb 40 problemes propis jutjats a mà, per sota d'aquest
+     llindar el semblant ajuda amb la idea només un de cada tres cops
+     (`scripts/eval_retrieval.py`); aleshores només es proposa per practicar el tema.
+5. **L'alumne pot preguntar el que no entén** («per què restes?») i la IA respon
+   en dues a quatre frases sobre el seu problema.
 
-**El que el mentor no fa:** resoldre el problema de l'alumne. No en sap la
-resposta i no l'afirma mai.
+**Avís sempre visible:** és una *proposta de la IA de la placa, que pot
+equivocar-se*. El model sol encerta el 22,5% del Cangur. L'alumne ha de
+comprovar cada pas, i el mentor li ofereix el problema semblant del Cangur
+(verificat) per practicar la mateixa idea.
 
-**Controls.** Com que aquí no hi ha resposta oficial, el control és un altre:
-la pista de la IA no pot contenir cap número que no sigui a l'enunciat o al
-dubte de l'alumne (així no pot «inventar-se» resultats), i ha de ser curta. Si
-no el passa o la IA no respon, l'alumne rep la idea clau del problema semblant
-(només si és molt semblant), presentada com el que és, o una estratègia general
-del tema escrita per nosaltres.
+**Excepció acotada.** És l'únic lloc on la IA resol. Al Repte Cangur (mode 1)
+continua sense donar la resposta: pregunta socràtica i escala d'ajudes.
 
-**Per què és el millor ús de la IA de la placa.** Sola no sap resoldre (22,5%).
-Aquí no ha de resoldre: ha de **traslladar** una idea d'un problema resolt a un
-de nou i respondre al dubte concret de l'alumne. I converteix M3Kang en un pont
-amb el que es fa a classe.
+**Controls.** Llargada màxima (220 tokens, 1.600 caràcters). Si la IA no
+respon o no diu res, l'alumne rep el problema semblant resolt (idea clau i
+passos), presentat com el que és, o una estratègia general del tema escrita
+per nosaltres. La ruta antiga de pistes (`/api/own/help`, amb el filtre de
+números) es manté per compatibilitat.
+
+**Per què val la pena.** Converteix M3Kang en un pont amb el que es fa a
+classe: el problema dels deures es connecta amb un problema del Cangur ja
+verificat que fa servir la mateixa idea.
 
 ## 5. Vista del mestre
 

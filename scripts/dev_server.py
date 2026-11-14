@@ -23,7 +23,7 @@ from urllib.parse import parse_qs, urlparse
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
-from mentor.api import ROUTES, ApiError, Binary  # noqa: E402
+from mentor.api import ROUTES, ApiError, Binary, Stream  # noqa: E402
 
 WEB_OUT = os.path.join(ROOT, "web", "out")
 
@@ -83,7 +83,28 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(500, {"error": f"{type(error).__name__}: {error}"})
         if isinstance(result, Binary):
             return self._send(200, result.data, result.content_type)
+        if isinstance(result, Stream):
+            return self._stream(result)
         self._json(200, result)
+
+    def _stream(self, result):
+        """NDJSON a trossos: una línia per esdeveniment, amb flush. Sense
+        Content-Length (HTTP/1.0): la resposta s'acaba quan es tanca la connexió."""
+        self.send_response(200)
+        self.send_header("Content-Type", "application/x-ndjson; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Accel-Buffering", "no")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.close_connection = True
+        try:
+            for event in result.events:
+                self.wfile.write((json.dumps(event, ensure_ascii=False) + "\n").encode())
+                self.wfile.flush()
+        except (BrokenPipeError, ConnectionResetError):  # l'alumne ha premut «Atura»
+            close = getattr(result.events, "close", None)
+            if close:
+                close()
 
     def _static(self):
         path = urlparse(self.path).path

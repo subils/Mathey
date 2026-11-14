@@ -9,11 +9,14 @@ a la placa):
   fusionats) i torna un dict serialitzable a JSON, o un `Binary` per a fitxers.
 - Si el dict té la clau "matrix" (8 llistes de 13 enters 0–7), l'adaptador de la
   placa la pinta a la matriu de LEDs. Al portàtil, la web la simula.
+- Si torna un `Stream`, la resposta va a trossos (NDJSON, una línia per
+  esdeveniment) i l'adaptador fa flush de cada línia.
 - Errors de l'usuari: llançar ApiError(status, missatge).
 
 Detall de cada ruta: docs/ARQUITECTURA.md, secció 5.
 """
 from dataclasses import dataclass
+from typing import Iterator
 
 from . import service
 
@@ -22,6 +25,13 @@ from . import service
 class Binary:
     content_type: str
     data: bytes
+
+
+@dataclass
+class Stream:
+    """Resposta a trossos: un iterador de dicts. L'adaptador l'envia com a NDJSON
+    (`application/x-ndjson`, una línia JSON per esdeveniment) i va fent flush."""
+    events: Iterator[dict]
 
 
 class ApiError(Exception):
@@ -49,6 +59,16 @@ def _wrap(fn):
     return handler
 
 
+def _wrap_stream(fn):
+    """Com _wrap, però la funció valida ara i torna un generador d'esdeveniments."""
+    inner = _wrap(fn)
+
+    def handler(params):
+        return Stream(inner(params))
+    handler.__name__ = inner.__name__
+    return handler
+
+
 ROUTES = {
     ("GET", "/api/health"): _wrap(service.health),
     ("POST", "/api/session"): _wrap(service.create_session),
@@ -67,4 +87,6 @@ ROUTES = {
     ("POST", "/api/own/ocr"): _wrap(service.own_ocr),
     ("POST", "/api/own/match"): _wrap(service.own_match),
     ("POST", "/api/own/help"): _wrap(service.own_help),
+    # Xat del mode 2: la IA resol pas a pas, en streaming (NDJSON)
+    ("POST", "/api/own/chat"): _wrap_stream(service.own_chat),
 }

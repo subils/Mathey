@@ -41,6 +41,16 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
 - 14/11/2026: tot el projecte viu en un únic repositori GitHub, `Mathey`, amb
   l'arrel local a `/Users/gsubils/Desktop/Mathey`; no es creen repositoris Git
   ni submòduls dins de cap subcarpeta.
+- 14/11/2026, ~19:00: **al mode 2 (xat «Porta el teu problema») la IA de la
+  placa intenta resoldre el problema propi de l'alumne** i l'acosta pas a pas a
+  una solució final. És una excepció a la regla 4 **limitada a aquest mode**: la
+  web ho presenta sempre com a «proposta de la IA de la placa, pot equivocar-se».
+  Al Repte Cangur (mode 1) la regla 4 es manté sencera.
+- 14/11/2026, ~19:00: **frontend nou amb el llenguatge visual de Faktu**
+  (`~/Desktop/Faktu`).
+  - Mode clar, vidre i tipografia Geist (local).
+  - Landing a `/`, servida només per la placa; l'app és a `/app/`.
+  - Aceternity UI: **només components gratuïts**, sense comprar All-Access.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.

@@ -73,7 +73,7 @@ if HERE not in sys.path:
 
 import numpy as np  # noqa: E402
 from fastapi import Request  # noqa: E402
-from fastapi.responses import JSONResponse, Response  # noqa: E402
+from fastapi.responses import JSONResponse, Response, StreamingResponse  # noqa: E402
 from starlette.concurrency import run_in_threadpool  # noqa: E402
 
 from arduino.app_bricks.web_ui import WebUI  # noqa: E402
@@ -84,13 +84,13 @@ class _Never(Exception):
     """Substitut de Binary/ApiError si el mentor no s'ha pogut importar."""
 
 
-ROUTES, Binary, ApiError = {}, _Never, _Never
+ROUTES, Binary, ApiError, Stream = {}, _Never, _Never, _Never
 MENTOR_ERROR = None
 if MODE == "matriu":
     log("mode matriu (pla B): no es carrega el mentor; només es pinta la matriu")
 else:
     try:
-        from mentor.api import ROUTES, Binary, ApiError  # noqa: E402,F811
+        from mentor.api import ROUTES, Binary, ApiError, Stream  # noqa: E402,F811
     except Exception as error:  # la web ha d'arrencar igualment i dir què passa
         MENTOR_ERROR = f"{type(error).__name__}: {error}"
         log(f"ERROR: no s'ha pogut importar el mentor: {MENTOR_ERROR}")
@@ -231,7 +231,19 @@ def error_response(status, message):
     return json_response({"error": message}, status)
 
 
+def ndjson(events):
+    """Esdeveniments d'un Stream del mentor, una línia JSON cadascun. Starlette
+    recorre aquest iterador síncron al threadpool: la crida al model no bloqueja."""
+    for event in events:
+        if isinstance(event, dict) and event.get("matrix") is not None:
+            matrix.show(event["matrix"])
+        yield (json.dumps(event, ensure_ascii=False) + "\n").encode()
+
+
 def to_response(result):
+    if isinstance(result, Stream):
+        return StreamingResponse(ndjson(result.events), media_type="application/x-ndjson",
+                                 headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
     if isinstance(result, Binary):
         return Response(content=result.data, media_type=result.content_type,
                         headers={"Cache-Control": "max-age=3600"})

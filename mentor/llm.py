@@ -214,3 +214,128 @@ def own_hint(own_text, example, doubt, strategy=""):
     timings = response.get("timings", {})
     timings["wall_seconds"] = round(time.perf_counter() - started, 2)
     return text, timings
+
+
+# ------------------------------------------------------ problema propi: xat
+#
+# Ordre del fundador (14/11/2026): al mode 2 (xat «Porta el teu problema») la IA
+# de la placa SÍ que intenta resoldre el problema de l'alumne, pas a pas, i
+# l'acosta a una solució final. És una excepció a la regla 4 limitada a aquest
+# mode: la web ho mostra com a «proposta de la IA, pot equivocar-se».
+#
+# A 5-6 tok/s una resolució triga desenes de segons: es fa en streaming perquè
+# l'alumne vegi els passos a mesura que surten.
+
+SYSTEM_SOLVE = (
+    "Ets un mentor de matemàtiques per a nens i nenes de 10 a 14 anys. "
+    "Respons sempre en català, amb frases curtes i clares. "
+    "Quan resols, fas passos numerats (màxim 5), un per línia, i acabes amb una línia "
+    "«Resultat: ...». Si no n'estàs segur, ho dius. Les fórmules van entre $...$."
+)
+
+
+def _solve_messages(own_text, example, history=(), message=""):
+    """Prompt curt: a la placa, llegir el prompt va a ~11 tok/s."""
+    context = _own_context(own_text, example)
+    turns = []
+    for turn in list(history)[-4:]:  # els últims 2 torns (alumne + IA)
+        role = "assistant" if turn.get("role") == "assistant" else "user"
+        text = str(turn.get("text") or "").strip()[:600]
+        if text:
+            turns.append({"role": role, "content": text})
+    if message:
+        ask = (f"L'ALUMNE PREGUNTA: «{message.strip()[:300]}»\n"
+               "Respon en 2-4 frases curtes, sobre el seu problema.")
+    else:
+        ask = ("Resol el problema de l'alumne pas a pas"
+               + (", fent servir la mateixa idea que l'exemple" if example else "") + ".")
+    if turns:
+        return ([{"role": "system", "content": SYSTEM_SOLVE},
+                 {"role": "user", "content": context + "\nResol-lo pas a pas."}]
+                + turns + [{"role": "user", "content": ask}])
+    return [{"role": "system", "content": SYSTEM_SOLVE},
+            {"role": "user", "content": context + "\n" + ask}]
+
+
+def warm_solve_later(own_text, example):
+    """Llegeix per endavant el problema propi amb el prompt del xat (no bloqueja)."""
+    _schedule_warm(_solve_messages(own_text, example)[:2])
+
+
+class _ThinkFilter:
+    """Treu els blocs <think>…</think> d'un text que arriba a trossos."""
+
+    TAG = "<think>"
+
+    def __init__(self):
+        self.raw = ""
+        self.sent = 0
+
+    def _visible(self):
+        visible = re.sub(r"<think>.*?</think>", "", self.raw, flags=re.S)
+        if self.TAG in visible:  # pensament encara obert: no s'ensenya res més
+            visible = visible[:visible.index(self.TAG)]
+        return visible.replace("</think>", "")
+
+    def feed(self, chunk):
+        self.raw += chunk
+        visible = self._visible()
+        # Un tros final com «<thi» pot ser l'inici de <think>: s'espera el següent
+        hold = max((k for k in range(1, len(self.TAG)) if visible.endswith(self.TAG[:k])), default=0)
+        safe = len(visible) - hold
+        if self.sent == 0:  # sense espais ni salts de línia al principi
+            self.sent = min(len(visible) - len(visible.lstrip()), safe)
+        out = visible[self.sent:safe]
+        self.sent = max(self.sent, safe)
+        return out
+
+    def text(self):
+        return self._visible().strip()
+
+
+def solve_own_stream(own_text, example, history=(), message="", max_tokens=220):
+    """Generador: dona trossos de text a mesura que la IA els escriu.
+
+    Al final dona un dict amb els temps (`timings`). Llança OSError si la IA no
+    respon abans de començar; si es talla a mig camí, també.
+    """
+    _cancel_pending_warm()  # la pregunta de l'alumne passa davant
+    payload = {
+        "messages": _solve_messages(own_text, example, history, message),
+        "max_tokens": max_tokens, "temperature": 0.2, "seed": 42,
+        "cache_prompt": True, "stream": True,
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
+    request = urllib.request.Request(
+        config.LLM_URL + "/v1/chat/completions", data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json", "Accept": "text/event-stream"})
+    started = time.perf_counter()
+    first = None
+    timings = {}
+    think = _ThinkFilter()
+    with urllib.request.urlopen(request, timeout=config.LLM_TIMEOUT) as response:
+        for raw in response:
+            line = raw.decode("utf-8", "replace").strip()
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if data == "[DONE]":
+                break
+            try:
+                event = json.loads(data)
+            except ValueError:
+                continue
+            if event.get("timings"):
+                timings = event["timings"]
+            choices = event.get("choices") or [{}]
+            chunk = (choices[0].get("delta") or {}).get("content") or ""
+            if chunk:
+                out = think.feed(chunk)
+                if out:
+                    if first is None:
+                        first = round(time.perf_counter() - started, 2)
+                    yield out
+    timings = dict(timings)
+    timings["wall_seconds"] = round(time.perf_counter() - started, 2)
+    timings["first_token_seconds"] = first
+    yield {"timings": timings, "text": think.text()}

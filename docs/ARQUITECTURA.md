@@ -289,9 +289,26 @@ la pinta als LEDs.
 | `POST /api/own/ocr` | `student`, `image` (base64 o data URI, màx. 8 MB) | text llegit; el servei OCR és a `MENTOR_OCR_URL` (a la placa, `http://<host>:8084`) |
 | `POST /api/own/match` | `student`, `text` | `own_id`, tema, fins a 3 problemes semblants, `same_idea` (semblança ≥ 0,50: la seva idea guia la pista), estratègia del tema |
 | `POST /api/own/help` | `student`, `own_id`, `doubt` | `reply` (pista de la IA o reserva preparada), `source`, segons, motiu de rebuig |
+| `POST /api/own/chat` | `student`, `own_id`, `message` (opcional; buit = «resol-lo»), `history` (últims torns `{role, text}`) | **Streaming NDJSON** (`application/x-ndjson`): `meta` (problema semblant, estratègia), `delta` (trossos de text), `done` (`reply`, `source`, segons, `rejected`, temps i `first_token_seconds`) |
 
 La resposta correcta **no viatja mai al navegador** fins que l'alumne l'encerta
 o demana la solució (graó 5, amb confirmació).
+
+**Xat del mode 2 (`/api/own/chat`).** Per ordre del fundador (14/11/2026), aquí
+la IA de la placa **sí que intenta resoldre** el problema propi de l'alumne, pas a
+pas i acabant amb «Resultat: …» (excepció a la regla 4 limitada a aquest mode; la
+web hi posa «proposta de la IA, pot equivocar-se»).
+- Com que genera a 5–6 tok/s, la resposta va en streaming.
+  - llama-server amb `stream: true` → `mentor/llm.py:solve_own_stream` (treu el
+    `<think>`) → generador d'esdeveniments → `mentor/api.py:Stream`.
+  - Cada adaptador l'envia línia a línia: `scripts/dev_server.py` sense
+    Content-Length; `app/python/main.py` amb `StreamingResponse`.
+- Controls: màxim 220 tokens i 1.600 caràcters.
+- Si la IA no respon o no diu res, la resposta de reserva és el problema semblant
+  resolt (idea clau i passos), presentat com el que és, o l'estratègia del tema.
+- `own/match` ja llegeix per endavant el prompt del xat (`warm_solve_later`).
+- Es desa a `own_helps`; la pregunta va a `doubt`, i «(resol-lo)» si l'alumne no
+  n'ha fet cap.
 
 ---
 
