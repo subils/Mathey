@@ -16,7 +16,7 @@ import base64
 import binascii
 import json
 
-from . import config, elo, filters, llm, matrix, store, strategies
+from . import config, elo, filters, llm, matrix, router, store, strategies
 
 _current_matrix = matrix.idle()
 _ID = re.compile(r"^lvl-\d_\d{4}_\d+$")
@@ -421,20 +421,26 @@ def explain(params):
     chosen = f"{letter}) {content['options'].get(letter, '')}" if letter else "cap"
     reply, source, rejected, timings = None, "placa", None, {}
     started = time.perf_counter()
-    before = _current_matrix
-    _set_matrix(matrix.thinking())
-    try:
-        text, timings = llm.socratic(row["text"], content["solution"], chosen, trap, said)
-        rejected = filters.leaks(text, label, option, row["text"], strict = True) or (
-            "" if filters.is_question(text) else "no és una pregunta curta")
-        if not rejected:
-            reply = text
-    except OSError as error:
-        rejected = f"la IA de la placa no respon ({type(error).__name__})"
-    except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
-        rejected = f"resposta inesperada de la IA ({type(error).__name__})"
-    finally:
-        _set_matrix(before)
+    # Router sense IA (mentor/router.py): si la frase descriu la trampa de l'opció triada,
+    # la resposta preparada arriba a l'instant i el model de la placa queda lliure.
+    instant, _decision = router.instant_reply(said, letter, label, option, content, row["text"])
+    if instant:
+        reply, source = instant, "instant"
+    else:
+        before = _current_matrix
+        _set_matrix(matrix.thinking())
+        try:
+            text, timings = llm.socratic(row["text"], content["solution"], chosen, trap, said)
+            rejected = filters.leaks(text, label, option, row["text"], strict = True) or (
+                "" if filters.is_question(text) else "no és una pregunta curta")
+            if not rejected:
+                reply = text
+        except OSError as error:
+            rejected = f"la IA de la placa no respon ({type(error).__name__})"
+        except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
+            rejected = f"resposta inesperada de la IA ({type(error).__name__})"
+        finally:
+            _set_matrix(before)
     if reply is None:
         # Reserva: l'error típic d'aquesta opció (preparat i verificat), o la dada clau
         source = "preparat"
@@ -508,7 +514,8 @@ def stats(_params):
     db = store.state()
     explained = store.query(db, "SELECT source, seconds FROM explanations ORDER BY id DESC LIMIT 200")
     live = sorted(e["seconds"] for e in explained if e["source"] == "placa")
-    meta = {r["key"]: r["value"] for r in store.query(store.bank(), "SELECT key, value FROM meta")}
+    instant = sum(1 for e in explained if e["source"] == "instant")
+    meta ={r["key"]: r["value"] for r in store.query(store.bank(), "SELECT key, value FROM meta")}
     verified = store.one(store.bank(), "SELECT COUNT(*) AS n FROM content WHERE verified = 1")["n"]
     prepared = store.one(store.bank(), "SELECT COUNT(*) AS n FROM content")["n"]
     return {
@@ -522,7 +529,8 @@ def stats(_params):
         "questions": {
             "total": len(explained),
             "from_board": len(live),
-            "fallback": len(explained) - len(live),
+            "instant": instant,  # router sense IA: la frase descrivia la trampa
+            "fallback": len(explained) - len(live) - instant,
             "median_seconds": live[len(live) // 2] if live else None,
             "worst_seconds": live[-1] if live else None,
         },

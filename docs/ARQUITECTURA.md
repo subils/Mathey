@@ -117,7 +117,7 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 | ✅ Lectura fàcil (dislèxia): enunciat adaptat, lletra gran | Contingut preparat | mil·lisegons |
 | ✅ Matriu LED: ✓ / ✗, nivell (el que correspon a l'Elo de l'alumne) i ratxa, «pensant» | Bridge + microcontrolador (a la web, simulada) | mil·lisegons |
 | ✅ Següent problema adaptatiu per **Elo**: a cada primera resposta, l'Elo del problema es mou una mica (K = 8) i el de l'alumne es torna a calcular amb totes les seves respostes, les recents pesant més (`elo.estimate`); es tria un problema no fet a ±100 de l'Elo de l'alumne (s'amplia a ±200 i ±400) i, dins d'aquesta finestra, del tema més fluix | `mentor/service.py`, `mentor/elo.py` | mil·lisegons |
-| ✅ «Com ho has pensat?» → una pregunta socràtica | **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | ~10 s estimats a la placa |
+| ✅ «Com ho has pensat?» → una pregunta socràtica | Primer, el **router sense IA** (`mentor/router.py`): si la frase de l'alumne descriu la trampa de l'opció triada, respon a l'instant amb la trampa i la dada clau (preparades). Si no, **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | Router: mil·lisegons. IA: ~10 s estimats a la placa |
 | ✅ Graó 1 · Estratègia | Contingut preparat | mil·lisegons |
 | ✅ Graó 2 · Dada clau | Contingut preparat | mil·lisegons |
 | ✅ Graó 3 · Problema germà més fàcil | Semblança del mètode (TF-IDF) + mateix tema + Elo ≤ el del problema | mil·lisegons |
@@ -142,6 +142,16 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
    lletres («quatre», «veintidós»). El que escriu la IA en directe passa en mode
    estricte: el valor correcte es bloqueja encara que surti a l'enunciat. El que
    no el passa no es mostra. Proves: `python -m unittest tests.test_filters`.
+4. **La IA només quan cal** (`mentor/router.py`). Abans de cridar la IA a
+   «Com ho has pensat?», es compara la frase de l'alumne amb la trampa de
+   l'opció que ha triat (paraules, trossos de lletres, l'operació de l'error i els
+   números; sense cap model). Si s'hi assembla prou i més que a cap altra trampa,
+   la resposta preparada arriba a l'instant (`source: "instant"`) i el model queda
+   lliure. Llindar 0,40, triat amb `scripts/measure_router.py` sobre 96 frases
+   **inventades** (`eval/router_cases.jsonl`): precisió 97,7%, cobertura 70,0%,
+   44,8% de les explicacions sense IA. Cal tornar-ho a mesurar amb frases reals
+   d'alumnes. Proves: `python -m unittest tests.test_router`.
+
 ### 3.4 El moment en directe de la demo
 
 Quan l'alumne obre un problema, enviem l'enunciat al model **mentre el llegeix**.
@@ -325,7 +335,7 @@ la pinta als LEDs.
 | `GET /api/image` | `id`, `lang` | PNG del problema |
 | `POST /api/answer` | `student`, `problem_id`, `letter`, `seconds` | `correct`, `elo`, `elo_change`, `problem_elo`, `streak`; si encerta, la solució |
 | `POST /api/hint` | `student`, `problem_id`, `rung` (1–5), `confirm` (cal per al 5) | el graó: text, problema germà o solució |
-| `POST /api/explain` | `student`, `problem_id`, `letter`, `text` | `reply`, `source` (`placa` o `preparat`), segons, motiu de rebuig |
+| `POST /api/explain` | `student`, `problem_id`, `letter`, `text` | `reply`, `source` (`instant` = router sense IA, `placa` o `preparat`), segons, motiu de rebuig |
 | `POST /api/warm` | `problem_id` | la IA llegeix el problema per endavant |
 | `GET /api/profile` | `student` | `elo`, `elo_start`, `elo_peak`, encerts per tema, últims intents (amb Elo abans i després) |
 | `GET /api/matrix` | — | el dibuix actual de la matriu |
