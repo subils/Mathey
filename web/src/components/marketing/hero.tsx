@@ -47,7 +47,7 @@ export function Hero() {
           <FloatingChips />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-            <Reveal>
+            <Reveal immediate>
               <div className="mb-7 flex flex-col items-center gap-5">
                 <div className="relative">
                   <Mark className="h-16 text-foreground animate-float md:h-20" title="Mathey" />
@@ -59,7 +59,7 @@ export function Hero() {
                 <Pill>Datathon FME 2026 · Repte Qualcomm</Pill>
               </div>
             </Reveal>
-            <Reveal delay={80}>
+            <Reveal immediate delay={80}>
               <h1
                 className="mb-5 max-w-5xl text-foreground"
                 style={{ fontSize: "clamp(34px, 6vw, 80px)", fontWeight: 500, letterSpacing: "-0.035em", lineHeight: 1.04 }}
@@ -69,13 +69,13 @@ export function Hero() {
                 T&apos;ajudem a <span className="text-gradient">trobar-la</span>.
               </h1>
             </Reveal>
-            <Reveal delay={140}>
+            <Reveal immediate delay={140}>
               <p className="mx-auto mb-9 max-w-xl text-[15px] leading-relaxed font-light text-muted-foreground md:text-[17px]">
                 Un mentor de matemàtiques que viu dins d&apos;una placa a l&apos;aula. Problemes del Cangur al teu nivell,
                 pistes quan t&apos;encalles i cap dada que surti de l&apos;escola. Sense internet.
               </p>
             </Reveal>
-            <Reveal delay={200}>
+            <Reveal immediate delay={200}>
               <div className="glass inline-flex items-center gap-1.5 rounded-2xl p-1.5">
                 <Link
                   href="/app/"

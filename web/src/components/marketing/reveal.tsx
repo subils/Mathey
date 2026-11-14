@@ -1,40 +1,75 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/**
- * Revela el contingut quan entra a la pantalla (fos + pujada + desenfocament).
- * Còpia de Faktu (components/marketing/reveal.tsx): IntersectionObserver,
- * respecta `prefers-reduced-motion` i admet un retard per escalonar.
- */
-export function Reveal({ children, className, delay = 0 }: { children?: ReactNode; className?: string; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
+/** useLayoutEffect al navegador (abans de pintar); res al servidor. */
+const useBrowserLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-  useEffect(() => {
+/**
+ * Revela el contingut amb un fos + pujada + desenfocament (com Faktu), però
+ * sense dependre del JavaScript per veure'l:
+ *
+ * - `immediate` (el hero): animació només de CSS en carregar. Funciona encara
+ *   que el JavaScript no arrenqui.
+ * - Per defecte: l'HTML surt visible. En hidratar, només s'amaguen els blocs
+ *   que encara són sota la pantalla; reapareixen en entrar-hi
+ *   (IntersectionObserver) i, per si de cas, al cap de 2,5 s.
+ */
+export function Reveal({
+  children,
+  className,
+  delay = 0,
+  immediate = false,
+}: {
+  children?: ReactNode;
+  className?: string;
+  delay?: number;
+  immediate?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [hidden, setHidden] = useState(false);
+
+  useBrowserLayoutEffect(() => {
+    if (immediate) return;
     const el = ref.current;
-    if (!el) return;
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Ja és a la pantalla: es deixa tal com està (sense parpelleig)
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.92) return;
+    setHidden(true);
+    const show = () => setHidden(false);
     const io = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting) {
-          setShown(true);
+          show();
           io.disconnect();
         }
       },
       { threshold: 0.15, rootMargin: "0px 0px -8% 0px" },
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    const safety = window.setTimeout(show, 2500);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(safety);
+    };
+  }, [immediate]);
+
+  if (immediate) {
+    return (
+      <div className={cn("reveal-in", className)} style={{ animationDelay: `${delay}ms` }}>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div
       ref={ref}
-      style={{ transitionDelay: `${delay}ms` }}
+      style={{ transitionDelay: hidden ? "0ms" : `${delay}ms` }}
       className={cn(
-        "transition-all duration-700 ease-out will-change-transform motion-reduce:translate-y-0! motion-reduce:opacity-100! motion-reduce:blur-0! motion-reduce:transition-none",
-        shown ? "translate-y-0 opacity-100 blur-0" : "translate-y-6 opacity-0 blur-[3px]",
+        "transition-[opacity,transform,filter] duration-700 ease-out",
+        hidden ? "translate-y-6 opacity-0 blur-[3px]" : "translate-y-0 opacity-100 blur-0",
         className,
       )}
     >
