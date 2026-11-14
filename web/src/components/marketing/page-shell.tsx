@@ -1,6 +1,7 @@
 import { Eyebrow } from "@/components/ui/surface";
 import { SiteFooter } from "./sections";
 import { SiteNavbar } from "./site-navbar";
+import { SmoothScroll } from "./smooth-scroll";
 
 /** Pàgines públiques fora del producte (/placa/): el navbar i el peu de la landing. */
 export function PageShell({
@@ -18,6 +19,7 @@ export function PageShell({
 }) {
   return (
     <div className="min-h-svh overflow-x-clip">
+      <SmoothScroll />
       <SiteNavbar />
       <main className="mx-auto w-full max-w-7xl px-6 pt-32 md:px-10 md:pt-40 lg:px-14">
         <header className="mb-10 flex flex-wrap items-end justify-between gap-6 md:mb-14">

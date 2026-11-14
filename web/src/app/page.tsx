@@ -9,12 +9,14 @@ import {
   TrustBar,
 } from "@/components/marketing/sections";
 import { SiteNavbar } from "@/components/marketing/site-navbar";
+import { SmoothScroll } from "@/components/marketing/smooth-scroll";
 
 // Landing de Mathey. La serveix la placa, com tota la web: sense internet.
 // El producte és a /app/ (onboarding i els dos modes).
 export default function Landing() {
   return (
     <div className="min-h-svh overflow-x-clip">
+      <SmoothScroll />
       <SiteNavbar />
       <main>
         <Hero />

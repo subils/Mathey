@@ -67,6 +67,12 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   - Es pinten amb `@splinetool/runtime`; els `.wasm` són a `web/public/spline/`,
     sense CDN.
   - Crèdit al peu de la landing.
+- 14/11/2026, ~20:30: **el color principal és el taronja**, no el blau.
+- 14/11/2026, ~20:30: **la matriu LED no es mostra a la web** (ni a la landing ni a
+  l'app): només es veu a l'Arduino.
+- 14/11/2026, ~20:30: **landing amb poc text i molt aire**: textos curts (si es pot
+  explicar en 3 passos, no en 6), components separats i il·lustracions abstractes
+  animades, al nivell de Faktu.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.

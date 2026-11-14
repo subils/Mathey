@@ -32,7 +32,7 @@ Al Mac, feu servir `127.0.0.1` i no `localhost:7000` (AirPlay escolta al 7000).
 Si l'API no respon, la web passa sola al **mode demo**: `src/lib/demo.ts` fa de
 backend dins del navegador, amb el mateix contracte que `/api`.
 - Fa servir 8 problemes inventats per nosaltres (no de M3Kang).
-- L'Elo, les ajudes, la matriu, l'OCR i el xat són simulats.
+- L'Elo, les ajudes, l'OCR i el xat són simulats.
 - A la barra surt «Mode demo» (`components/app/demo-badge.tsx`); en clicar-hi es
   pot tornar a buscar la placa.
 - `?demo=1` el força.
@@ -50,7 +50,7 @@ CSS (bloc «Hero de resend.com» a `globals.css`) i el seu cub 3D (`resend-cube.
 Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 
 - **Tokens:** `src/app/globals.css`.
-  - Colors: fons `#f0f1f0`, tinta `#1a1a1a`, accent `#0171e3`.
+  - Colors: fons `#f0f1f0`, tinta `#1a1a1a`, accent **taronja** `#f76b15` (abans, el blau de Faktu).
   - Radis i moviment, i el degradat superior del `body`.
 - **Materials:**
   - `.navbar-glass` (el navbar de Faktu) i `.glass` (compositor, xips): blur + saturate i una llum interior.
@@ -64,6 +64,10 @@ Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
   - `motion` a l'app.
   - Es respecta `prefers-reduced-motion`.
 - **Cap emoji a la interfície.** Icones de `lucide-react`.
+- **La matriu LED de la placa no surt a la web**: només es veu a l'Arduino.
+- **Landing:** poc text, molt aire i il·lustracions abstractes (skeletons que es mouen
+  en bucle, només CSS: classes `.loop-*` i `.skel` de `globals.css`). Smooth scroll de
+  Faktu (Lenis 1.3.27).
 - **El cangur:** `components/brand/` (separat de `branding/Mathey logo.svg`). `HoppingKangaroo` és el carregador.
 
 ## On és cada cosa
@@ -72,9 +76,9 @@ Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 |---|---|
 | `src/lib/api.ts` | L'únic lloc que sap on és l'API. `ownChat` llegeix l'NDJSON del xat |
 | `src/lib/session.ts`, `use-student.ts` | Sessió de l'alumne al navegador; si la placa no el coneix, torna a l'onboarding |
-| `src/components/app/` | Barra de l'app, targetes de mode, matriu LED |
+| `src/components/app/` | Barra de l'app, targetes de mode, «Mode demo» |
 | `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
-| `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís) |
+| `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís); `visuals.tsx`, les il·lustracions animades; `smooth-scroll.tsx`, el smooth scroll de Faktu (Lenis) |
 | `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) |
 
 ## Regles

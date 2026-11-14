@@ -115,7 +115,7 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 |---|---|---|
 | ✅ Practicar: imatge del problema, respondre A–E, saber si és correcte | SQLite | mil·lisegons |
 | ✅ Lectura fàcil (dislèxia): enunciat adaptat, lletra gran | Contingut preparat | mil·lisegons |
-| ✅ Matriu LED: ✓ / ✗, nivell (el que correspon a l'Elo de l'alumne) i ratxa, «pensant» | Bridge + microcontrolador (a la web, simulada) | mil·lisegons |
+| ✅ Matriu LED: ✓ / ✗, nivell (el que correspon a l'Elo de l'alumne) i ratxa, «pensant» | Bridge + microcontrolador (només a la placa: la web ja no la mostra) | mil·lisegons |
 | ✅ Següent problema adaptatiu per **Elo**: a cada primera resposta, l'Elo del problema es mou una mica (K = 8) i el de l'alumne es torna a calcular amb totes les seves respostes, les recents pesant més (`elo.estimate`); es tria un problema no fet a ±100 de l'Elo de l'alumne (s'amplia a ±200 i ±400) i, dins d'aquesta finestra, del tema més fluix | `mentor/service.py`, `mentor/elo.py` | mil·lisegons |
 | ✅ «Com ho has pensat?» → una pregunta socràtica | Primer, el **router sense IA** (`mentor/router.py`): si la frase de l'alumne descriu la trampa de l'opció triada, respon a l'instant amb la trampa i la dada clau (preparades). Si no, **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | Router: mil·lisegons. IA: ~10 s estimats a la placa |
 | ✅ Graó 1 · Estratègia | Contingut preparat | mil·lisegons |
@@ -202,8 +202,8 @@ sense preescalfament.
 
 El codi del mentor és un paquet Python sense dependències de la placa. Corre
 igual al Mac i dins de l'app d'App Lab; només canvia l'adaptador que l'exposa.
-La matriu LED es simula a la mateixa web (una graella 8x13), que a més serveix
-perquè el jurat la vegi a la pantalla.
+La matriu LED només es veu a la placa: la web ja no la simula (ordre del fundador,
+14/11 ~20:30). Al portàtil, `GET /api/matrix` continua tornant el dibuix actual.
 
 Això ens dona iteració de segons al Mac (M3, 17 GB). **La placa queda reservada
 per al que només ella pot dir: latències reals, RAM i la demo.**
@@ -304,7 +304,7 @@ mode, la ratxa i el seu menú.
     - Comprovat: totes les peticions de la landing són locals.
   - Streamdown + KaTeX: markdown i fórmules.
 - Recorregut provat a Safari el 14/11 al vespre sobre l'exportació estàtica, amb un
-  llama-server simulat: onboarding, Repte (fallar, matriu ✗, Elo, ajudes 1–2),
+  llama-server simulat: onboarding, Repte (fallar, Elo, ajudes 1–2),
   xat (enganxar una foto, semblant, resolució en streaming amb fórmules), placa,
   progrés i la redirecció de `/practica/?id=`.
 
@@ -315,7 +315,7 @@ ni secció a la landing, ni `GET /api/teacher`.
 servida sense el mentor al darrere), `web/src/lib/api.ts` passa sola al mode demo.
 - Totes les crides van a `web/src/lib/demo.ts`: un backend simulat al navegador amb
   el mateix contracte, 8 problemes **inventats per nosaltres** (no de M3Kang, sense
-  imatge: la web n'ensenya el text), Elo, ratxa, ajudes, matriu, OCR i xat simulats.
+  imatge: la web n'ensenya el text), Elo, ratxa, ajudes, OCR i xat simulats.
 - A la barra es veu «Mode demo»; en clicar-hi es pot tornar a buscar la placa.
 - `?demo=1` el força. Mentre no se sap si hi ha placa, l'espera màxima és de 4 s.
 - Serveix per navegar i dissenyar sense l'Arduino; **no és el que es presenta**.

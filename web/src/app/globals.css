@@ -123,9 +123,9 @@
   --secondary-foreground: #1a1a1a;
   --muted: #e8e8e8;
   --muted-foreground: #5e6472;
-  /* L'accent de Faktu. Canviar-lo aquí el canvia a tot Mathey. */
-  --accent: #0171e3;
-  --accent-soft: #7ab8f5;
+  /* L'accent de Mathey: taronja (abans, el blau de Faktu). Canviar-lo aquí el canvia a tot arreu. */
+  --accent: #f76b15;
+  --accent-soft: #ffa15c;
   --accent-foreground: #ffffff;
   --destructive: hsl(0 72% 51%);
   --destructive-foreground: #ffffff;
@@ -387,4 +387,130 @@
   background: #ffffff26;
   border-color: #ffffff40;
   box-shadow: 0 8px 32px #0000002e;
+}
+
+/* ------------------------------------------------------------------ */
+/* Il·lustracions de la landing: bucles abstractes (skeletons que es  */
+/* mouen). Només CSS: no depenen del JavaScript. Cada bucle dura      */
+/* --loop (6 s) i s'escalona amb animation-delay.                      */
+/* ------------------------------------------------------------------ */
+@keyframes loop-in {
+  0% { opacity: 0; transform: translateY(8px) scale(0.98); }
+  8%, 86% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes loop-type {
+  0% { transform: scaleX(0); }
+  22%, 86% { transform: scaleX(1); opacity: 1; }
+  96%, 100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes loop-pick {
+  0%, 52% { background: #fff; border-color: rgb(0 0 0 / 0.07); color: rgb(26 26 26 / 0.55); }
+  58%, 88% { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(1.06); }
+  96%, 100% { background: #fff; border-color: rgb(0 0 0 / 0.07); color: rgb(26 26 26 / 0.55); }
+}
+@keyframes loop-strike {
+  0%, 18% { opacity: 0; transform: scaleX(0); }
+  26%, 88% { opacity: 1; transform: scaleX(1); }
+  96%, 100% { opacity: 0; }
+}
+@keyframes loop-fill {
+  0% { transform: scaleX(0); }
+  30%, 88% { transform: scaleX(1); }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+@keyframes loop-scan {
+  0% { transform: translateY(-110%); opacity: 0; }
+  15% { opacity: 1; }
+  60% { transform: translateY(110%); opacity: 1; }
+  61%, 100% { transform: translateY(110%); opacity: 0; }
+}
+@keyframes loop-flow {
+  0% { transform: translateX(0); opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: translateX(var(--flow, 120px)); opacity: 0; }
+}
+@keyframes loop-ping {
+  0% { transform: scale(0.8); opacity: 0.55; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+@keyframes loop-dots {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-2px); }
+}
+@keyframes loop-count {
+  0%, 50% { opacity: 0; transform: translateY(6px); }
+  58%, 88% { opacity: 1; transform: none; }
+  96%, 100% { opacity: 0; }
+}
+@keyframes loop-deck {
+  0%, 40% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  52% { transform: translateY(-14px) rotate(-4deg); opacity: 0; }
+  53% { transform: translateY(14px) rotate(0deg); opacity: 0; }
+  66%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
+}
+.loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow, .loop-count, .loop-deck {
+  animation-duration: var(--loop, 6s);
+  animation-iteration-count: infinite;
+  animation-fill-mode: backwards;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.loop-in { animation-name: loop-in; }
+.loop-type { animation-name: loop-type; transform-origin: left center; }
+.loop-pick { animation-name: loop-pick; }
+.loop-strike { animation-name: loop-strike; transform-origin: left center; }
+.loop-fill { animation-name: loop-fill; transform-origin: left center; }
+.loop-scan { animation-name: loop-scan; animation-timing-function: linear; }
+.loop-flow { animation-name: loop-flow; animation-timing-function: ease-in-out; }
+.loop-count { animation-name: loop-count; }
+.loop-deck { animation-name: loop-deck; }
+.loop-ping { animation: loop-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.loop-dots { animation: loop-dots 1.2s ease-in-out infinite; }
+
+/* Barra «skeleton» amb brillantor */
+.skel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.06);
+}
+.skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.7) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: skel-shimmer 2.2s linear infinite;
+}
+@keyframes skel-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow,
+  .loop-count, .loop-deck, .loop-ping, .loop-dots, .skel::after {
+    animation: none !important;
+  }
+  .loop-scan, .loop-flow, .loop-ping { opacity: 0; }
+}
+
+/* Lenis (smooth scroll de Faktu): les regles recomanades. Lenis afegeix les classes
+   `lenis lenis-smooth` a <html> quan és actiu. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
 }

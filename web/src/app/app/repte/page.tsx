@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { LedMatrix } from "@/components/app/led-matrix";
 import { HoppingKangaroo } from "@/components/brand/logo";
 import { Composer } from "@/components/chat/composer";
 import { Thinking } from "@/components/chat/thinking";
@@ -30,18 +29,12 @@ import {
   type ExplainResult,
   type HintResult,
   type Letter,
-  type Matrix,
   type NextResult,
   type Problem,
 } from "@/lib/api";
 import { now, saveSession } from "@/lib/session";
 import { useStudent } from "@/lib/use-student";
 import { cn } from "@/lib/utils";
-
-/** El «pensant» de mentor/matrix.py, per pintar-lo al mirall mentre la IA respon. */
-const THINKING: Matrix = Array.from({ length: 8 }, (_, r) =>
-  Array.from({ length: 13 }, (_, c) => ((r === 3 || r === 4) && [2, 6, 10].includes(c) ? 7 : 0)),
-);
 
 const RUNGS = [
   { rung: 1, label: "Una estratègia", short: "estratègia" },
@@ -70,7 +63,6 @@ export default function Repte() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [message, setMessage] = useState("");
   const [notice, setNotice] = useState("");
-  const [matrix, setMatrix] = useState<Matrix | undefined>();
   const [wrongLetters, setWrongLetters] = useState<Letter[]>([]);
   const [lastLetter, setLastLetter] = useState<Letter | null>(null);
   const [shake, setShake] = useState<Letter | null>(null);
@@ -101,7 +93,6 @@ export default function Repte() {
   };
 
   const applyNext = useCallback((next: NextResult) => {
-    if (next.matrix) setMatrix(next.matrix);
     if (!next.problem) {
       setProblem(null);
       setMessage(next.message ?? "No queden problemes.");
@@ -148,7 +139,6 @@ export default function Repte() {
     try {
       const r = await api.answer(session.student, problem.id, letter, seconds);
       setResult(r);
-      setMatrix(r.matrix);
       saveSession({ ...session, elo: r.elo, streak: r.streak });
       setEloChange(r.first_try ? r.elo_change : null);
       if (r.correct) {
@@ -173,14 +163,11 @@ export default function Repte() {
   async function explain() {
     if (!session || !problem || !lastLetter || !explainText.trim()) return;
     setExplaining(true);
-    const before = matrix;
-    setMatrix(THINKING);
     try {
       setExplained(await api.explain(session.student, problem.id, lastLetter, explainText.trim()));
     } catch (e) {
       if (!onApiError(e)) setNotice((e as Error).message);
     } finally {
-      setMatrix(before);
       setExplaining(false);
     }
   }
@@ -334,11 +321,6 @@ export default function Repte() {
 
       {/* ------------------------------------------------ el mentor */}
       <aside className="flex flex-col gap-4">
-        <DoubleCard plain className="flex flex-col items-center gap-3 p-5">
-          <LedMatrix matrix={matrix} dot={10} />
-          <Eyebrow>La matriu de la placa</Eyebrow>
-        </DoubleCard>
-
         {phase === "wrong" && lastLetter && (
           <DoubleCard accent className="flex flex-col gap-3 p-5">
             <p className="text-[17px] font-medium tracking-[-0.01em]">

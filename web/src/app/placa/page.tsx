@@ -1,8 +1,7 @@
 "use client";
 
-import { LedMatrix } from "@/components/app/led-matrix";
 import { PageShell } from "@/components/marketing/page-shell";
-import { DoubleCard, Eyebrow, Pill } from "@/components/ui/surface";
+import { DoubleCard, Pill } from "@/components/ui/surface";
 import { api, cap } from "@/lib/api";
 import { useLive } from "@/lib/use-live";
 import { cn } from "@/lib/utils";
@@ -10,7 +9,6 @@ import { cn } from "@/lib/utils";
 // Sala de màquines: el que fa la placa ara mateix, per ensenyar-ho al jurat.
 export default function Placa() {
   const { data: stats, error } = useLive(() => api.stats(), 3000);
-  const { data: frame } = useLive(() => api.matrix(), 1000);
 
   const q = stats?.questions;
   const tiles: { label: string; value: string; note?: string; live?: boolean }[] = stats
@@ -45,12 +43,8 @@ export default function Placa() {
       lead="S'actualitza cada 3 segons. Tot el que veus surt d'aquesta placa: cap servidor de fora."
       aside={<Pill className="px-2.5 py-1 text-[10px]">{error ? "Sense connexió" : "En directe"}</Pill>}
     >
-      <div className="grid grid-cols-1 gap-px lg:grid-cols-[1fr_1.6fr]">
-        <DoubleCard accent className="flex flex-col items-center justify-center gap-5 p-8 md:p-12">
-          <LedMatrix matrix={frame?.matrix} dot={18} />
-          <Eyebrow>La matriu de la placa</Eyebrow>
-        </DoubleCard>
-        <div className="grid grid-cols-2 gap-px">
+      <div>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
           {tiles.map((t, i) => (
             <DoubleCard key={t.label} index={i} className="flex flex-col justify-between gap-4 p-5 md:p-6">
               <span className="flex items-center gap-2 text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
