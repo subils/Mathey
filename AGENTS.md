@@ -82,6 +82,13 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
 - 14/11/2026, ~20:30: **landing amb poc text i molt aire**: textos curts (si es pot
   explicar en 3 passos, no en 6), components separats i il·lustracions abstractes
   animades, al nivell de Faktu.
+- 15/11/2026, ~00:30: **al xat la IA no s'enrotlla**: sense salutacions, sense
+  repetir l'enunciat i sense voltes; directa i precisa, i ha de tardar la meitat.
+  Ho porta el prompt de sistema `SYSTEM_SOLVE` de `mentor/llm.py` (no és visible
+  al xat) i els límits `SOLVE_TOKENS`/`ANSWER_TOKENS`.
+- 15/11/2026: **les fotos del xat les llegeix `laptop/read_image.py`** (abans
+  `prepare_m3kang.py`) i el text que en surt és el prompt; ja no es fa servir el
+  servei OCR del port 8084.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.

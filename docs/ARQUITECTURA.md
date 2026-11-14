@@ -380,7 +380,13 @@ web hi posa «proposta de la IA, pot equivocar-se»).
     `<think>`) → generador d'esdeveniments → `mentor/api.py:Stream`.
   - Cada adaptador l'envia línia a línia: `scripts/dev_server.py` sense
     Content-Length; `app/python/main.py` amb `StreamingResponse`.
-- Controls: màxim 220 tokens i 1.600 caràcters.
+- Controls: màxim 130 tokens per resoldre i 70 per a una pregunta (`SOLVE_TOKENS`,
+  `ANSWER_TOKENS`), i 1.600 caràcters. La generació s'atura en acabar la línia
+  «Resultat: …» (es tanca la connexió amb llama-server).
+- El prompt de sistema (`SYSTEM_SOLVE`, no surt al xat) prohibeix salutacions,
+  repetir l'enunciat i voltes, i porta un exemple de format de dues línies. Abans
+  les respostes arribaven sempre al límit de 220 tokens (salutacions, bucles);
+  ara en fan 64–91 (15/11/2026, 3 problemes, placa compartida amb proves de la web).
 - Si la IA no respon o no diu res, la resposta de reserva és el problema semblant
   resolt (idea clau i passos), presentat com el que és, o l'estratègia del tema.
 - `own/match` ja llegeix per endavant el prompt del xat (`warm_solve_later`).

@@ -75,8 +75,9 @@ examen) i la IA de la placa fa una feina que cap contingut preparat pot fer.
 3. **El mentor busca al banc els problemes del Cangur que fan servir la mateixa
    idea** i n'ofereix un per practicar, amb totes les ajudes de sempre.
 4. **La IA de la placa intenta resoldre'l pas a pas, en format xat** (ordre del
-   fundador, 14/11 ~19:00). Fa com a màxim cinc passos curts i acaba amb
-   «Resultat: …».
+   fundador, 14/11 ~19:00). Sense salutacions ni voltes (ordre del 15/11): com
+   a màxim quatre passos d'un sol càlcul i una línia «Resultat: …», on para.
+   Les preguntes de seguiment es responen en una o dues frases.
    - Els passos apareixen a mesura que la IA els escriu (streaming).
    - Si el problema semblant s'hi assembla molt (puntuació ≥ 0,50), la IA el
      rep com a exemple. Amb 40 problemes propis jutjats a mà, per sota d'aquest
@@ -93,7 +94,7 @@ comprovar cada pas, i el mentor li ofereix el problema semblant del Cangur
 **Excepció acotada.** És l'únic lloc on la IA resol. Al Repte Cangur (mode 1)
 continua sense donar la resposta: pregunta socràtica i escala d'ajudes.
 
-**Controls.** Llargada màxima (220 tokens, 1.600 caràcters). Si la IA no
+**Controls.** Llargada màxima (130 tokens per resoldre, 70 per respondre una pregunta; 1.600 caràcters). Si la IA no
 respon o no diu res, l'alumne rep el problema semblant resolt (idea clau i
 passos), presentat com el que és, o una estratègia general del tema escrita
 per nosaltres. La ruta antiga de pistes (`/api/own/help`, amb el filtre de

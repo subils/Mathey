@@ -226,12 +226,21 @@ def own_hint(own_text, example, doubt, strategy=""):
 # A 5-6 tok/s una resolució triga desenes de segons: es fa en streaming perquè
 # l'alumne vegi els passos a mesura que surten.
 
+# Ordre del fundador (15/11/2026): al xat la IA no s'enrotlla. Sense salutacions
+# ni voltes, directa i precisa; ha de tardar la meitat. Aquest prompt no surt al xat.
 SYSTEM_SOLVE = (
-    "Ets un mentor de matemàtiques per a nens i nenes de 10 a 14 anys. "
-    "Respons sempre en català, amb frases curtes i clares. "
-    "Quan resols, fas passos numerats (màxim 5), un per línia, i acabes amb una línia "
-    "«Resultat: ...». Si no n'estàs segur, ho dius. Les fórmules van entre $...$."
+    "Ets un mentor de matemàtiques per a alumnes de 10 a 14 anys. Català, directe i precís. "
+    "Mai saludes, no repeteixes l'enunciat ni cap càlcul i no fas voltes.\n"
+    "Si et demanen resoldre: màxim 4 passos numerats, un per línia, un càlcul per pas; "
+    "després una línia «Resultat: ...» (amb la lletra si hi ha opcions A–E) i res més. Format:\n"
+    "1. Caramels: $4 \\cdot 6 = 24$.\n"
+    "2. Em queden: $24 - 5 = 19$.\n"
+    "Resultat: 19 caramels\n"
+    "Si l'alumne pregunta: 1 o 2 frases, sense numerar. Si no n'estàs segur, ho dius."
 )
+# Límits de llargada (tokens): la resolució i la resposta a una pregunta
+SOLVE_TOKENS = 130
+ANSWER_TOKENS = 70
 
 
 def _solve_messages(own_text, example, history=(), message=""):
@@ -245,7 +254,7 @@ def _solve_messages(own_text, example, history=(), message=""):
             turns.append({"role": role, "content": text})
     if message:
         ask = (f"L'ALUMNE PREGUNTA: «{message.strip()[:300]}»\n"
-               "Respon en 2-4 frases curtes, sobre el seu problema.")
+               "Respon en 1 o 2 frases, sobre el seu problema.")
     else:
         ask = ("Resol el problema de l'alumne pas a pas"
                + (", fent servir la mateixa idea que l'exemple" if example else "") + ".")
@@ -260,6 +269,14 @@ def _solve_messages(own_text, example, history=(), message=""):
 def warm_solve_later(own_text, example):
     """Llegeix per endavant el problema propi amb el prompt del xat (no bloqueja)."""
     _schedule_warm(_solve_messages(own_text, example)[:2])
+
+
+_RESULT_LINE = re.compile(r"Resultat\**\s*:[^\n]*\S[^\n]*\n", re.I)
+
+
+def _finished(text):
+    """Cert quan ja hi ha una línia «Resultat: ...» acabada."""
+    return bool(_RESULT_LINE.search(text))
 
 
 class _ThinkFilter:
@@ -293,13 +310,16 @@ class _ThinkFilter:
         return self._visible().strip()
 
 
-def solve_own_stream(own_text, example, history=(), message="", max_tokens=220):
+def solve_own_stream(own_text, example, history=(), message="", max_tokens=None):
     """Generador: dona trossos de text a mesura que la IA els escriu.
 
     Al final dona un dict amb els temps (`timings`). Llança OSError si la IA no
-    respon abans de començar; si es talla a mig camí, també.
+    respon abans de començar; si es talla a mig camí, també. Para quan acaba la
+    línia «Resultat: ...»: el que vingui després només són voltes.
     """
     _cancel_pending_warm()  # la pregunta de l'alumne passa davant
+    if max_tokens is None:
+        max_tokens = ANSWER_TOKENS if message else SOLVE_TOKENS
     payload = {
         "messages": _solve_messages(own_text, example, history, message),
         "max_tokens": max_tokens, "temperature": 0.2, "seed": 42,
@@ -335,6 +355,8 @@ def solve_own_stream(own_text, example, history=(), message="", max_tokens=220):
                     if first is None:
                         first = round(time.perf_counter() - started, 2)
                     yield out
+                if _finished(think.text() + chunk[-1:]):
+                    break  # tancar la connexió atura la generació a llama-server
     timings = dict(timings)
     timings["wall_seconds"] = round(time.perf_counter() - started, 2)
     timings["first_token_seconds"] = first
