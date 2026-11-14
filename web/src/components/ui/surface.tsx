@@ -42,7 +42,7 @@ export function DoubleCard({
   plain?: boolean;
 }) {
   return (
-    <div className={cn("group relative isolate", className)} {...props}>
+    <div className={cn("group relative isolate rounded-2xl", className)} {...props}>
       <div className="pointer-events-none absolute inset-0 -z-10 rounded-2xl border border-black/[0.04]" />
       <div
         className={cn(

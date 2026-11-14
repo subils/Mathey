@@ -254,7 +254,7 @@ export function FinalCta() {
             className="absolute inset-[-60%] -z-10 animate-spin-slow bg-[conic-gradient(from_0deg,transparent_0%,var(--accent)_12%,transparent_28%,transparent_100%)] motion-reduce:hidden"
           />
           <div className="relative flex flex-col items-center gap-7 rounded-xl bg-white px-6 py-20 text-center md:py-24">
-            <Mark className="h-11 text-foreground animate-float" />
+            <Mark className="h-11 text-foreground" />
             <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               El primer problema <span className="text-gradient">t&apos;espera.</span>
             </h2>

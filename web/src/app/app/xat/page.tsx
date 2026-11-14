@@ -322,7 +322,7 @@ function EmptyState({
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-16">
       <div className="flex flex-col items-center gap-4 text-center">
-        <Mark className="h-12 text-foreground animate-float" />
+        <Mark className="h-12 text-foreground" />
         <h1 className="text-[clamp(28px,4.4vw,44px)] leading-[1.08] font-medium tracking-[-0.03em]">
           Porta el teu <span className="text-gradient">problema</span>.
         </h1>

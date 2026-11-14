@@ -39,9 +39,9 @@ export function DemoBadge({ className }: { className?: string }) {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400/15 px-2.5 py-1 text-[12px] font-semibold text-amber-700 ring-1 ring-amber-500/20 transition-colors hover:bg-amber-400/25"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-orange-400/12 px-2.5 py-1 text-[12px] font-semibold text-orange-700 ring-1 ring-orange-500/20 transition-colors hover:bg-orange-400/20"
       >
-        <span className="size-1.5 rounded-full bg-amber-500 animate-pulse-soft" />
+        <span className="size-1.5 rounded-full bg-orange-500 animate-pulse-soft" />
         Mode demo
       </button>
       <div

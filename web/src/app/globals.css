@@ -30,6 +30,22 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-subtle: var(--accent-subtle);
+
+  /* Tots els taronges, de zernio.com (el degradat de la seva marca, del més clar al
+     més fosc, i els seus tokens --brand-*). Substitueix l'escala orange de Tailwind. */
+  --color-orange-50: #fff5e6;
+  --color-orange-100: #fee7c8;
+  --color-orange-200: #fdba74;
+  --color-orange-300: #fb923c;
+  --color-orange-400: #f97316;
+  --color-orange-500: #eb3514;
+  --color-orange-600: #d12c0e;
+  --color-orange-700: #a32c05;
+  --color-orange-800: #6f1c03;
+  --color-orange-900: #3b0d02;
+  --color-orange-950: #261514;
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -123,9 +139,12 @@
   --secondary-foreground: #1a1a1a;
   --muted: #e8e8e8;
   --muted-foreground: #5e6472;
-  /* L'accent de Mathey: taronja (abans, el blau de Faktu). Canviar-lo aquí el canvia a tot arreu. */
-  --accent: #f76b15;
-  --accent-soft: #ffa15c;
+  /* L'accent de Mathey: el taronja de zernio.com (--brand-default). Canviar-lo aquí el
+     canvia a tot arreu. La gamma sencera és a @theme (--color-orange-*). */
+  --accent: #eb3514;
+  --accent-strong: #d12c0e;
+  --accent-soft: #fb923c;
+  --accent-subtle: #fbe8e5;
   --accent-foreground: #ffffff;
   --destructive: hsl(0 72% 51%);
   --destructive-foreground: #ffffff;
@@ -435,6 +454,16 @@
   0% { transform: scale(0.8); opacity: 0.55; }
   100% { transform: scale(1.9); opacity: 0; }
 }
+@keyframes loop-select {
+  0%, 50% { background: rgb(0 0 0 / 0.08); color: rgb(26 26 26 / 0.5); }
+  56%, 88% { background: #111; color: #fff; }
+  96%, 100% { background: rgb(0 0 0 / 0.08); color: rgb(26 26 26 / 0.5); }
+}
+@keyframes loop-pop {
+  0%, 4% { opacity: 0; transform: scale(0.6); }
+  12%, 86% { opacity: 1; transform: scale(1); }
+  94%, 100% { opacity: 0; transform: scale(0.85); }
+}
 @keyframes loop-dots {
   0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
   40% { opacity: 1; transform: translateY(-2px); }
@@ -450,13 +479,16 @@
   53% { transform: translateY(14px) rotate(0deg); opacity: 0; }
   66%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
 }
-.loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow, .loop-count, .loop-deck {
+.loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow, .loop-count, .loop-deck,
+.loop-select, .loop-pop {
   animation-duration: var(--loop, 6s);
   animation-iteration-count: infinite;
   animation-fill-mode: backwards;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 .loop-in { animation-name: loop-in; }
+.loop-select { animation-name: loop-select; }
+.loop-pop { animation-name: loop-pop; }
 .loop-type { animation-name: loop-type; transform-origin: left center; }
 .loop-pick { animation-name: loop-pick; }
 .loop-strike { animation-name: loop-strike; transform-origin: left center; }
@@ -490,7 +522,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow,
-  .loop-count, .loop-deck, .loop-ping, .loop-dots, .skel::after {
+  .loop-count, .loop-deck, .loop-ping, .loop-dots, .loop-select, .loop-pop, .skel::after {
     animation: none !important;
   }
   .loop-scan, .loop-flow, .loop-ping { opacity: 0; }

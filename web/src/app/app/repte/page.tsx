@@ -601,7 +601,7 @@ function CorrectCard({
         </div>
         {result.key_idea && (
           <p className="flex gap-2.5 rounded-xl bg-white/80 px-4 py-3 text-[15px] leading-relaxed ring-1 ring-black/[0.05]">
-            <Lightbulb className="mt-0.5 size-4 shrink-0 text-amber-500" />
+            <Lightbulb className="mt-0.5 size-4 shrink-0 text-orange-400" />
             {result.key_idea}
           </p>
         )}
@@ -709,7 +709,7 @@ function HelpLadder({
       </ol>
       {hints.length < 5 &&
         (confirming ? (
-          <div className="flex flex-col gap-2.5 rounded-xl border border-amber-300/70 bg-amber-50/60 p-3.5 text-[14px]">
+          <div className="flex flex-col gap-2.5 rounded-xl border border-orange-200/70 bg-orange-50 p-3.5 text-[14px]">
             <span>Segur que vols veure la solució? Encara ho pots provar tu.</span>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" onClick={onConfirm} disabled={busy}>
