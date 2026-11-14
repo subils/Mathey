@@ -31,7 +31,7 @@ student data ever leaves the device.
 | For | What |
 |---|---|
 | Student | Practice at their Elo; answer A–E; the LED matrix shows ✓ / ✗, the Kangaroo level that matches their Elo, and their streak |
-| Student | "How did you think about it?" → one Socratic question from the **on-board model** |
+| Student | "How did you think about it?" → if their sentence describes the typical mistake behind the option they chose, the prepared feedback arrives **instantly, without the model**; otherwise one Socratic question from the **on-board model** |
 | Student | Five-rung help ladder; the solution only on explicit request |
 | Student | Easy-reading mode (dyslexia): short sentences, one idea per line, large type |
 | Student | Adaptive path by Elo: every first answer nudges the problem's rating and re-estimates the student's from all their answers (recent ones weigh more); the next problem is an unseen one near the student's Elo, weakest topic first |
@@ -85,7 +85,9 @@ content is in this repository.
 - `app/` — the Arduino App Lab app (Python adapter + LED sketch).
 - `scripts/` — `build_bank.py` (build and verify the bank), `dev_server.py`
   (laptop server), `deploy_board.sh` (one-command deploy),
-  `measure_socratic.py`, `simulate_students.py`.
+  `measure_socratic.py`, `measure_router.py`, `simulate_students.py`.
+- `tests/` — unit tests for the leak filter and the no-model router
+  (`python -m unittest discover tests`).
 - `predict.py`, `copilot/`, `eval.py` — the official Reason entry point, kept
   independent of the mentor.
 
@@ -95,8 +97,21 @@ Alone, Qwen3.5 0.8B answers 22.5% of Kangaroo problems correctly — below the 2
 of always answering D (organizers' baseline). A model that cannot solve the problem
 cannot explain it. With the verified solution in its context, its job changes from
 *solving* to *asking a question about a known path*, which a small model can do.
-Every model output passes a code filter (no correct letter, no correct value) and,
-if rejected or late, the mentor falls back to the prepared typical-mistake feedback.
+Every model output passes a code filter and, if rejected or late, the mentor falls
+back to the prepared typical-mistake feedback. The filter blocks the correct letter
+in any form ("option C", "la C", "(C)"), the correct value also when written as a
+word ("quatre", "veintidós", "twenty-two"), and, for live model output, the correct
+value even when it also appears in the statement (`strict` mode).
+
+### Using the model only when it adds something
+
+The board serves one request at a time at ~5–6 tokens/s, so every call costs
+seconds. Before asking the model, a no-model router (`mentor/router.py`) compares
+the student's sentence with the trap of the option they chose — words, 4-letter
+chunks, the operation behind the mistake ("added instead of subtracting") and the
+numbers. If it clearly describes that trap, and no other, the verified feedback is
+shown at once and the model stays free for the answers that need it. A wrong match
+only ever shows verified content, so the threshold favours precision.
 
 ## Results
 
@@ -104,7 +119,9 @@ if rejected or late, the mentor falls back to the prepared typical-mistake feedb
 |---|---|---|
 | `predict.py` accuracy (hidden-test proxy: validation set) | `TODO` vs 22.5% baseline and 25% always-D | `eval.py --limit 0` on the board |
 | Agent solutions matching the official answer | 509 / 517 (98.5%) | blind solve from the image, compared in code |
-| Hints blocked by the leak filter | 12 of 1,527 (0.8%); none shown | `mentor/filters.py` on every hint |
+| Hints blocked by the leak filter | 12 of 1,527 (0.8%) with the first filter; none shown. `TODO`: re-measure with the current filter | `mentor/filters.py` on every hint (`scripts/build_bank.py`) |
+| Leak filter test cases | 12 / 12 pass; the first filter let through 15 of the leaks we tested | `python -m unittest tests.test_filters` |
+| "How did you think?" answered instantly, without the model | 44.8% of explanations; precision 97.7%, recall 70.0% (threshold 0.40) on 96 **invented** student sentences. `TODO`: re-measure on real students | `scripts/measure_router.py` on `eval/router_cases.jsonl` |
 | Easy-reading (dyslexia) versions | words per sentence 13.2 → 7.8; long words per sentence 0.79 → 0.27; all statement numbers kept in 507/509 | `scripts/readability.py` |
 | Socratic question latency on the board | `TODO` cold / warm | `scripts/measure_socratic.py` |
 | Socratic question quality | `TODO` useful / useless / misleading of 30 | judged by hand |
@@ -121,6 +138,14 @@ wrong answers explained one by one.
 - Letting the 0.8B model reason before answering (organizers: 17.5%, slower).
 - Similarity on problem statements: it matched stories ("books", "blocks"), not
   mathematical ideas; we switched to similarity of the solution method.
+- Our first leak filter only caught "option C", "(C)" and digits: "la C",
+  answers written as words and correct values that also appear in the statement
+  slipped through (15 of the cases we tested). We added letter and number-word
+  detection and a strict mode for live model output, with tests.
+- Sending every "how did you think?" sentence to the model: often the sentence
+  just describes the trap of the chosen option, which the prepared content already
+  answers, and the student waited ~10 s for nothing. A no-model router now handles
+  those instantly.
 - `TODO`
 
 ## Reproduce it
