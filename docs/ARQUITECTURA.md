@@ -132,7 +132,7 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 |---|---|---|
 | ✅ Practicar: imatge del problema, respondre A–E, saber si és correcte | SQLite | mil·lisegons |
 | ✅ Lectura fàcil (dislèxia): enunciat adaptat, lletra gran | Contingut preparat | mil·lisegons |
-| ✅ Matriu LED: ✓ / ✗, nivell (el que correspon a l'Elo de l'alumne) i ratxa, «pensant» | Bridge + microcontrolador (només a la placa: la web ja no la mostra) | mil·lisegons |
+| ✅ Matriu LED: ✓ / ✗ segons la resposta, «pensant» i la K en repòs | Bridge + microcontrolador (només a la placa: la web ja no la mostra) | mil·lisegons |
 | ✅ Següent problema adaptatiu per **Elo**: a cada primera resposta, l'Elo del problema es mou una mica (K = 8) i el de l'alumne es torna a calcular amb totes les seves respostes, les recents pesant més (`elo.estimate`); es tria un problema no fet a ±100 de l'Elo de l'alumne (s'amplia a ±200 i ±400) i, dins d'aquesta finestra, del tema més fluix | `mentor/service.py`, `mentor/elo.py` | mil·lisegons |
 | ✅ «Com ho has pensat?» → una pregunta socràtica | Primer, el **router sense IA** (`mentor/router.py`): si la frase de l'alumne descriu la trampa de l'opció triada, respon a l'instant amb la trampa i la dada clau (preparades). Si no, **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | Router: mil·lisegons. IA: ~10 s estimats a la placa |
 | ✅ Graó 1 · Estratègia | Contingut preparat | mil·lisegons |
@@ -405,7 +405,7 @@ Dos fitxers, cap a GitHub (contenen M3Kang o dades d'alumnes):
 
 | Taula | Contingut |
 |---|---|
-| `students` | àlies, curs, `elo` i `elo_attempts`, `level` (només el número de la matriu, derivat de l'Elo), ratxa, lectura fàcil |
+| `students` | àlies, curs, `elo` i `elo_attempts`, `level` (derivat de l'Elo; no es mostra enlloc), ratxa, lectura fàcil |
 | `attempts` | cada resposta: correcta, primer intent, ajudes usades, segons, tema, nivell de l'examen, Elo de l'alumne abans i després, Elo del problema i `elo_score` (el resultat que compta per a l'Elo: 1, 0 o entremig amb ajudes) |
 | `problem_elo` | Elo actual de cada problema que ja ha rebut respostes (la resta: l'Elo inicial, calculat de l'id) |
 | `hints` | cada graó demanat |

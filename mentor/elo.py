@@ -101,10 +101,11 @@ def initial_elo_for_grade(grade, max_level=7):
 
 
 def led_level(rating, max_level=7):
-    """El nivell del Cangur que correspon a un Elo. NOMÉS per a la matriu de LEDs.
+    """El nivell del Cangur que correspon a un Elo. NOMÉS per a la columna students.level
+    (obligatòria a la base de dades); la matriu de LEDs ja no el mostra.
 
     És l'invers d'initial_student_elo(): un alumne nou de 6è (985) surt nivell 1, i
-    a mesura que el seu Elo puja o baixa, el número de la matriu el segueix. Res
+    a mesura que el seu Elo puja o baixa, el valor desat el segueix. Res
     més del mentor fa servir nivells d'alumne: tot es decideix amb l'Elo.
     """
     level = round((rating - BASE - SPREAD / 6) / LEVEL_STEP)

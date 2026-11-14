@@ -30,7 +30,7 @@ student data ever leaves the device.
 
 | For | What |
 |---|---|
-| Student | Practice at their Elo; answer A–E; the LED matrix shows ✓ / ✗, the Kangaroo level that matches their Elo, and their streak |
+| Student | Practice at their Elo; answer A–E; the LED matrix shows ✓ when the answer is right and ✗ when it is wrong |
 | Student | "How did you think about it?" → if their sentence describes the typical mistake behind the option they chose, the prepared feedback arrives **instantly, without the model**; otherwise one Socratic question from the **on-board model** |
 | Student | Five-rung help ladder; the solution only on explicit request |
 | Student | Easy-reading mode (dyslexia): short sentences, one idea per line, large type |

@@ -280,19 +280,6 @@ const THINKING = grid([".............", ".............", ".............", "..#..
 function idle() {
   return grid([".............", "....#...#....", "....#..#.....", "....#.#......", "....##.......", "....#.#......", "....#..#.....", "....#...#...."]);
 }
-const DIGITS: Record<number, string[]> = {
-  0: [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
-  1: ["..#..", ".##..", "..#..", "..#..", "..#..", "..#..", ".###."],
-  2: [".###.", "#...#", "....#", "...#.", "..#..", ".#...", "#####"],
-  3: ["####.", "....#", "....#", ".###.", "....#", "....#", "####."],
-};
-function levelFrame(elo: number, streak: number): Matrix {
-  const m: Matrix = Array.from({ length: 8 }, () => Array(13).fill(0));
-  const n = Math.max(0, Math.min(3, Math.floor((elo - 800) / 250)));
-  DIGITS[n].forEach((row, r) => [...row].forEach((c, k) => c === "#" && (m[r + 1][k + 1] = 7)));
-  for (let i = 0; i < Math.min(streak, 7); i++) m[7 - i][11] = 7;
-  return m;
-}
 
 /* ------------------------------------------------------------------ */
 /* Respostes                                                           */
@@ -369,7 +356,7 @@ export async function demoCall(method: string, path: string, body?: Record<strin
         attempts: [],
         hints: {},
         tried: {},
-        matrix: levelFrame(elo, 0),
+        matrix: idle(),
         ownTexts: [],
       };
       save(fresh);
@@ -381,7 +368,7 @@ export async function demoCall(method: string, path: string, body?: Record<strin
       if (q.id && !wanted) throw new DemoError(404, "problema desconegut");
       const target = q.elo ? Number(q.elo) : state.elo;
       const p = wanted ?? pick(state, target);
-      state.matrix = levelFrame(state.elo, state.streak);
+      state.matrix = idle(); // problema nou: s'esborra el ✓/✗ anterior
       save(state);
       return {
         problem: publicOf(p),

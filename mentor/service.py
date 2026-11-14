@@ -197,21 +197,18 @@ def create_session(params):
     easy = 1 if params.get("easy_mode") else 0
     # El curs només serveix per triar l'Elo inicial; a partir d'aquí tot va per Elo
     rating = elo.initial_elo_for_grade(grade, config.MAX_LEVEL)
-    # La columna `level` és el número de la matriu de LEDs (derivat de l'Elo)
+    # La columna `level` és obligatòria a la base de dades (i els alumnes d'abans de
+    # l'Elo en treuen l'Elo inicial): es continua desant, però ja no es mostra enlloc
     sid = store.execute(store.state(),
                         "INSERT INTO students (alias, grade, level, easy_mode, elo, elo_attempts) "
-                        "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, _led_level(rating), easy, rating))
+                        "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, _stored_level(rating), easy, rating))
     return {"student": sid, "alias": alias, "grade": grade, "elo": rating, "streak": 0,
-            "easy_mode": bool(easy), "matrix": _set_matrix(_led_frame(rating))}
+            "easy_mode": bool(easy), "matrix": _set_matrix(matrix.idle())}
 
 
-def _led_level(rating):
-    """El número que surt a la matriu de LEDs: el nivell del Cangur que correspon a l'Elo."""
+def _stored_level(rating):
+    """El valor de la columna students.level (derivat de l'Elo). No es mostra enlloc."""
     return elo.led_level(rating, config.MAX_LEVEL)
-
-
-def _led_frame(rating, streak=0):
-    return matrix.level(_led_level(rating), streak)
 
 
 def _elo_range():
@@ -278,7 +275,7 @@ def next_problem(params):
     rating = _student_elo(student)
     return {"problem": _public(pid), "elo": rating, "target_elo": target, "elo_range": _elo_range(),
             "streak": student["streak_ok"],
-            "matrix": _set_matrix(_led_frame(rating, student["streak_ok"]))}
+            "matrix": _set_matrix(matrix.idle())}  # problema nou: s'esborra el ✓/✗ anterior
 
 
 def get_problem(params):
@@ -308,7 +305,7 @@ def answer(params):
                           (student["id"], pid))["n"] == 0
     hints_used = store.one(db, "SELECT COUNT(DISTINCT rung) AS n FROM hints WHERE student_id = ? AND problem_id = ?",
                            (student["id"], pid))["n"]
-    # Ratxa (per a la web i la barra de la matriu): encerts seguits al primer intent i
+    # Ratxa (per a la web): encerts seguits al primer intent i
     # sense ajudes. Ja no fa pujar ni baixar res: l'únic que mana és l'Elo.
     streak = student["streak_ok"]
 
@@ -329,10 +326,10 @@ def answer(params):
         _, problem_after = elo.update(rating_before, problem_before, result_score)
         rating_after = elo.estimate(_start_elo(student),
                                     _elo_answers(student["id"]) + [(problem_before, result_score)])
-        # `level` només és el número de la matriu de LEDs, derivat del nou Elo
+        # `level`: columna obligatòria derivada de l'Elo (vegeu _stored_level); no es mostra
         store.execute(db, "UPDATE students SET elo = ?, elo_attempts = COALESCE(elo_attempts, 0) + 1, "
                           "level = ?, streak_ok = ?, streak_bad = 0 WHERE id = ?",
-                      (rating_after, _led_level(rating_after), streak, student["id"]))
+                      (rating_after, _stored_level(rating_after), streak, student["id"]))
         store.execute(db, """INSERT INTO problem_elo (id, elo, attempts) VALUES (?, ?, 1)
                              ON CONFLICT(id) DO UPDATE SET elo = excluded.elo, attempts = attempts + 1""",
                       (pid, problem_after))

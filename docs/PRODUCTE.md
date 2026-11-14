@@ -123,7 +123,7 @@ com a resposta a l'alumne quan s'equivoca.
 | Trobar problemes del banc amb la mateixa idea que un problema propi | Cerca per semblança a la placa | Instantani |
 | Pista per continuar un problema propi, a partir del dubte de l'alumne | **IA de la placa, en directe**, amb el problema semblant resolt com a exemple | Durant la sessió |
 | Problema germà, nivell següent, correcció, perfil | Codi i dades a la placa | Instantani |
-| ✓ / ✗, nivell, ratxa, «pensant» | Matriu de LEDs | Instantani |
+| ✓ / ✗, «pensant» | Matriu de LEDs | Instantani |
 
 **Per què la IA de la placa ara sí que serveix.** Sola, encerta el 22,5%: no pot
 ensenyar. Amb la solució correcta al davant, la seva feina passa de resoldre a
@@ -161,7 +161,7 @@ van el codi que el genera i les mesures de qualitat.
 | «Sencer a la placa, res surt del dispositiu» | Sessió completa sense xarxa; contingut emmagatzemat a la placa; dades dels alumnes locals |
 | «Mesurar els compromisos i dissenyar al seu voltant» | Cada funció amb la seva latència mesurada; la IA només fa el que hem mesurat que fa bé |
 | Anàlisi d'errors per tema, idioma i nivell | Tema a cada problema; taules de `predict.py` |
-| Matriu de LEDs, ús de la placa | ✓/✗, nivell, ratxa i «pensant» |
+| Matriu de LEDs, ús de la placa | ✓/✗ i «pensant» |
 
 ## 10. Els números que presentarem
 
