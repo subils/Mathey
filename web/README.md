@@ -70,7 +70,7 @@ Llenguatge visual de **Faktu** (`~/Desktop/Faktu`), en mode clar.
 | `src/components/app/` | Barra de l'app, targetes de mode, matriu LED |
 | `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
 | `src/components/marketing/` | Navbar, hero i seccions de la landing |
-| `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) i Aceternity (només gratuïts) |
+| `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) |
 
 ## Regles
 

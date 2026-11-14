@@ -272,7 +272,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 
 | Ruta | Què és |
 |---|---|
-| `/` | Landing: navbar de vidre, hero, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
+| `/` | Landing: navbar de vidre, hero blanc i net, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
 | `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
@@ -285,7 +285,6 @@ mode, la ratxa i el seu menú.
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
   - prompt-kit (MIT): compositor i contenidor del xat.
-  - Aceternity UI, només els gratuïts: el focus de llum del hero.
   - Streamdown + KaTeX: markdown i fórmules.
 - Recorregut provat a Safari el 14/11 al vespre sobre l'exportació estàtica, amb un
   llama-server simulat: onboarding, Repte (fallar, matriu ✗, Elo, ajudes 1–2),

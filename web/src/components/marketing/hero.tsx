@@ -1,48 +1,19 @@
 import { ArrowUpRight, Check, ChevronDown, Lightbulb, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Mark } from "@/components/brand/logo";
-import { Spotlight } from "@/components/ui/spotlight-new";
 import { Pill } from "@/components/ui/surface";
 import { Reveal } from "./reveal";
 
-// El focus de llum d'Aceternity (gratuït), recolorit de blanc-sobre-negre a blau-sobre-blanc.
-const SPOT = {
-  first:
-    "radial-gradient(68.54% 68.72% at 55.02% 31.46%, hsla(210, 100%, 62%, .20) 0, hsla(210, 100%, 60%, .07) 50%, hsla(210, 100%, 55%, 0) 80%)",
-  second:
-    "radial-gradient(50% 50% at 50% 50%, hsla(210, 100%, 62%, .14) 0, hsla(210, 100%, 60%, .05) 80%, transparent 100%)",
-  third:
-    "radial-gradient(50% 50% at 50% 50%, hsla(210, 100%, 62%, .10) 0, hsla(210, 100%, 55%, .04) 80%, transparent 100%)",
-};
-
 /**
  * El hero de Faktu (sections/hero-section.tsx) en clar: el mateix marc de
- * 8–12 px al voltant d'un panell arrodonit, però amb llum blava, la reixa
- * emmascarada i el cangur en lloc del vídeo fosc.
+ * 8–12 px al voltant d'un panell arrodonit, però blanc i net, amb el cangur
+ * en lloc del vídeo fosc.
  */
 export function Hero() {
   return (
     <section id="hero" className="relative h-[100svh] min-h-[640px] w-full">
       <div className="relative h-full w-full p-2 md:p-3">
         <div className="relative isolate h-full w-full overflow-hidden rounded-2xl bg-white ring-1 ring-black/[0.04]">
-          {/* Fons: degradat, reixa i focus de llum */}
-          <div
-            aria-hidden
-            className="absolute inset-0 -z-10"
-            style={{
-              backgroundImage:
-                "radial-gradient(120% 70% at 50% 0%, #eef5ff 0%, #ffffff 55%), linear-gradient(to bottom, #ffffff, #f6f7f6)",
-            }}
-          />
-          <div aria-hidden className="hero-grid absolute inset-0 -z-10 opacity-70" />
-          <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden motion-reduce:hidden">
-            <Spotlight gradientFirst={SPOT.first} gradientSecond={SPOT.second} gradientThird={SPOT.third} duration={9} />
-          </div>
-          <div
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-[#f6f7f6] to-transparent"
-          />
-
           {/* Xips flotants: el producte en tres frases */}
           <FloatingChips />
 
