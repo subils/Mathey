@@ -132,7 +132,7 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 |---|---|---|
 | ✅ Practicar: imatge del problema, respondre A–E, saber si és correcte | SQLite | mil·lisegons |
 | ✅ Lectura fàcil (dislèxia): enunciat adaptat, lletra gran | Contingut preparat | mil·lisegons |
-| ✅ Matriu LED: ✓ / ✗ segons la resposta durant 4 s (amb el LED RGB verd / vermell: la matriu és d'un sol color), «pensant», i apagada en espera | Bridge + microcontrolador (només a la placa: la web ja no la mostra) | mil·lisegons |
+| ✅ Matriu LED: ✓ / ✗ segons la resposta, «pensant» i la K en repòs | Bridge + microcontrolador (només a la placa: la web ja no la mostra) | mil·lisegons |
 | ✅ Següent problema adaptatiu per **Elo**: a cada primera resposta, l'Elo del problema es mou una mica (K = 8) i el de l'alumne es torna a calcular amb totes les seves respostes, les recents pesant més (`elo.estimate`); es tria un problema no fet a ±100 de l'Elo de l'alumne (s'amplia a ±200 i ±400) i, dins d'aquesta finestra, del tema més fluix | `mentor/service.py`, `mentor/elo.py` | mil·lisegons |
 | ✅ «Com ho has pensat?» → una pregunta socràtica | Primer, el **router sense IA** (`mentor/router.py`): si la frase de l'alumne descriu la trampa de l'opció triada, respon a l'instant amb la trampa i la dada clau (preparades). Si no, **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | Router: mil·lisegons. IA: ~10 s estimats a la placa |
 | ✅ Graó 1 · Estratègia | Contingut preparat | mil·lisegons |
@@ -299,7 +299,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 
 | Ruta | Què és |
 |---|---|
-| `/` | Landing: navbar de vidre, hero clar de Faktu (cangur quiet, «Matemàtiques socràtiques» i quatre xips de vidre); després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
+| `/` | Landing: navbar de vidre, hero de resend.com tal qual (amb permís): fons negre amb les seves capes de llum, text a l'esquerra i el seu cub 3D de Spline a la dreta; després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
 | `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
@@ -314,6 +314,13 @@ lectura fàcil, sortir). A `/placa/` el navbar amaga «Veure la placa».
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
   - prompt-kit (MIT): compositor i contenidor del xat.
+  - El cub de Resend (amb permís): `@splinetool/runtime` 2.0.126 (versió fixa), amb
+    `renderer: "webgl"` forçat: amb WebGPU, que el motor tria sol, el cub sortia en blanc a
+    Safari de manera intermitent.
+    - Els `.wasm` del motor estan copiats a `web/public/spline/` (`wasmPath`), perquè
+      no vagi al CDN.
+    - Si no hi ha WebGL, es mostra el bucle `cube.mp4`.
+    - Comprovat: totes les peticions de la landing són locals.
   - Streamdown + KaTeX: markdown i fórmules.
 - Recorregut provat a Safari el 14/11 al vespre sobre l'exportació estàtica, amb un
   llama-server simulat: onboarding, Repte (fallar, Elo, ajudes 1–2),

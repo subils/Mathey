@@ -140,8 +140,7 @@ l'`explorer` del repo dels organitzadors), i l'app d'App Lab només pinta la mat
 |---|---|
 | La web diu «la web encara no s'hi ha copiat» | Falta `assets/index.html`: torneu a desplegar sense `--sense-build` |
 | La matriu mostra un `!` | El mentor no s'ha pogut importar. `/placa/estat` → `mentor_error`, i els registres |
-| La matriu queda apagada | En espera és normal: només s'encén amb el ✓ / ✗ (4 s) o «pensant». Si tampoc s'encén en respondre, el sketch compila (fins a un minut): als registres, `el Bridge no respon` vol dir que encara no hi és |
-| El LED RGB no fa vermell / verd | `/placa/estat` → `led_rgb.error`; el LED és `/sys/class/leds/unoq:user-*1` |
+| La matriu queda apagada | El sketch compila (fins a un minut). Als registres: `el Bridge no respon` vol dir que encara no hi és |
 | `/placa/estat` diu `"respon": false` | Pla A (escolta a `0.0.0.0`) o `MENTOR_LLM_HOST`; si no, pla B |
 | `systemctl is-active math-llm` no diu `active` | `journalctl -u math-llm -n 50`; si l'ha matat el sistema, falta RAM: `free -m` |
 | `http://localhost:7000` al Mac obre una altra cosa | És AirPlay: feu `adb forward tcp:7070 tcp:7000` i obriu `127.0.0.1:7070` |

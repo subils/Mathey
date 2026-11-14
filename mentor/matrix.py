@@ -3,8 +3,7 @@
 La mateixa funció serveix per a la placa (l'app d'App Lab els envia pel Bridge)
 i per a la web (que els simula). Res de parpellejos: un dibuix fix per estat.
 Només hi ha quatre estats: ✓ (resposta correcta), ✗ (incorrecta), «pensant»
-mentre respon el model, i apagada mentre s'espera una resposta. El ✓ i el ✗ duren
-uns segons (service.RESULT_SECONDS) i després la matriu s'apaga.
+mentre respon el model, i la K en repòs (problema nou, sense resposta encara).
 """
 ROWS, COLS = 8, 13
 ON = 7
@@ -39,6 +38,16 @@ THINKING = [
     ".............",
     ".............",
 ]
+IDLE = [  # una K de Cangur
+    ".............",
+    "....#...#....",
+    "....#..#.....",
+    "....#.#......",
+    "....##.......",
+    "....#.#......",
+    "....#..#.....",
+    "....#...#....",
+]
 
 
 def _grid(pattern):
@@ -57,6 +66,5 @@ def thinking():
     return _grid(THINKING)
 
 
-def blank():
-    """Tots els LEDs apagats: en espera, sense cap resultat per mostrar."""
-    return [[0] * COLS for _ in range(ROWS)]
+def idle():
+    return _grid(IDLE)

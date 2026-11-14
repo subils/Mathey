@@ -100,7 +100,16 @@ else:
 
 ROWS, COLS, MAX_BRIGHTNESS = 8, 13, 7
 
-BLANK = ["." * COLS] * ROWS  # en espera: tot apagat
+STARTUP = [  # una K de Cangur, la mateixa que el mentor fa servir en repòs
+    ".............",
+    "....#...#....",
+    "....#..#.....",
+    "....#.#......",
+    "....##.......",
+    "....#.#......",
+    "....#..#.....",
+    "....#...#....",
+]
 BROKEN = [  # un "!": el mentor no s'ha carregat (mireu els registres)
     "......#......",
     "......#......",
@@ -117,67 +126,12 @@ def pattern_to_grid(pattern):
     return [[MAX_BRIGHTNESS if ch == "#" else 0 for ch in row] for row in pattern]
 
 
-# --- LED RGB de la placa -------------------------------------------------------
-# La matriu és d'un sol color: el color el posa el LED RGB d'usuari de la placa
-# (Linux, /sys/class/leds/unoq:user-*1), vermell amb el ✗ i verd amb el ✓. S'apaga
-# amb qualsevol altre dibuix (matriu apagada, «pensant»...), és a dir, quan el
-# mentor apaga el ✓/✗ als 4 s. Es canvia just després de pintar la matriu.
-
-LED_DIR = os.environ.get("MENTOR_LED_DIR", "/sys/class/leds")
-COLORS = {"vermell": (1, 0, 0), "verd": (0, 1, 0), "apagat": (0, 0, 0)}
-
-try:  # els mateixos dibuixos que fa servir el mentor (mentor/matrix.py)
-    from mentor import matrix as _frames  # noqa: E402
-    COLOR_OF = [(np.array(_frames.check(), dtype=np.uint8), "verd"),
-                (np.array(_frames.cross(), dtype=np.uint8), "vermell")]
-except Exception as error:
-    COLOR_OF = []
-    log(f"AVÍS: sense dibuixos del mentor, el LED RGB quedarà apagat ({error})")
-
-
-def color_for(arr):
-    for pattern, color in COLOR_OF:
-        if arr.shape == pattern.shape and np.array_equal(arr, pattern):
-            return color
-    return "apagat"
-
-
-class RgbLed:
-    """Escriu 0/1 a red/green/blue. Mai no llança: un error queda a last_error."""
-
-    def __init__(self):
-        self.paths = [os.path.join(LED_DIR, f"unoq:user-{c}1", "brightness") for c in ("red", "green", "blue")]
-        self.color = None
-        self.last_error = None
-
-    def set(self, color):
-        if color == self.color:
-            return
-        try:
-            for path, value in zip(self.paths, COLORS[color]):
-                with open(path, "w") as f:
-                    f.write(str(value))
-            self.color = color
-            self.last_error = None
-        except OSError as error:
-            if self.last_error is None:
-                log(f"LED RGB: no s'ha pogut canviar ({error})")
-            self.last_error = f"{type(error).__name__}: {error}"
-
-
-led = RgbLed()
-
-
-def frame_array(grid):
+def frame_bytes(grid):
+    """8 llistes de 13 enters 0-7 -> bytes per al sketch, com l'exemple oficial."""
     arr = np.array(grid, dtype=np.int64)
     if arr.shape != (ROWS, COLS):
         raise ValueError(f"la matriu ha de ser {ROWS}x{COLS}, no {arr.shape}")
-    return np.clip(arr, 0, MAX_BRIGHTNESS).astype(np.uint8)
-
-
-def frame_bytes(grid):
-    """8 llistes de 13 enters 0-7 -> bytes per al sketch, com l'exemple oficial."""
-    arr = frame_array(grid)
+    arr = np.clip(arr, 0, MAX_BRIGHTNESS).astype(np.uint8)
     # Frame per defecte té 256 nivells: els valors 0-7 passen tal qual, i el
     # sketch (setGrayscaleBits(3)) els entén com a brillantor 0-7.
     return Frame(arr).to_board_bytes()
@@ -189,7 +143,6 @@ class Matrix:
     - L'últim dibuix guanya: si n'arriben molts, els intermedis es descarten.
     - Com a màxim un dibuix cada 0,34 s (regla: res no parpelleja més de 3 cops/s).
     - Si el Bridge falla (el sketch encara compila), torna a provar cada 3 s.
-    - El LED RGB canvia just després de pintar el dibuix (vermell ✗, verd ✓).
     """
 
     MIN_INTERVAL = 0.34
@@ -208,12 +161,11 @@ class Matrix:
         """No bloqueja mai i no llança mai: torna True si el dibuix és vàlid."""
         try:
             data = frame_bytes(grid)
-            color = color_for(frame_array(grid))
         except Exception as error:
             log(f"dibuix de matriu invàlid, l'ignoro: {error}")
             return False
         with self._cond:
-            self._pending = (data, color)
+            self._pending = data
             self._cond.notify()
         return True
 
@@ -232,14 +184,12 @@ class Matrix:
             wait = self.MIN_INTERVAL - (time.monotonic() - last_draw)
             if wait > 0:
                 time.sleep(wait)
-            pending = self._take()  # el més recent, encara que n'hagi arribat un altre
-            if pending is None or pending[0] == self._shown:
+            data = self._take()  # el més recent, encara que n'hagi arribat un altre
+            if data is None or data == self._shown:
                 continue
-            data, color = pending
             try:
                 Bridge.call("draw", data, timeout=self.TIMEOUT)
                 self._shown = data
-                led.set(color)
                 self.draws += 1
                 self.last_error = None
                 if failing_since is not None:
@@ -253,7 +203,7 @@ class Matrix:
                     failing_since = now
                 with self._cond:
                     if self._pending is None:
-                        self._pending = pending
+                        self._pending = data
                     self._cond.wait(timeout=self.RETRY)
             last_draw = time.monotonic()
 
@@ -357,7 +307,6 @@ def board_status():
         "model": model_status(LLM_URL),
         "embeddings": model_status(EMBED_URL),
         "matriu": {"dibuixos": matrix.draws, "error": matrix.last_error},
-        "led_rgb": {"color": led.color, "error": led.last_error},
         "dades": {
             name: {"cami": os.environ[name], "existeix": os.path.exists(os.environ[name])}
             for name in ("MENTOR_DB", "MENTOR_STATE_DB", "MENTOR_IMAGES")
@@ -416,8 +365,7 @@ ui.expose_api("GET", "/api/{rest:path}", api_fallback)
 ui.expose_api("POST", "/api/{rest:path}", api_fallback)
 
 log(f"mode={MODE} model={LLM_URL} embeddings={EMBED_URL} rutes={len(ROUTES)}")
-led.set("apagat")  # per si havia quedat encès d'una execució anterior
-matrix.show(pattern_to_grid(BROKEN if MENTOR_ERROR else BLANK))
+matrix.show(pattern_to_grid(BROKEN if MENTOR_ERROR else STARTUP))
 if MODE != "matriu":
     threading.Thread(target=check_models_later, name="comprova-model", daemon=True).start()
 

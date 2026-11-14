@@ -61,10 +61,16 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   taronges. ~23:25: el logo dels navbars porta **«DEMO»** (no «BETA») en molt petit
   a baix a la dreta **només quan no hi ha placa**; amb la placa connectada no hi ha
   cap etiqueta. En clicar-hi, explica el mode demo.
-- 15/11/2026: **fora tot el que venia de Resend**: ni el seu hero, ni el cub 3D, ni
-  Spline, ni el seu CSS, ni els seus fitxers, ni el crèdit. No es torna a fer servir
-  res de resend.com. La landing obre amb el hero clar de Faktu (`hero.tsx`):
-  cangur quiet, «Matemàtiques socràtiques» i quatre xips de vidre.
+- 14/11/2026, ~20:00: segons el fundador, **Resend ha autoritzat l'equip a fer
+  servir el disseny de resend.com**, inclòs el cub 3D del seu hero.
+  - Els fitxers originals són a `web/public/static/`: `cube.splinecode`, `cube.mp4`,
+    `cube-fallback.jpg`, `texture-btn.png` i `landing-page/` (`bg-hero-1.jpg`,
+    `bg-light.avif`).
+  - El primer requadre de la landing és el hero de Resend tal qual: fons negre,
+    les seves capes de llum i el seu CSS (`globals.css`, bloc «Hero de resend.com»).
+  - Es pinten amb `@splinetool/runtime`; els `.wasm` són a `web/public/spline/`,
+    sense CDN.
+  - Crèdit al peu de la landing.
 - 14/11/2026, ~20:30: **el color principal és el taronja**, no el blau.
 - 14/11/2026, ~20:45: **tots els tons de taronja surten de zernio.com**: marca `#eb3514`
   (hover `#d12c0e`) i la gamma del seu degradat, del `#fff5e6` al `#3b0d02`

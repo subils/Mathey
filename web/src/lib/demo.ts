@@ -259,7 +259,7 @@ function load(): DemoState {
   } catch {
     /* sense emmagatzematge */
   }
-  return { alias: "Demo", grade: "6è", elo: 1025, elo_start: 1025, elo_peak: 1025, streak: 0, attempts: [], hints: {}, tried: {}, matrix: blank(), ownTexts: [] };
+  return { alias: "Demo", grade: "6è", elo: 1025, elo_start: 1025, elo_peak: 1025, streak: 0, attempts: [], hints: {}, tried: {}, matrix: idle(), ownTexts: [] };
 }
 function save(state: DemoState) {
   try {
@@ -277,9 +277,8 @@ const grid = (rows: string[]): Matrix => rows.map((r) => [...r].map((c) => (c ==
 const CHECK = grid([".............", "...........#.", "..........##.", ".........##..", "..#.....##...", "..##...##....", "...##.##.....", "....###......"]);
 const CROSS = grid([".............", "...#.....#...", "....#...#....", ".....#.#.....", "......#......", ".....#.#.....", "....#...#....", "...#.....#..."]);
 const THINKING = grid([".............", ".............", ".............", "..#...#...#..", "..#...#...#..", ".............", ".............", "............."]);
-// Apagada: en espera, sense cap resultat (mentor/matrix.py, blank)
-function blank(): Matrix {
-  return Array.from({ length: 8 }, () => Array(13).fill(0));
+function idle() {
+  return grid([".............", "....#...#....", "....#..#.....", "....#.#......", "....##.......", "....#.#......", "....#..#.....", "....#...#...."]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -357,7 +356,7 @@ export async function demoCall(method: string, path: string, body?: Record<strin
         attempts: [],
         hints: {},
         tried: {},
-        matrix: blank(),
+        matrix: idle(),
         ownTexts: [],
       };
       save(fresh);
@@ -369,7 +368,7 @@ export async function demoCall(method: string, path: string, body?: Record<strin
       if (q.id && !wanted) throw new DemoError(404, "problema desconegut");
       const target = q.elo ? Number(q.elo) : state.elo;
       const p = wanted ?? pick(state, target);
-      state.matrix = blank(); // problema nou: s'esborra el ✓/✗ anterior
+      state.matrix = idle(); // problema nou: s'esborra el ✓/✗ anterior
       save(state);
       return {
         problem: publicOf(p),
@@ -441,7 +440,7 @@ export async function demoCall(method: string, path: string, body?: Record<strin
       state.matrix = THINKING;
       save(state);
       await wait(1600);
-      state.matrix = blank(); // el ✗ ja ha caducat (dura 4 s, com a mentor/service.py)
+      state.matrix = CROSS;
       save(state);
       const trap = p?.traps[letter];
       return {

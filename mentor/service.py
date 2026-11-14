@@ -9,7 +9,6 @@ Principis:
 """
 import os
 import re
-import threading
 import time
 import zlib
 
@@ -19,7 +18,7 @@ import json
 
 from . import config, elo, filters, llm, matrix, router, store, strategies
 
-_current_matrix = matrix.blank()
+_current_matrix = matrix.idle()
 _ID = re.compile(r"^lvl-\d_\d{4}_\d+$")
 
 
@@ -140,60 +139,15 @@ def on_matrix(listener):
     _matrix_listeners.append(listener)
 
 
-RESULT_SECONDS = 4.0  # el ✓ / ✗ es manté com a màxim aquests segons i després s'apaga
-
-# Cada dibuix porta un número: el temporitzador d'un ✓/✗ només apaga la matriu si
-# no hi ha arribat cap dibuix més nou. El bloqueig també manté l'ordre d'avís als
-# listeners (no bloquegen: la placa i el servidor de dev pinten en un fil propi).
-_matrix_lock = threading.RLock()
-_matrix_gen = 0
-_matrix_until = None  # quan caduca el dibuix actual (time.monotonic), o None si no caduca
-
-
-def _set_matrix(frame, hold=None, only_gen=None):
-    """Pinta `frame`. Amb `hold` (segons), s'apaga sol si no l'ha substituït res.
-
-    only_gen: només el pinta si el dibuix actual encara és aquest (el temporitzador).
-    """
-    global _current_matrix, _matrix_gen, _matrix_until
-    with _matrix_lock:
-        if only_gen is not None and only_gen != _matrix_gen:
-            return _current_matrix
-        _matrix_gen += 1
-        gen = _matrix_gen
-        _current_matrix = frame
-        _matrix_until = time.monotonic() + hold if hold else None
-        for listener in _matrix_listeners:
-            try:
-                listener(frame)
-            except Exception:  # la matriu no pot fer caure una resposta a l'alumne
-                pass
-    if hold:
-        timer = threading.Timer(hold, _set_matrix, (matrix.blank(),), {"only_gen": gen})
-        timer.daemon = True
-        timer.start()
+def _set_matrix(frame):
+    global _current_matrix
+    _current_matrix = frame
+    for listener in _matrix_listeners:
+        try:
+            listener(frame)
+        except Exception:  # la matriu no pot fer caure una resposta a l'alumne
+            pass
     return frame
-
-
-def _show_result(correct):
-    """✓ o ✗ durant RESULT_SECONDS; després, la matriu apagada."""
-    return _set_matrix(matrix.check() if correct else matrix.cross(), hold=RESULT_SECONDS)
-
-
-def _matrix_state():
-    """El dibuix actual i quan caduca, per tornar-hi després de «pensant»."""
-    with _matrix_lock:
-        return _current_matrix, _matrix_until
-
-
-def _restore_matrix(state):
-    """Torna al dibuix d'abans de «pensant», amb el temps que li quedava; si ja havia
-    caducat (un ✗ de fa més de RESULT_SECONDS), la matriu queda apagada."""
-    frame, until = state
-    if until is None:
-        return _set_matrix(frame)
-    left = until - time.monotonic()
-    return _set_matrix(frame, hold=left) if left > 0 else _set_matrix(matrix.blank())
 
 
 def _correct(pid):
@@ -249,7 +203,7 @@ def create_session(params):
                         "INSERT INTO students (alias, grade, level, easy_mode, elo, elo_attempts) "
                         "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, _stored_level(rating), easy, rating))
     return {"student": sid, "alias": alias, "grade": grade, "elo": rating, "streak": 0,
-            "easy_mode": bool(easy), "matrix": _set_matrix(matrix.blank())}
+            "easy_mode": bool(easy), "matrix": _set_matrix(matrix.idle())}
 
 
 def _stored_level(rating):
@@ -321,7 +275,7 @@ def next_problem(params):
     rating = _student_elo(student)
     return {"problem": _public(pid), "elo": rating, "target_elo": target, "elo_range": _elo_range(),
             "streak": student["streak_ok"],
-            "matrix": _set_matrix(matrix.blank())}  # problema nou: s'esborra el ✓/✗ anterior
+            "matrix": _set_matrix(matrix.idle())}  # problema nou: s'esborra el ✓/✗ anterior
 
 
 def get_problem(params):
@@ -392,7 +346,7 @@ def answer(params):
     result = {"correct": correct, "first_try": first_try,
               "streak": streak, "elo": rating_after, "elo_change": rating_after - rating_before,
               "problem_elo": problem_before,
-              "matrix": _show_result(correct)}
+              "matrix": _set_matrix(matrix.check() if correct else matrix.cross())}
     if correct:
         result.update({"answer": label, "answer_text": option,
                        "solution": content["solution"], "key_idea": content["key_idea"]})
@@ -470,7 +424,7 @@ def explain(params):
     if instant:
         reply, source = instant, "instant"
     else:
-        before = _matrix_state()
+        before = _current_matrix
         _set_matrix(matrix.thinking())
         try:
             text, timings = llm.socratic(row["text"], content["solution"], chosen, trap, said)
@@ -483,7 +437,7 @@ def explain(params):
         except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
             rejected = f"resposta inesperada de la IA ({type(error).__name__})"
         finally:
-            _restore_matrix(before)
+            _set_matrix(before)
     if reply is None:
         # Reserva: l'error típic d'aquesta opció (preparat i verificat), o la dada clau
         source = "preparat"
@@ -613,7 +567,7 @@ def own_ocr(params):
     if len(image) > MAX_IMAGE_BYTES:
         raise UserError(413, "la imatge és massa gran (màxim 8 MB)")
     from . import ocr  # import tardà: el lector d'imatges és opcional
-    before = _matrix_state()
+    before = _current_matrix
     _set_matrix(matrix.thinking())
     try:
         result = ocr.read_image(image, params.get("lang") or "cat")
@@ -623,7 +577,7 @@ def own_ocr(params):
         failure = str(error) or type(error).__name__
         rejected = getattr(error, "rejected", False)  # la imatge no val: no és cosa del lector
     finally:
-        _restore_matrix(before)
+        _set_matrix(before)
     if not ok:
         store.execute(store.state(), "INSERT INTO ocr_reads (student_id, engine, seconds, chars, ok) VALUES (?, ?, ?, ?, 0)",
                       (student["id"], "", 0, 0))
@@ -706,7 +660,7 @@ def own_help(params):
     strategy = strategies.for_topic(own["topic"], asked)
     reply, source, rejected, timings = None, "placa", None, {}
     started = time.perf_counter()
-    before = _matrix_state()
+    before = _current_matrix
     _set_matrix(matrix.thinking())
     try:
         text, timings = llm.own_hint(own["text"], example, doubt, strategy)
@@ -722,7 +676,7 @@ def own_help(params):
     except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
         rejected = f"resposta inesperada de la IA ({type(error).__name__})"
     finally:
-        _restore_matrix(before)
+        _set_matrix(before)
     if reply is None:
         # Reserva sense IA: la idea del problema semblant, dita com el que és, o l'estratègia del tema
         source = "preparat"
@@ -792,7 +746,7 @@ def _own_chat_events(own, example, strategy, history, message, sibling):
     yield {"type": "meta", "own_id": own["id"], "sibling": sibling, "strategy": strategy}
     parts, source, rejected, timings = [], "placa", None, {}
     started = time.perf_counter()
-    before = _matrix_state()
+    before = _current_matrix
     _set_matrix(matrix.thinking())
     try:
         for piece in llm.solve_own_stream(own["text"], example, history, message):
@@ -809,7 +763,7 @@ def _own_chat_events(own, example, strategy, history, message, sibling):
     except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
         rejected = f"resposta inesperada de la IA ({type(error).__name__})"
     finally:
-        _restore_matrix(before)
+        _set_matrix(before)
     reply = "".join(parts).strip()
     if not reply:
         source = "preparat"

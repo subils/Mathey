@@ -79,6 +79,9 @@
   --animate-draw: draw 2.4s var(--motion-ease-enter) forwards;
   --animate-page-enter: page-enter 260ms var(--motion-ease-enter) both;
   --animate-shake: shake 360ms var(--motion-ease-standard);
+  /* resend.com (amb permís): animació del text del hero i ombra del botó */
+  --animate-hero-text-slide-up-fade: hero-text-slide-up-fade 1s ease-in-out;
+  --shadow-button: 0px 0px 4px #ffffff0f, 0px 1px 14px #ffffff1f, 0px 3px 32px #ffffff2e;
 
   @keyframes hop {
     0%, 100% { transform: translateY(0) scale(1.06, 0.9); }
@@ -109,6 +112,10 @@
   @keyframes page-enter {
     from { opacity: 0; filter: blur(4px); }
     to { opacity: 1; filter: blur(0); }
+  }
+  @keyframes hero-text-slide-up-fade {
+    0% { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -335,6 +342,70 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Hero de resend.com — copiat tal qual, amb permís de Resend          */
+/* (ordre del fundador, 14/11/2026). Colors del seu tema fosc:         */
+/* fons #000, gray-11 #a1a4a5, gray-12 #f0f0f0.                         */
+/* ------------------------------------------------------------------ */
+@property --angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes rotate {
+  to { --angle: 360deg; }
+}
+.rainbow-border {
+  background: linear-gradient(var(--angle), #02fcef70 0%, #ffb52b70 50%, #a02bfe70 100%);
+  height: 32px;
+  animation-name: rotate;
+  animation-duration: 30s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.rainbow-border span {
+  background-color: #0b0e14;
+  width: calc(100% - 2px);
+  height: 30px;
+  transition: all 0.2s ease-out;
+}
+.rainbow-border:after {
+  content: "";
+  background: linear-gradient(var(--angle), #02fcef 0%, #ffb52b 50%, #a02bfe 100%);
+  filter: blur(20px);
+  opacity: 0;
+  transition: all 0.3s ease-out;
+  animation-name: rotate;
+  animation-duration: 30s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transform: scale(0.95, 0.6);
+}
+.rainbow-border:hover span {
+  background-color: #0b0e14d1;
+}
+.rainbow-border:hover:after {
+  opacity: 0.9;
+  transform: scaleX(1.1);
+}
+.effect-font-styling {
+  font-feature-settings: "ss01", "ss04", "ss11";
+}
+.effect-font-gradient {
+  -webkit-text-fill-color: transparent;
+  color: unset;
+  background: linear-gradient(to bottom right, #fff 30%, #ffffff80);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Navbar de vidre damunt del hero fosc (els valors de Faktu sobre el vídeo) */
+.navbar-glass.on-dark {
+  background: #ffffff26;
+  border-color: #ffffff40;
+  box-shadow: 0 8px 32px #0000002e;
 }
 
 /* ------------------------------------------------------------------ */
