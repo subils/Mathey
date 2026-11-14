@@ -43,6 +43,8 @@ export type Session = {
   elo?: number;
   easy_mode: boolean;
   matrix?: Matrix;
+  /** Només al navegador: la ratxa que ha tornat l'última resposta. */
+  streak?: number;
 };
 
 export type NextResult = {
