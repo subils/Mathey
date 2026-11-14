@@ -1,17 +1,26 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import Header from "@/components/Header";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mathey",
-  description: "Un mentor de matemàtiques que viu dins d'una placa Arduino, sense internet.",
+  title: { default: "Mathey", template: "%s · Mathey" },
+  description:
+    "Un mentor de matemàtiques que viu dins d'una placa Arduino, a l'aula i sense internet.",
 };
 
-// Sense fonts remotes: la web ha de funcionar amb el Wi-Fi apagat.
+export const viewport: Viewport = {
+  themeColor: "#f0f1f0",
+};
+
+// Fonts locals (paquet `geist`, next/font/local): la web funciona amb el Wi-Fi apagat.
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="ca" className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-amber-50/40 dark:bg-zinc-950">
+    <html lang="ca" className={cn("h-full", GeistSans.variable, GeistMono.variable)}>
+      <body className="flex min-h-full flex-col font-sans">
+        {/* Capçalera antiga: només a les rutes que encara no s'han refet. */}
         <Header />
         <div className="flex flex-1 flex-col">{children}</div>
       </body>

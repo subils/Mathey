@@ -140,6 +140,7 @@ export type OwnHelp = {
   rejected: string | null;
   strategy: string;
   sibling: Problem | null;
+  timings?: Record<string, number>;
 };
 
 export class ApiError extends Error {
@@ -148,13 +149,35 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(method: "GET" | "POST", path: string, body?: object): Promise<T> {
-  const response = await fetch(`${API_BASE}/api${path}`, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: "no-store",
-  });
+/** La sessió del navegador apunta a un alumne que la placa ja no coneix (state.db esborrat). */
+export const isUnknownStudent = (error: unknown) =>
+  error instanceof ApiError && error.status === 404 && /alumne/i.test(error.message);
+
+/** Opcions per crida: `signal` per aturar-la i `timeoutMs` (per defecte 70 s, més que el
+ *  timeout de la IA de la placa, 40 s, i el de l'OCR, 60 s). */
+export type CallOptions = { signal?: AbortSignal; timeoutMs?: number };
+
+async function call<T>(
+  method: "GET" | "POST",
+  path: string,
+  body?: object,
+  { signal, timeoutMs = 70_000 }: CallOptions = {},
+): Promise<T> {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/api${path}`, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+      signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+    });
+  } catch (error) {
+    if (timeout.aborted) throw new ApiError(504, "La placa ha trigat massa a respondre.");
+    if (signal?.aborted) throw error;
+    throw new ApiError(0, "No hi ha connexió amb la placa.");
+  }
   const data = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new ApiError(response.status, (data as { error?: string }).error ?? response.statusText);
@@ -180,17 +203,19 @@ export const api = {
     call<AnswerResult>("POST", "/answer", { student, problem_id, letter, seconds }),
   hint: (student: number, problem_id: string, rung: number, confirm = false) =>
     call<HintResult>("POST", "/hint", { student, problem_id, rung, confirm }),
-  explain: (student: number, problem_id: string, letter: Letter, text: string) =>
-    call<ExplainResult>("POST", "/explain", { student, problem_id, letter, text }),
+  explain: (student: number, problem_id: string, letter: Letter, text: string, options?: CallOptions) =>
+    call<ExplainResult>("POST", "/explain", { student, problem_id, letter, text }, options),
   warm: (problem_id: string) => call<{ started: boolean }>("POST", "/warm", { problem_id }),
   profile: (student: number) => call<Profile>("GET", `/profile?student=${student}`),
   teacher: () => call<Teacher>("GET", "/teacher"),
   matrix: () => call<{ matrix: Matrix }>("GET", "/matrix"),
   stats: () => call<Stats>("GET", "/stats"),
-  ownOcr: (student: number, image: string) => call<OwnOcr>("POST", "/own/ocr", { student, image }),
-  ownMatch: (student: number, text: string) => call<OwnMatch>("POST", "/own/match", { student, text }),
-  ownHelp: (student: number, own_id: number, doubt: string) =>
-    call<OwnHelp>("POST", "/own/help", { student, own_id, doubt }),
+  ownOcr: (student: number, image: string, options?: CallOptions) =>
+    call<OwnOcr>("POST", "/own/ocr", { student, image }, options),
+  ownMatch: (student: number, text: string, options?: CallOptions) =>
+    call<OwnMatch>("POST", "/own/match", { student, text }, options),
+  ownHelp: (student: number, own_id: number, doubt: string, options?: CallOptions) =>
+    call<OwnHelp>("POST", "/own/help", { student, own_id, doubt }, options),
 };
 
 // Per a la pàgina antiga d'estat

@@ -1,29 +1,310 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --font-system: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-system-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
+/* Streamdown (respostes de la IA amb markdown i fórmules) genera classes
+   dins de node_modules: Tailwind les ha de veure per incloure-les. */
+@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/@streamdown/math/dist/*.js";
 
+/* Mathey és només en mode clar (com la landing de Faktu). */
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ */
+/* Tokens — portats de Faktu (app/globals.css), adaptats a Mathey      */
+/* ------------------------------------------------------------------ */
 @theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-system);
-  --font-mono: var(--font-system-mono);
-}
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --ease-motion-enter: var(--motion-ease-enter);
+  --ease-motion-exit: var(--motion-ease-exit);
+  --ease-motion-move: var(--motion-ease-move);
+  --ease-motion-standard: var(--motion-ease-standard);
+
+  --default-transition-duration: var(--motion-micro);
+  --default-transition-timing-function: var(--motion-ease-standard);
+
+  --animate-hop: hop 1.1s var(--motion-ease-move) infinite;
+  --animate-hop-shadow: hop-shadow 1.1s var(--motion-ease-move) infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.8s linear infinite;
+  --animate-pulse-soft: pulse-soft 2.6s ease-in-out infinite;
+  --animate-spin-slow: spin 12s linear infinite;
+  --animate-draw: draw 2.4s var(--motion-ease-enter) forwards;
+  --animate-page-enter: page-enter 260ms var(--motion-ease-enter) both;
+  --animate-shake: shake 360ms var(--motion-ease-standard);
+
+  @keyframes hop {
+    0%, 100% { transform: translateY(0) scale(1.06, 0.9); }
+    18% { transform: translateY(0) scale(0.94, 1.08); }
+    50% { transform: translateY(-38%) scale(1, 1); }
+    82% { transform: translateY(0) scale(0.96, 1.04); }
+  }
+  @keyframes hop-shadow {
+    0%, 100% { transform: scaleX(1); opacity: 0.22; }
+    50% { transform: scaleX(0.55); opacity: 0.08; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to { background-position: -200% 0; }
+  }
+  @keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes page-enter {
+    from { opacity: 0; filter: blur(4px); }
+    to { opacity: 1; filter: blur(0); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-system);
+:root {
+  color-scheme: light;
+
+  --background: #f0f1f0;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #1a1a1a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #1a1a1a;
+  --muted: #e8e8e8;
+  --muted-foreground: #5e6472;
+  /* L'accent de Faktu. Canviar-lo aquí el canvia a tot Mathey. */
+  --accent: #0171e3;
+  --accent-soft: #7ab8f5;
+  --accent-foreground: #ffffff;
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: #ffffff;
+  --success: hsl(142 76% 36%);
+  --success-foreground: #ffffff;
+  --border: #d5d5d5;
+  --input: #d5d5d5;
+  --ring: #1a1a1a;
+  --radius: 0.45rem;
+
+  /* Superfícies de l'app (Faktu `--app-*`) */
+  --app-surface: #ffffff;
+  --app-hover: #e9e8e5;
+  --app-text-secondary: #666560;
+  --app-text-tertiary: #777672;
+  --app-content-border: #e7e6e3;
+  --app-content-shadow: 0 1px 2px rgba(0, 0, 0, 0.025), 0 8px 24px rgba(31, 30, 28, 0.035);
+  --app-tile: #fafafa;
+  --app-tile-border: #e5e5e5;
+  --app-field-bg: #fafaf9;
+  --app-field-bg-focus: #ffffff;
+  --app-field-border: #d6d5d0;
+  --app-field-border-hover: #b9b8b2;
+  --app-field-ring: color-mix(in srgb, var(--accent) 20%, transparent);
+  --app-field-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+  --app-field-placeholder: #706f6a;
+  --app-popup-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 10px 28px -6px rgba(0, 0, 0, 0.14);
+
+  /* Matriu LED de la placa */
+  --led-on: 255 64 32;
+
+  /* Moviment (Faktu lib/motion.ts): «sense talls, però ràpid» */
+  --motion-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-exit: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --motion-ease-move: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-micro: 120ms;
+  --motion-transform: 150ms;
+  --motion-popup: 150ms;
+  --motion-dialog: 180ms;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                               */
+/* ------------------------------------------------------------------ */
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+  html {
+    overscroll-behavior: none;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-size: 15px;
+    /* La franja fosca suau de dalt de Faktu: es veu a través del marc del hero. */
+    background-image: linear-gradient(
+      to bottom,
+      #0000001c 0%,
+      #0000001c 64px,
+      #00000008 160px,
+      var(--background) 220px
+    );
+    background-repeat: no-repeat;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--muted-foreground) 28%, transparent) transparent;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Materials                                                          */
+/* ------------------------------------------------------------------ */
+
+/* Navbar de Faktu: vidre sobre fosc, i `.scrolled` sobre clar. Damunt del
+   hero clar de Mathey fem servir sempre la variant clara amb saturació. */
+.navbar-glass {
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  isolation: isolate;
+  background: rgb(255 255 255 / 0.45);
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 8px 32px rgb(0 0 0 / 0.08);
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
+}
+.navbar-glass.scrolled {
+  background: rgb(255 255 255 / 0.72);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 1px 2px rgb(15 23 42 / 0.05),
+    0 8px 32px rgb(0 0 0 / 0.1);
+}
+
+/* Liquid glass clar: compositor del xat, control segmentat, xips. */
+.glass {
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  background: rgb(255 255 255 / 0.62);
+  border: 1px solid rgb(255 255 255 / 0.75);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -1px 0 rgb(15 23 42 / 0.04),
+    0 1px 2px rgb(15 23 42 / 0.06),
+    0 8px 24px rgb(15 23 42 / 0.08);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .navbar-glass {
+    background: #fff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Reixa del hero (Faktu `.hero-grid`), emmascarada des de dalt. */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--foreground) 7%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--foreground) 7%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 75%);
+}
+
+/* Text amb el degradat d'accent (una paraula per titular). */
+.text-gradient {
+  background-image: linear-gradient(90deg, var(--accent) 0%, var(--accent-soft) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Brillantor que recorre un element mentre carrega. */
+.shimmer {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.55) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* Plegable sense saltar: files de 0fr a 1fr. */
+.plegable {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 220ms var(--motion-ease-move);
+}
+.plegable[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+.plegable > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

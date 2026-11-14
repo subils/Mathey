@@ -13,8 +13,17 @@ const LINKS = [
   { href: "/placa/", label: "La placa" },
 ];
 
+// Rutes antigues que encara fan servir aquesta capçalera. La landing (/) i
+// l'app nova (/app/) tenen la seva pròpia navegació.
+const LEGACY = ["/practica", "/el-meu-problema", "/perfil", "/mestre", "/placa"];
+
 export default function Header() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
+  if (!LEGACY.some((p) => pathname.startsWith(p))) return null;
+  return <LegacyHeader pathname={pathname} />;
+}
+
+function LegacyHeader({ pathname }: { pathname: string }) {
   const [health, setHealth] = useState<Health | null>(null);
   const [offline, setOffline] = useState(false);
 
