@@ -139,8 +139,10 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 2. **La IA de la placa rep la solució correcta** com a context. No ha de
    resoldre: ha de fer una pregunta.
 3. **Tot passa el filtre** (`mentor/filters.py`): cap text pot contenir la lletra
-   ni el valor de l'opció correcta. El que no el passa no es mostra.
-
+   («la C», «opció C», «(C)») ni el valor de l'opció correcta, tampoc escrit amb
+   lletres («quatre», «veintidós»). El que escriu la IA en directe passa en mode
+   estricte: el valor correcte es bloqueja encara que surti a l'enunciat. El que
+   no el passa no es mostra. Proves: `python -m unittest tests.test_filters`.
 ### 3.4 El moment en directe de la demo
 
 Quan l'alumne obre un problema, enviem l'enunciat al model **mentre el llegeix**.
