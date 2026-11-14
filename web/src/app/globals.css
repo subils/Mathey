@@ -459,6 +459,26 @@
   56%, 88% { background: #111; color: #fff; }
   96%, 100% { background: rgb(0 0 0 / 0.08); color: rgb(26 26 26 / 0.5); }
 }
+@keyframes loop-correct {
+  0%, 56% { background: #fff; border-color: rgb(0 0 0 / 0.07); box-shadow: none; }
+  62%, 90% { background: color-mix(in oklab, var(--success) 8%, white); border-color: color-mix(in oklab, var(--success) 50%, white); box-shadow: 0 0 0 4px color-mix(in oklab, var(--success) 14%, transparent); }
+  97%, 100% { background: #fff; border-color: rgb(0 0 0 / 0.07); box-shadow: none; }
+}
+@keyframes loop-correct-badge {
+  0%, 56% { background: rgb(0 0 0 / 0.045); color: #1a1a1a; }
+  62%, 90% { background: var(--success); color: #fff; }
+  97%, 100% { background: rgb(0 0 0 / 0.045); color: #1a1a1a; }
+}
+@keyframes loop-wrong {
+  0%, 20% { background: #fff; border-color: rgb(0 0 0 / 0.07); opacity: 1; }
+  26%, 90% { background: color-mix(in oklab, var(--destructive) 4%, white); border-color: color-mix(in oklab, var(--destructive) 20%, white); opacity: 0.75; }
+  97%, 100% { background: #fff; border-color: rgb(0 0 0 / 0.07); opacity: 1; }
+}
+@keyframes loop-reveal {
+  0% { clip-path: inset(0 100% 0 0); opacity: 1; }
+  22%, 88% { clip-path: inset(0 0 0 0); opacity: 1; }
+  96%, 100% { clip-path: inset(0 0 0 0); opacity: 0; }
+}
 @keyframes loop-pop {
   0%, 4% { opacity: 0; transform: scale(0.6); }
   12%, 86% { opacity: 1; transform: scale(1); }
@@ -480,7 +500,7 @@
   66%, 100% { transform: translateY(0) rotate(0deg); opacity: 1; }
 }
 .loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow, .loop-count, .loop-deck,
-.loop-select, .loop-pop {
+.loop-select, .loop-pop, .loop-correct, .loop-correct-badge, .loop-wrong, .loop-reveal {
   animation-duration: var(--loop, 6s);
   animation-iteration-count: infinite;
   animation-fill-mode: backwards;
@@ -489,6 +509,10 @@
 .loop-in { animation-name: loop-in; }
 .loop-select { animation-name: loop-select; }
 .loop-pop { animation-name: loop-pop; }
+.loop-correct { animation-name: loop-correct; }
+.loop-correct-badge { animation-name: loop-correct-badge; }
+.loop-wrong { animation-name: loop-wrong; }
+.loop-reveal { animation-name: loop-reveal; animation-timing-function: steps(28, end); }
 .loop-type { animation-name: loop-type; transform-origin: left center; }
 .loop-pick { animation-name: loop-pick; }
 .loop-strike { animation-name: loop-strike; transform-origin: left center; }
@@ -522,7 +546,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .loop-in, .loop-type, .loop-pick, .loop-strike, .loop-fill, .loop-scan, .loop-flow,
-  .loop-count, .loop-deck, .loop-ping, .loop-dots, .loop-select, .loop-pop, .skel::after {
+  .loop-count, .loop-deck, .loop-ping, .loop-dots, .loop-select, .loop-pop,
+  .loop-correct, .loop-correct-badge, .loop-wrong, .loop-reveal, .skel::after {
     animation: none !important;
   }
   .loop-scan, .loop-flow, .loop-ping { opacity: 0; }

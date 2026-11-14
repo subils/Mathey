@@ -81,7 +81,7 @@ Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 | `src/lib/session.ts`, `use-student.ts` | Sessió de l'alumne al navegador; si la placa no el coneix, torna a l'onboarding |
 | `src/components/app/` | Barra de l'app, targetes de mode, «Mode demo» |
 | `src/components/chat/` | Compositor (enganxar, arrossegar, càmera), markdown amb KaTeX, «la placa està pensant» |
-| `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís); `visuals.tsx`, les il·lustracions animades; `smooth-scroll.tsx`, el smooth scroll de Faktu (Lenis) |
+| `src/components/marketing/` | Navbar, hero i seccions de la landing; `resend-cube.tsx` és el cub 3D de Resend (Spline, amb permís); `visuals.tsx`, les il·lustracions animades; `mini-product.tsx`, les rèpliques en miniatura del Repte i del xat que surten a «Dos modes»; `smooth-scroll.tsx`, el smooth scroll de Faktu (Lenis) |
 | `src/components/ui/` | Botó, camps, superfícies; prompt-kit (MIT) |
 
 ## Regles

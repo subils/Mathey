@@ -7,12 +7,11 @@ import { DoubleCard, Eyebrow, Pill } from "@/components/ui/surface";
 import { api, useBackendMode } from "@/lib/api";
 import { useLive } from "@/lib/use-live";
 import { cn } from "@/lib/utils";
+import { MiniChat, MiniRepte } from "./mini-product";
 import { Reveal } from "./reveal";
 import {
   VisualAnswer,
   VisualBoard,
-  VisualChat,
-  VisualDeck,
   VisualFrame,
   VisualLadder,
   VisualQuestion,
@@ -101,7 +100,9 @@ function FeatureCard({
       index={index}
       className="flex h-full flex-col gap-6 p-5 transition-shadow duration-300 ease-motion-enter hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_18px_40px_-16px_rgba(0,0,0,0.14)] md:p-6"
     >
-      <VisualFrame className={large ? "h-72 md:h-80" : undefined}>{visual}</VisualFrame>
+      <VisualFrame className={large ? "h-[230px] sm:h-[370px] md:h-[220px] lg:h-[290px] xl:h-[390px]" : undefined}>
+        {visual}
+      </VisualFrame>
       <div className="flex flex-col gap-1.5 px-1 pb-1">
         {step && <span className="font-mono text-[11px] font-semibold text-accent">{step}</span>}
         <h3 className={cn("font-medium tracking-[-0.015em]", large ? "text-2xl" : "text-lg")}>{title}</h3>
@@ -168,7 +169,7 @@ export function ModesSection() {
               large
               title="Repte Cangur"
               text="El nivell s'ajusta a cada resposta."
-              visual={<VisualDeck />}
+              visual={<MiniRepte />}
             />
           </Link>
         </Reveal>
@@ -179,7 +180,7 @@ export function ModesSection() {
               large
               title="El meu problema"
               text="Fes-hi una foto i la IA el resol amb tu."
-              visual={<VisualChat />}
+              visual={<MiniChat />}
             />
           </Link>
         </Reveal>

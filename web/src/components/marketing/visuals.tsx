@@ -1,19 +1,13 @@
 import {
-  Camera,
   Check,
-  CheckCheck,
   Cloud,
-  Flame,
   Footprints,
   Image as ImageIcon,
   KeyRound,
   Lightbulb,
   Lock,
   MessageCircle,
-  Sigma,
-  Sparkles,
   Timer,
-  TrendingUp,
   User,
 } from "lucide-react";
 import { Mark } from "@/components/brand/logo";
@@ -206,116 +200,6 @@ export function VisualLadder() {
         </Dot>
         <div className="h-2.5 w-16 rounded-full bg-white/70" />
       </div>
-    </div>
-  );
-}
-
-/* ------------------------------------------------- Mode 1 · Repte Cangur */
-
-export function VisualDeck() {
-  return (
-    <div className="relative">
-      {/* Problemes que esperen, darrere */}
-      <div className="absolute inset-x-6 -top-3 h-full rounded-2xl bg-white/60 shadow-[0_1px_2px_rgba(0,0,0,0.04)]" />
-      <div className="absolute inset-x-3 -top-1.5 h-full rounded-2xl bg-white/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)]" />
-
-      {/* El problema actual */}
-      <div className="loop-deck relative w-[300px] rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05),0_12px_32px_-12px_rgba(0,0,0,0.18)]">
-        <div className="flex items-center justify-between">
-          <span className="h-5 w-20 rounded-full bg-black/[0.07]" />
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-8 rounded-full bg-black/[0.08]" />
-            <span className="size-2 rounded-full bg-accent" />
-          </span>
-        </div>
-        <div className="mt-4 space-y-2">
-          <div className="skel h-2.5 w-11/12" />
-          <div className="skel h-2.5 w-8/12" />
-        </div>
-        <div className="mt-5 flex justify-between">
-          {["A", "B", "C", "D", "E"].map((l, i) => (
-            <span
-              key={l}
-              className={cn(
-                "flex size-9 items-center justify-center rounded-full bg-black/[0.08] font-mono text-[11px] font-semibold text-[#1a1a1a]/50",
-                i === 3 && "loop-select",
-              )}
-            >
-              {l}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Al voltant: el que passa després de respondre */}
-      <Badge icon={<CheckCheck />} className="-top-6 -left-3" delay={0} />
-      <Badge icon={<Flame />} accent className="-top-6 right-10" delay={0.25} />
-      <div
-        className="loop-pop absolute -right-16 -bottom-5 flex items-center gap-2 rounded-xl bg-white px-2.5 py-2 shadow-[0_1px_2px_rgba(0,0,0,0.05),0_8px_20px_-8px_rgba(0,0,0,0.18)]"
-        style={d(0.35)}
-      >
-        <span className="flex size-6 items-center justify-center rounded-full bg-[#111] text-white">
-          <TrendingUp className="size-3" />
-        </span>
-        <svg viewBox="0 0 64 20" className="h-5 w-16" fill="none">
-          <path d="M1 17 L14 13 L26 15 L38 8 L50 9 L63 2" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="63" cy="2" r="2" fill="var(--accent)" />
-        </svg>
-      </div>
-      <Badge icon={<Timer />} className="-bottom-5 left-8" delay={0.5} />
-    </div>
-  );
-}
-
-/* ------------------------------------------------- Mode 2 · El meu problema */
-
-export function VisualChat() {
-  return (
-    <div className="relative flex w-[330px] flex-col gap-4">
-      {/* L'alumne envia la foto del problema */}
-      <div className="flex items-center justify-end gap-2.5">
-        <div className="flex items-center gap-2 rounded-xl bg-[#111] p-1.5 pr-3">
-          <span className="relative flex size-11 items-center justify-center overflow-hidden rounded-lg bg-[#2a2a2a] text-white/70">
-            <ImageIcon className="size-4" />
-            <span className="loop-scan absolute inset-x-0 top-0 h-full bg-gradient-to-b from-transparent via-accent/50 to-transparent" />
-          </span>
-          <div className="space-y-1.5">
-            <div className="h-2 w-24 rounded-full bg-white" />
-            <div className="h-2 w-14 rounded-full bg-white/60" />
-          </div>
-        </div>
-        <Dot dark>
-          <User />
-        </Dot>
-      </div>
-
-      {/* La IA de la placa el resol pas a pas */}
-      <div className="flex items-start gap-2.5">
-        <Dot>
-          <Mark className="!h-3 !w-auto text-[#3a3a3a]" />
-        </Dot>
-        <div className="flex-1 space-y-2.5 rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.05),0_8px_20px_-10px_rgba(0,0,0,0.15)]">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="flex size-4 items-center justify-center rounded-full bg-black/[0.07] font-mono text-[8px] font-bold text-[#1a1a1a]/50">
-                {i + 1}
-              </span>
-              <div
-                className="loop-type h-2 rounded-full bg-black/[0.12]"
-                style={{ ...d(1 + i * 0.4), width: ["78%", "62%", "48%"][i] }}
-              />
-            </div>
-          ))}
-          <div className="flex items-center gap-2 pt-0.5">
-            <span className="rounded-md bg-accent-subtle px-1.5 py-0.5 font-mono text-[9px] font-semibold text-accent">= ?</span>
-            <Typing />
-          </div>
-        </div>
-      </div>
-
-      <Badge icon={<Camera />} className="-top-5 left-6" delay={0} />
-      <Badge icon={<Sigma />} className="top-[46%] -right-11" delay={0.8} />
-      <Badge icon={<Sparkles />} accent className="-bottom-5 left-14" delay={1.1} />
     </div>
   );
 }
