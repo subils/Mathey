@@ -133,6 +133,8 @@ export type OwnMatch = {
   topic: string;
   topic_confidence: number;
   found: boolean;
+  /** El semblant s'assembla prou (≥ 0,50) perquè la seva idea guiï la IA. */
+  same_idea?: boolean;
   siblings: (Problem & { score: number })[];
   strategy: string;
   message: string | null;
@@ -198,6 +200,66 @@ async function call<T>(
   return data as T;
 }
 
+export type ChatTurn = { role: "user" | "assistant"; text: string };
+export type ChatEvent =
+  | { type: "meta"; own_id: number; sibling: Problem | null; strategy: string }
+  | { type: "delta"; text: string }
+  | {
+      type: "done";
+      reply: string;
+      source: "placa" | "preparat";
+      seconds: number;
+      rejected: string | null;
+      timings: Record<string, number | null>;
+    };
+
+/**
+ * Xat del mode 2 (POST /api/own/chat): la resposta arriba a trossos (NDJSON).
+ * `onEvent` rep cada esdeveniment a mesura que arriba. Torna quan s'acaba.
+ */
+async function ownChat(
+  student: number,
+  own_id: number,
+  { message, history, signal, onEvent }: {
+    message?: string;
+    history?: ChatTurn[];
+    signal?: AbortSignal;
+    onEvent: (event: ChatEvent) => void;
+  },
+) {
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/api/own/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ student, own_id, message, history }),
+      cache: "no-store",
+      signal,
+    });
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    throw new ApiError(0, "No hi ha connexió amb la placa.");
+  }
+  if (!response.ok || !response.body) {
+    const data = await response.json().catch(() => ({}));
+    throw new ApiError(response.status, (data as { error?: string }).error ?? response.statusText);
+  }
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let buffer = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (value) buffer += value;
+    let newline: number;
+    while ((newline = buffer.indexOf("\n")) >= 0) {
+      const line = buffer.slice(0, newline).trim();
+      buffer = buffer.slice(newline + 1);
+      if (line) onEvent(JSON.parse(line) as ChatEvent);
+    }
+    if (done) break;
+  }
+  if (buffer.trim()) onEvent(JSON.parse(buffer) as ChatEvent);
+}
+
 /** Primera lletra en majúscula (el CSS `capitalize` faria «Combinatòria I Probabilitat»). */
 export const cap = (text: string) => (text ? text[0].toUpperCase() + text.slice(1) : text);
 
@@ -229,6 +291,7 @@ export const api = {
     call<OwnMatch>("POST", "/own/match", { student, text }, options),
   ownHelp: (student: number, own_id: number, doubt: string, options?: CallOptions) =>
     call<OwnHelp>("POST", "/own/help", { student, own_id, doubt }, options),
+  ownChat,
 };
 
 // Per a la pàgina antiga d'estat

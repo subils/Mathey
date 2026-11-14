@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col">
       <AppBar />
-      <div className="flex flex-1 flex-col animate-page-enter">{children}</div>
+      <div className="flex flex-1 flex-col">{children}</div>
     </div>
   );
 }
