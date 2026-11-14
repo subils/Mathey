@@ -11,6 +11,7 @@ Si la IA no hi és o triga massa, el mentor fa servir el contingut preparat.
 """
 import json
 import re
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -40,6 +41,59 @@ def available(timeout=1.0):
         return False
 
 
+def _reply_text(response):
+    """El text de la resposta del model, sense el <think>. Buit si no n'hi ha."""
+    text = response["choices"][0]["message"].get("content") or ""
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.S).replace("</think>", "").strip()
+
+
+# ------------------------------------------------------- lectures per endavant
+#
+# El model atén una petició cada cop (--parallel 1). Si cada problema obert
+# llancés la seva lectura, es farien cua i la pregunta real de l'alumne hauria
+# d'esperar-les totes. Per això, des del mentor:
+# - com a màxim hi ha una lectura en marxa i una de pendent;
+# - una lectura nova substitueix la pendent (la més recent és la que servirà);
+# - una pregunta real de l'alumne anul·la la pendent (té prioritat).
+# warm() i warm_own() continuen sent síncrones per als scripts de mesura.
+
+_warm_cond = threading.Condition()
+_warm_pending = None  # missatges de l'última lectura demanada i no començada
+_warm_running = False
+
+
+def _schedule_warm(messages):
+    global _warm_pending, _warm_running
+    with _warm_cond:
+        _warm_pending = messages
+        if _warm_running:
+            return
+        _warm_running = True
+    threading.Thread(target=_warm_loop, name="lectura-ia", daemon=True).start()
+
+
+def _cancel_pending_warm():
+    global _warm_pending
+    with _warm_cond:
+        _warm_pending = None
+
+
+def _warm_loop():
+    global _warm_pending, _warm_running
+    while True:
+        with _warm_cond:
+            messages, _warm_pending = _warm_pending, None
+            if messages is None:
+                _warm_running = False
+                return
+        try:
+            _post("/v1/chat/completions", {
+                "messages": messages, "max_tokens": 1, "temperature": 0, "cache_prompt": True,
+            }, timeout=config.LLM_TIMEOUT)
+        except Exception:  # és només una preparació: si falla, la pregunta real anirà en fred
+            pass
+
+
 def _context(problem_text, solution_steps):
     """La part fixa del prompt: és la que es pot llegir per endavant."""
     steps = "\n".join(f"- {s}" for s in solution_steps)
@@ -65,6 +119,11 @@ def warm(problem_text, solution_steps):
         return False
 
 
+def warm_later(problem_text, solution_steps):
+    """Com warm(), però no bloqueja i no fa cua (és el que fa servir el mentor)."""
+    _schedule_warm(_messages(problem_text, solution_steps))
+
+
 def socratic(problem_text, solution_steps, chosen_option, trap, student_text):
     """Torna (text, timings) o llança OSError si la IA no respon."""
     tail = (
@@ -74,13 +133,13 @@ def socratic(problem_text, solution_steps, chosen_option, trap, student_text):
         "Escriu UNA sola pregunta curta (màxim 20 paraules) que l'ajudi a veure el seu error. "
         "No diguis la resposta ni el resultat."
     )
+    _cancel_pending_warm()  # la pregunta de l'alumne passa davant
     started = time.perf_counter()
     response = _post("/v1/chat/completions", {
         "messages": _messages(problem_text, solution_steps, tail),
         "max_tokens": 48, "temperature": 0.2, "seed": 42, "cache_prompt": True,
     }, timeout=config.LLM_TIMEOUT)
-    text = response["choices"][0]["message"]["content"]
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).replace("</think>", "").strip()
+    text = _reply_text(response)
     timings = response.get("timings", {})
     timings["wall_seconds"] = round(time.perf_counter() - started, 2)
     return text, timings
@@ -131,6 +190,11 @@ def warm_own(own_text, example):
         return False
 
 
+def warm_own_later(own_text, example):
+    """Com warm_own(), però no bloqueja i no fa cua (és el que fa servir el mentor)."""
+    _schedule_warm(_own_messages(own_text, example))
+
+
 def own_hint(own_text, example, doubt, strategy=""):
     """Torna (text, timings) o llança OSError si la IA no respon."""
     tail = (
@@ -140,13 +204,13 @@ def own_hint(own_text, example, doubt, strategy=""):
         + (" fent servir la mateixa idea de l'exemple" if example else "")
         + ". No calculis res, no diguis el resultat i no escriguis cap número que no sigui al seu problema."
     )
+    _cancel_pending_warm()  # el dubte de l'alumne passa davant
     started = time.perf_counter()
     response = _post("/v1/chat/completions", {
         "messages": _own_messages(own_text, example, tail),
         "max_tokens": 72, "temperature": 0.2, "seed": 42, "cache_prompt": True,
     }, timeout=config.LLM_TIMEOUT)
-    text = response["choices"][0]["message"]["content"]
-    text = re.sub(r"<think>.*?</think>", "", text, flags=re.S).replace("</think>", "").strip()
+    text = _reply_text(response)
     timings = response.get("timings", {})
     timings["wall_seconds"] = round(time.perf_counter() - started, 2)
     return text, timings

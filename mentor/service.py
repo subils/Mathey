@@ -9,7 +9,6 @@ Principis:
 """
 import os
 import re
-import threading
 import time
 import zlib
 
@@ -379,6 +378,10 @@ def explain(params):
             reply = text
     except OSError as error:
         rejected = f"la IA de la placa no respon ({type(error).__name__})"
+    except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
+        rejected = f"resposta inesperada de la IA ({type(error).__name__})"
+    finally:
+        _set_matrix(before)
     if reply is None:
         # Reserva: l'error típic d'aquesta opció (preparat i verificat), o la dada clau
         source = "preparat"
@@ -387,7 +390,6 @@ def explain(params):
         else:
             reply = (content["hints"][1] if len(content["hints"]) > 1 and content["hints"][1]
                      else content["key_idea"])
-    _set_matrix(before)
     seconds = round(time.perf_counter() - started, 2)
     store.execute(store.state(), """INSERT INTO explanations (student_id, problem_id, letter, student_text,
                   reply, source, seconds, rejected) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
@@ -400,7 +402,7 @@ def explain(params):
 def warm(params):
     pid = params.get("problem_id", "")
     _label, _option, content, row = _correct(pid)
-    threading.Thread(target=llm.warm, args=(row["text"], content["solution"]), daemon=True).start()
+    llm.warm_later(row["text"], content["solution"])  # no bloqueja i no fa cua
     return {"started": True}
 
 
@@ -585,7 +587,7 @@ def own_match(params):
     guides = found and bool(siblings) and hits[0]["score"] >= retrieval.HIGH_SCORE
     # La IA llegeix ara el problema i l'exemple, mentre l'alumne escriu el seu dubte
     example = _example(siblings[0]["id"]) if guides else None
-    threading.Thread(target=llm.warm_own, args=(text, example), daemon=True).start()
+    llm.warm_own_later(text, example)  # no bloqueja i no fa cua
     return {"own_id": own_id, "topic": topic, "topic_confidence": round(float(confidence), 2),
             "found": found, "same_idea": guides, "siblings": siblings if found else [],
             "strategy": strategies.for_topic(topic),
@@ -627,6 +629,8 @@ def own_help(params):
             reply = text
     except OSError as error:
         rejected = f"la IA de la placa no respon ({type(error).__name__})"
+    except Exception as error:  # resposta inesperada: l'alumne rep igualment la reserva
+        rejected = f"resposta inesperada de la IA ({type(error).__name__})"
     finally:
         _set_matrix(before)
     if reply is None:
