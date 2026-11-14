@@ -125,7 +125,7 @@ only ever shows verified content, so the threshold favours precision.
 | Easy-reading (dyslexia) versions | words per sentence 13.2 → 7.8; long words per sentence 0.79 → 0.27; all statement numbers kept in 507/509 | `scripts/readability.py` |
 | Socratic question latency on the board | `TODO` cold / warm | `scripts/measure_socratic.py` |
 | Socratic question quality | `TODO` useful / useless / misleading of 30 | judged by hand |
-| Adaptive engine convergence (Elo) | `TODO`: rerun on the real bank (the previous figures measured the old level system) | `scripts/simulate_students.py` (5 students × 30 problems per profile) |
+| Adaptive engine convergence (Elo) | real bank (509 verified problems, Elo 800–1580), 10 profiles (true Elo 850–1450, claiming 5th or 8th grade): mean error of the last-10 Elo 55 points; worst 120 (a 1450 student who claims 5th grade); each profile stays within ±100 of its true Elo from problem 8–28 | `scripts/simulate_students.py --problems 30 --seeds 5` (5 students × 30 problems per profile) |
 | RAM with everything running | `TODO` | `free -m` on the board |
 
 ## Error analysis
