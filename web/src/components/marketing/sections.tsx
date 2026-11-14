@@ -33,19 +33,18 @@ function SectionHeader({
   lead: React.ReactNode;
 }) {
   return (
-    <Reveal className="grid gap-6 pb-12 md:grid-cols-2 md:items-end md:pb-16">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2.5">
-          <Eyebrow>{eyebrow}</Eyebrow>
-          {pill && <Pill>{pill}</Pill>}
-        </div>
-        <h2 style={{ fontSize: "clamp(28px, 3.6vw, 48px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}>
-          {title}
-        </h2>
+    <Reveal className="flex flex-col gap-4 pb-12 md:pb-16">
+      <div className="flex items-center gap-2.5">
+        <Eyebrow>{eyebrow}</Eyebrow>
+        {pill && <Pill>{pill}</Pill>}
       </div>
-      <p className="max-w-md text-[15px] leading-relaxed font-light text-muted-foreground md:justify-self-end md:text-base">
-        {lead}
-      </p>
+      <h2
+        className="lg:whitespace-nowrap"
+        style={{ fontSize: "clamp(28px, 3.6vw, 48px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}
+      >
+        {title}
+      </h2>
+      <p className="max-w-lg text-[15px] leading-relaxed font-light text-muted-foreground md:text-base">{lead}</p>
     </Reveal>
   );
 }
@@ -100,9 +99,9 @@ function FeatureCard({
   return (
     <DoubleCard
       index={index}
-      className="flex h-full flex-col gap-6 p-5 transition-[transform,box-shadow] duration-300 ease-motion-enter hover:-translate-y-1 md:p-6"
+      className="flex h-full flex-col gap-6 p-5 transition-shadow duration-300 ease-motion-enter hover:shadow-[0_2px_4px_rgba(0,0,0,0.03),0_18px_40px_-16px_rgba(0,0,0,0.14)] md:p-6"
     >
-      <VisualFrame className={large ? "h-64 md:h-72" : undefined}>{visual}</VisualFrame>
+      <VisualFrame className={large ? "h-72 md:h-80" : undefined}>{visual}</VisualFrame>
       <div className="flex flex-col gap-1.5 px-1 pb-1">
         {step && <span className="font-mono text-[11px] font-semibold text-accent">{step}</span>}
         <h3 className={cn("font-medium tracking-[-0.015em]", large ? "text-2xl" : "text-lg")}>{title}</h3>
@@ -253,9 +252,9 @@ export function FinalCta() {
             aria-hidden
             className="absolute inset-[-60%] -z-10 animate-spin-slow bg-[conic-gradient(from_0deg,transparent_0%,var(--accent)_12%,transparent_28%,transparent_100%)] motion-reduce:hidden"
           />
-          <div className="relative flex flex-col items-center gap-7 rounded-xl bg-white px-6 py-20 text-center md:py-24">
-            <Mark className="h-11 text-foreground" />
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}>
+          <div className="relative flex flex-col items-center gap-5 rounded-xl bg-white px-6 py-12 text-center md:py-14">
+            <Mark className="h-8 text-foreground" />
+            <h2 style={{ fontSize: "clamp(26px, 3.2vw, 40px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}>
               El primer problema <span className="text-gradient">t&apos;espera.</span>
             </h2>
             <Link
@@ -273,7 +272,7 @@ export function FinalCta() {
 
 export function SiteFooter() {
   return (
-    <footer className={cn(CONTAINER, "pt-28 pb-10")}>
+    <footer className={cn(CONTAINER, "mt-32 border-t border-black/[0.06] pt-16 pb-10 md:mt-44")}>
       <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
         <div className="flex flex-col gap-3">
           <Logo className="h-6 self-start text-foreground" />

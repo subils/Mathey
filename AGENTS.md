@@ -68,6 +68,11 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
     sense CDN.
   - Crèdit al peu de la landing.
 - 14/11/2026, ~20:30: **el color principal és el taronja**, no el blau.
+- 14/11/2026, ~20:45: **tots els tons de taronja surten de zernio.com**: marca `#eb3514`
+  (hover `#d12c0e`) i la gamma del seu degradat, del `#fff5e6` al `#3b0d02`
+  (`globals.css`).
+- 14/11/2026, ~20:45: **el cangur no salta ni sura**: sempre quiet (treu
+  professionalitat). Només el carregador el fa saltar mentre s'espera.
 - 14/11/2026, ~20:30: **la matriu LED no es mostra a la web** (ni a la landing ni a
   l'app): només es veu a l'Arduino.
 - 14/11/2026, ~20:30: **landing amb poc text i molt aire**: textos curts (si es pot

@@ -50,7 +50,8 @@ CSS (bloc «Hero de resend.com» a `globals.css`) i el seu cub 3D (`resend-cube.
 Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 
 - **Tokens:** `src/app/globals.css`.
-  - Colors: fons `#f0f1f0`, tinta `#1a1a1a`, accent **taronja** `#f76b15` (abans, el blau de Faktu).
+  - Colors: fons `#f0f1f0`, tinta `#1a1a1a`, accent **taronja de zernio.com** `#eb3514` (abans, el blau de Faktu). Tots els taronges
+    (`--color-orange-50…950`) són la gamma de la marca de Zernio.
   - Radis i moviment, i el degradat superior del `body`.
 - **Materials:**
   - `.navbar-glass` (el navbar de Faktu) i `.glass` (compositor, xips): blur + saturate i una llum interior.
@@ -65,8 +66,10 @@ Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
   - Es respecta `prefers-reduced-motion`.
 - **Cap emoji a la interfície.** Icones de `lucide-react`.
 - **La matriu LED de la placa no surt a la web**: només es veu a l'Arduino.
-- **Landing:** poc text, molt aire i il·lustracions abstractes (skeletons que es mouen
-  en bucle, només CSS: classes `.loop-*` i `.skel` de `globals.css`). Smooth scroll de
+- **Landing:** poc text (títols d'una línia), molt aire i il·lustracions abstractes
+  monocromes (cercles, barres, píndoles negres i insígnies d'icona que es mouen en
+  bucle, només CSS: classes `.loop-*` i `.skel` de `globals.css`). El cangur sempre
+  quiet, excepte quan indica que s'està carregant. Smooth scroll de
   Faktu (Lenis 1.3.27).
 - **El cangur:** `components/brand/` (separat de `branding/Mathey logo.svg`). `HoppingKangaroo` és el carregador.
 
