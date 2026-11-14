@@ -159,6 +159,16 @@ def _correct(pid):
     return label, content["options"].get(label, ""), content, row
 
 
+def _safe_key_idea(content, label, option, row):
+    """La idea clau, si no revela la resposta (filters.leaks); si la revela, None.
+
+    Les pistes ja es filtren en construir el banc; la idea clau no, i per això es
+    filtra aquí cada cop que arriba a l'alumne abans de resoldre el problema.
+    """
+    idea = content.get("key_idea") or ""
+    return idea if idea and not filters.leaks(idea, label, option, row["text"]) else None
+
+
 # ---------------------------------------------------------------- rutes
 
 def health(_params):
@@ -387,7 +397,8 @@ def hint(params):
         sibling = _germa(pid, content, student["id"])
         return {"rung": 3, "type": "germa", "problem": sibling,
                 "text": "Prova primer aquest problema: és més fàcil i fa servir una idea semblant."
-                if sibling else content["key_idea"]}
+                if sibling else (_safe_key_idea(content, label, option, row)
+                                 or "Per a aquest problema no tinc cap germà més fàcil. Prova el graó següent.")}
     if rung == 5:
         return {"rung": 5, "type": "solucio", "steps": content["solution"],
                 "answer": label, "answer_text": option}
@@ -431,7 +442,8 @@ def explain(params):
             reply = f"Un error típic de qui tria la {letter}: {trap.rstrip('.')}. Pot ser el teu cas?"
         else:
             reply = (content["hints"][1] if len(content["hints"]) > 1 and content["hints"][1]
-                     else content["key_idea"])
+                     else _safe_key_idea(content, label, option, row)
+                     or "Torna a llegir l'enunciat amb calma: quina dada encara no has fet servir?")
     seconds = round(time.perf_counter() - started, 2)
     store.execute(store.state(), """INSERT INTO explanations (student_id, problem_id, letter, student_text,
                   reply, source, seconds, rejected) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
