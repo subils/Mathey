@@ -16,6 +16,11 @@ pnpm lint
 
 Al Mac, feu servir `127.0.0.1` i no `localhost:7000` (AirPlay escolta al 7000).
 
+**Amb la IA de la placa** (web i mentor al Mac, IA per túnel SSH), des de l'arrel:
+`scripts/local_amb_placa.sh`. Engega la web a <http://localhost:3100> i el mentor
+al 7100 (`NEXT_PUBLIC_API_BASE`). Detalls a
+[docs/ARQUITECTURA.md §4.2](../docs/ARQUITECTURA.md).
+
 ## Rutes
 
 | Ruta | Què és |

@@ -87,9 +87,12 @@ def _warm_loop():
                 _warm_running = False
                 return
         try:
+            # Ningú no espera aquesta lectura, però si es talla abans d'hora, llama-server
+            # l'anul·la i la pregunta que ve darrere l'ha de tornar a fer sencera: un
+            # problema llarg pot trigar més de 40 s a llegir-se.
             _post("/v1/chat/completions", {
                 "messages": messages, "max_tokens": 1, "temperature": 0, "cache_prompt": True,
-            }, timeout=config.LLM_TIMEOUT)
+            }, timeout=config.LLM_STREAM_TIMEOUT)
         except Exception:  # és només una preparació: si falla, la pregunta real anirà en fred
             pass
 
@@ -252,18 +255,18 @@ def _solve_messages(own_text, example, history=(), message=""):
         text = str(turn.get("text") or "").strip()[:600]
         if text:
             turns.append({"role": role, "content": text})
-    if message:
-        ask = (f"L'ALUMNE PREGUNTA: «{message.strip()[:300]}»\n"
-               "Respon en 1 o 2 frases, sobre el seu problema.")
-    else:
-        ask = ("Resol el problema de l'alumne pas a pas"
-               + (", fent servir la mateixa idea que l'exemple" if example else "") + ".")
-    if turns:
-        return ([{"role": "system", "content": SYSTEM_SOLVE},
-                 {"role": "user", "content": context + "\nResol-lo pas a pas."}]
-                + turns + [{"role": "user", "content": ask}])
-    return [{"role": "system", "content": SYSTEM_SOLVE},
-            {"role": "user", "content": context + "\n" + ask}]
+    solve = ("Resol el problema de l'alumne pas a pas"
+             + (", fent servir la mateixa idea que l'exemple" if example else "") + ".")
+    # El primer missatge és sempre el mateix que el de la resolució: així una
+    # pregunta de seguiment comença igual que el prompt que la placa ja ha llegit,
+    # llama-server en reaprofita la lectura i només llegeix el que és nou.
+    first = [{"role": "system", "content": SYSTEM_SOLVE},
+             {"role": "user", "content": context + "\n" + solve}]
+    if not message:
+        return first
+    ask = (f"L'ALUMNE PREGUNTA: «{message.strip()[:300]}»\n"
+           "Respon en 1 o 2 frases, sobre el seu problema.")
+    return first + turns + [{"role": "user", "content": ask}]
 
 
 def warm_solve_later(own_text, example):
@@ -333,7 +336,7 @@ def solve_own_stream(own_text, example, history=(), message="", max_tokens=None)
     first = None
     timings = {}
     think = _ThinkFilter()
-    with urllib.request.urlopen(request, timeout=config.LLM_TIMEOUT) as response:
+    with urllib.request.urlopen(request, timeout=config.LLM_STREAM_TIMEOUT) as response:
         for raw in response:
             line = raw.decode("utf-8", "replace").strip()
             if not line.startswith("data:"):

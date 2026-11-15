@@ -89,6 +89,10 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
 - 15/11/2026: **les fotos del xat les llegeix `laptop/read_image.py`** (abans
   `prepare_m3kang.py`) i el text que en surt és el prompt; ja no es fa servir el
   servei OCR del port 8084.
+- 15/11/2026, ~01:30: **per treballar en local, la web i el mentor corren al portàtil
+  i la IA a la placa per un túnel SSH**, sempre amb `scripts/local_amb_placa.sh`
+  (web a <http://localhost:3100>, mentor al 7100, ports nets). No es munten túnels
+  ni servidors a mà. Per què el xat queia a la reserva: docs/ARQUITECTURA.md §4.2.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.

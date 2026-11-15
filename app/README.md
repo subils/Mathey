@@ -74,7 +74,8 @@ Per provar la matriu tota sola:
 
 L'app corre dins d'un contenidor Docker. Allà dins, `127.0.0.1` és el contenidor,
 no la placa, i els `llama-server` de la guia escolten només a `127.0.0.1`.
-**No està provat en una placa.**
+**Provat el 15/11/2026: el pla A funciona** (a la placa `Mathey` els dos
+`llama-server` ja escolten a `0.0.0.0`).
 
 ### Pla A (el que fa el codi)
 
@@ -130,8 +131,8 @@ l'`explorer` del repo dels organitzadors), i l'app d'App Lab només pinta la mat
    Aquí `127.0.0.1:8081` sí que és el model. El port 7000 és de l'app.
 3. Com es parlen: afegiu `MENTOR_MATRIX_URL=http://127.0.0.1:7000/placa/matriu`
    a l'ordre del pas 2. Llavors, quan una resposta porta `"matrix"`, el servidor
-   la reenvia a l'app en un fil a part (no bloqueja l'alumne). Fet al portàtil;
-   no provat a la placa.
+   la reenvia a l'app en un fil a part (no bloqueja l'alumne). Provat el 15/11
+   des del portàtil, per túnel SSH (`scripts/local_amb_placa.sh`).
 4. Portàtil: `adb forward tcp:7070 tcp:7070` i <http://127.0.0.1:7070>.
 
 ## Problemes freqüents
@@ -145,4 +146,6 @@ l'`explorer` del repo dels organitzadors), i l'app d'App Lab només pinta la mat
 | `systemctl is-active math-llm` no diu `active` | `journalctl -u math-llm -n 50`; si l'ha matat el sistema, falta RAM: `free -m` |
 | `http://localhost:7000` al Mac obre una altra cosa | És AirPlay: feu `adb forward tcp:7070 tcp:7000` i obriu `127.0.0.1:7070` |
 | `adb no veu cap placa` | Cable USB-C de dades, `adb devices`; amb dues plaques, `export ANDROID_SERIAL=<sèrie>` |
-| Una pregunta al model triga molt | Normal: 5–20 s. L'API no es bloqueja; la resta de rutes responen |
+| Una pregunta al model triga molt | Normal: 5–20 s; el xat, 20–55 s fins al primer token (llegeix el prompt a ~11 tok/s). L'API no es bloqueja; la resta de rutes responen |
+| El xat diu «Ara mateix la IA de la placa no pot respondre» | Mireu `rejected` a `own_helps`. `URLError`: no arriba al model (túnel caigut o `math-llm` aturat). `TimeoutError`: la IA ha trigat més de `MENTOR_LLM_STREAM_TIMEOUT` (120 s), normalment perquè una altra web o un altre portàtil la feia servir: atén una petició alhora |
+| Vull la web al portàtil amb la IA de la placa | `scripts/local_amb_placa.sh` (túnel SSH que es torna a connectar sol). Vegeu docs/ARQUITECTURA.md §4.2 |

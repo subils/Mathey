@@ -182,7 +182,9 @@ def health(_params):
         "bank_problems": total["n"] if total else 0,
         "llm": "up" if llm.available() else "down",
         "embeddings": "tf-idf",
-        "matrix": "placa" if config.HOST == "placa" else "simulada",
+        # «placa» també quan el mentor corre al portàtil i envia els dibuixos a la
+        # matriu de la placa (scripts/dev_server.py amb MENTOR_MATRIX_URL)
+        "matrix": "placa" if config.HOST == "placa" or _matrix_listeners else "simulada",
         "server_time": time.strftime("%H:%M:%S"),
     }
 

@@ -84,7 +84,8 @@ content is in this repository.
   filter, similarity, LED frames, model client.
 - `app/` — the Arduino App Lab app (Python adapter + LED sketch).
 - `scripts/` — `build_bank.py` (build and verify the bank), `dev_server.py`
-  (laptop server), `deploy_board.sh` (one-command deploy),
+  (laptop server), `deploy_board.sh` (one-command deploy), `local_amb_placa.sh`
+  (web and mentor on the laptop, the board's model through a self-healing SSH tunnel),
   `measure_socratic.py`, `measure_router.py`, `simulate_students.py`.
 - `tests/` — unit tests for the leak filter and the no-model router
   (`python -m unittest discover tests`).

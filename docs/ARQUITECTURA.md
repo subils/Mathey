@@ -241,6 +241,49 @@ cd web && pnpm build                 # exporta a web/out; el servidor de dalt ta
   perfil, mestre) s'ha provat a Safari sobre la web exportada el 14/11 a les 14:55.
   La ruta amb `pnpm dev` al port 3000 (origen diferent, amb CORS) no s'ha provat.
 
+#### Treballar al portàtil amb la IA de la placa (túnel SSH)
+
+Per dissenyar amb recàrrega en calent i la IA de veritat, sense desplegar:
+
+```
+ next dev :3100 ──► mentor (dev_server.py) :7100 ──► túnel SSH ──► placa: llama-server :8081 / :8082
+                                                              └──► placa: app d'App Lab :7000 (matriu LED)
+```
+
+```bash
+scripts/local_amb_placa.sh          # atura el que hi hagi i ho engega tot; obriu http://localhost:3100/app/
+scripts/local_amb_placa.sh estat    # túnel, mentor, web, IA i matriu
+scripts/local_amb_placa.sh atura
+BOARD_SSH=arduino@<ip> scripts/local_amb_placa.sh   # si la placa canvia d'IP (per defecte 10.198.33.235)
+```
+
+- Ports propis, que no fa servir res més del Mac: web 3100, mentor 7100 (el 7000
+  és d'AirPlay), túnel 18081/18082/17000. Registres a `$TMPDIR/mathey-local/`.
+- El túnel es torna a connectar sol (cada 3 s) si la placa es reinicia o cau la
+  Wi-Fi. Cal la clau SSH del Mac a la placa (`ssh-copy-id arduino@<ip>`).
+- Els dibuixos del mentor van a la matriu de LEDs de la placa per `POST /placa/matriu`
+  de l'app d'App Lab, si està engegada (`MATRIU=0` ho desactiva). Provat el 15/11.
+
+**Per què el xat queia a «la IA de la placa no pot respondre» (diagnòstic del 15/11).**
+Al registre `own_helps` del portàtil, totes les respostes de reserva tenien una d'aquestes causes:
+
+1. **Túnel caigut** (`URLError`, 0 s). La placa s'ha reiniciat 4 cops el 14/11 i
+   un `ssh -f -N` fet a mà no es torna a connectar. Ara el script el vigila.
+2. **Límit de 40 s abans del primer token** (`TimeoutError`, 40,0 s). llama-server
+   no envia res fins al primer token. La placa llegeix el prompt a ~11 tokens/s:
+   - una resolució són 300–600 tokens, és a dir, 30–55 s;
+   - una pregunta de seguiment ho tornava a llegir tot. Un problema curt ja en feia
+     450 tokens, uns 40 s.
+   
+   A més, la IA atén **una sola petició alhora** (`--parallel 1`). La comparteixen el
+   mentor del portàtil, l'app d'App Lab de la placa i qualsevol altre que hi
+   apunti, així que una petició en marxa fa esperar la següent.
+
+   Ara el xat espera fins a 120 s (`MENTOR_LLM_STREAM_TIMEOUT`). A més, la pregunta
+   de seguiment comença igual que la resolució, i llama-server en reaprofita la
+   lectura. Mesurat el 15/11: 181 tokens nous en lloc de ~500, i 17 s fins al
+   primer token en lloc de més de 40 s.
+
 **Compte amb el port 7000 al Mac.** El «Receptor AirPlay» de macOS escolta a
 `*:7000`. El nostre servidor funciona igualment a `127.0.0.1:7000`, però
 `localhost:7000` pot acabar a AirPlay. Feu servir sempre `127.0.0.1`. Per a la
@@ -253,8 +296,9 @@ demo, o bé es desactiva el Receptor AirPlay, o bé es reenvia a un altre port:
 |---|---|---|---|
 | Navegador | App a la placa | `adb forward tcp:7000 tcp:7000` per USB-C, o `http://<ip>:7000` per Wi-Fi | Documentat a la guia |
 | Pàgina | API | `fetch` al mateix origen, rutes `/api/...` | Verificat al codi del brick |
-| Pàgina | Text en streaming | NDJSON per `fetch` (`/api/own/chat`): `StreamingResponse` a la placa, escriptura a trossos al portàtil | Provat al portàtil amb un llama-server simulat; **a la placa, per provar** |
-| App (contenidor) | `llama-server` (amfitrió) | HTTP cap a l'amfitrió | **Risc núm. 1, per provar** |
+| Pàgina | Text en streaming | NDJSON per `fetch` (`/api/own/chat`): `StreamingResponse` a la placa, escriptura a trossos al portàtil | Provat a la placa i al portàtil amb la IA de la placa (15/11) |
+| App (contenidor) | `llama-server` (amfitrió) | HTTP a `msgpack-rpc-router:8081` (pla A) | Provat a la placa el 15/11: funciona |
+| Mentor al portàtil | IA i matriu de la placa | Túnel SSH (`scripts/local_amb_placa.sh`) | Provat el 15/11 |
 | Python | Matriu LED | `Bridge.call("draw", frame)` | Exemple oficial al repo |
 | Portàtil | Placa (fitxers) | `adb push` o `scp` | Documentat a la guia |
 
@@ -262,7 +306,8 @@ demo, o bé es desactiva el Receptor AirPlay, o bé es reenvia a un altre port:
 Docker amb xarxa pròpia. Dins del contenidor, `127.0.0.1:8081` és el mateix
 contenidor, no la placa. L'exemple del repo dels organitzadors fa servir
 `127.0.0.1` i ells mateixos avisen que cal comprovar-ho. Ho hem deduït llegint
-el codi d'App Lab; **no està provat en una placa.**
+el codi d'App Lab. **Provat el 15/11/2026: el pla A funciona** (des del contenidor,
+`msgpack-rpc-router` resol a `172.17.0.1` i el model respon).
 
 - Solució prevista: arrencar els `llama-server` amb `--host 0.0.0.0` i cridar-los
   des de l'app pel nom `msgpack-rpc-router`, que App Lab apunta a l'amfitrió.
@@ -277,7 +322,7 @@ es desplega amb `scripts/deploy_board.sh` (per `adb`, o per `ssh` amb
 fora del contracte: `GET /placa/estat` (si el model i els embeddings responen,
 camins de dades) i `POST /placa/matriu` (pinta un dibuix; serveix per al pla B).
 La configuració de la placa es pot posar a `data/mentor.env` dins de l'app.
-**Res d'això s'ha executat encara en una placa.**
+Desplegat i provat a la placa el 14 i el 15/11.
 
 ### 4.4 Restriccions del Next.js exportat
 
@@ -389,6 +434,13 @@ web hi posa «proposta de la IA, pot equivocar-se»).
   ara en fan 64–91 (15/11/2026, 3 problemes, placa compartida amb proves de la web).
 - Si la IA no respon o no diu res, la resposta de reserva és el problema semblant
   resolt (idea clau i passos), presentat com el que és, o l'estratègia del tema.
+- El xat espera el primer token fins a 120 s (`MENTOR_LLM_STREAM_TIMEOUT`). Llegir
+  el prompt ja en pot trigar 30–55 s, i la IA atén una petició alhora. La pregunta
+  socràtica i les pistes es queden a 40 s (`MENTOR_LLM_TIMEOUT`): tenen contingut
+  preparat de reserva.
+- Una pregunta de seguiment comença amb els mateixos dos missatges que la resolució.
+  Així llama-server en reaprofita la lectura i només llegeix la resposta anterior i la
+  pregunta nova.
 - `own/match` ja llegeix per endavant el prompt del xat (`warm_solve_later`).
 - Es desa a `own_helps`; la pregunta va a `doubt`, i «(resol-lo)» si l'alumne no
   n'ha fet cap.
