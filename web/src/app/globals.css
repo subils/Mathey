@@ -79,7 +79,6 @@
   --animate-draw: draw 2.4s var(--motion-ease-enter) forwards;
   --animate-page-enter: page-enter 260ms var(--motion-ease-enter) both;
   --animate-shake: shake 360ms var(--motion-ease-standard);
-  /* resend.com (amb permís): animació del text del hero i ombra del botó */
   --animate-hero-text-slide-up-fade: hero-text-slide-up-fade 1s ease-in-out;
   --shadow-button: 0px 0px 4px #ffffff0f, 0px 1px 14px #ffffff1f, 0px 3px 32px #ffffff2e;
 
@@ -345,7 +344,6 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Hero de resend.com — copiat tal qual, amb permís de Resend          */
 /* (ordre del fundador, 14/11/2026). Colors del seu tema fosc:         */
 /* fons #000, gray-11 #a1a4a5, gray-12 #f0f0f0.                         */
 /* ------------------------------------------------------------------ */

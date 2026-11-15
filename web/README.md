@@ -50,9 +50,7 @@ Així es pot navegar i dissenyar sense l'Arduino: n'hi ha prou amb `pnpm dev`, s
 
 Llenguatge visual de **Faktu** (`~/Desktop/Faktu`), en mode clar.
 
-L'excepció és el primer requadre de la landing: és el **hero de resend.com tal qual**
 (amb permís de Resend), fosc. Hi ha el fons `#000` amb les seves capes de llum, el seu
-CSS (bloc «Hero de resend.com» a `globals.css`) i el seu cub 3D (`resend-cube.tsx`).
 Damunt seu, el navbar passa a tinta blanca (`.navbar-glass.on-dark`).
 
 - **Tokens:** `src/app/globals.css`.

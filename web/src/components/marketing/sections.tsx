@@ -1,20 +1,20 @@
 "use client";
 
-import { ArrowUpRight, Cpu, ShieldCheck, UserX, WifiOff } from "lucide-react";
-import Link from "next/link";
 import { Logo, Mark } from "@/components/brand/logo";
 import { DoubleCard, Eyebrow, Pill } from "@/components/ui/surface";
 import { api, useBackendMode } from "@/lib/api";
 import { useLive } from "@/lib/use-live";
 import { cn } from "@/lib/utils";
+import { ArrowUpRight, Cpu, ShieldCheck, UserX, WifiOff } from "lucide-react";
+import Link from "next/link";
 import { MiniChat, MiniRepte } from "./mini-product";
 import { Reveal } from "./reveal";
 import {
-  VisualAnswer,
-  VisualBoard,
-  VisualFrame,
-  VisualLadder,
-  VisualQuestion,
+    VisualAnswer,
+    VisualBoard,
+    VisualFrame,
+    VisualLadder,
+    VisualQuestion,
 } from "./visuals";
 
 /** Contenidor de Faktu per a totes les seccions. */
@@ -295,7 +295,6 @@ export function SiteFooter() {
           <p className="text-sm font-light text-gray-600">Subils · Alex · Dídac · David</p>
           <p className="text-[12px] leading-relaxed font-light text-gray-500">
             Problemes: M3Kang (Torres-Camps et al., 2026), només per a recerca. Model: Qwen3.5 0.8B amb llama.cpp.
-            Cub 3D: Resend, amb el seu permís · Made with Spline.
           </p>
         </div>
       </div>

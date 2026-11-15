@@ -1,11 +1,11 @@
 "use client";
 
+import { NavLogo } from "@/components/brand/nav-logo";
+import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { NavLogo } from "@/components/brand/nav-logo";
-import { cn } from "@/lib/utils";
 
 // Rutes absolutes (`/#id`): des de /placa/ també porten a la secció de la landing.
 const NAV_LINKS = [
@@ -19,7 +19,6 @@ const EASE = "ease-[cubic-bezier(0.16,1,0.3,1)]";
 /**
  * El navbar de Faktu (components/marketing/site-navbar.tsx): píndola de vidre
  * flotant, enllaços centrats amb una píndola de fons en passar el cursor, i dos
- * botons a la dreta. Damunt del hero fosc (el de resend.com) la tinta és blanca i
  * el vidre és el de Faktu sobre el vídeo (`.on-dark`); en passar el hero, tinta
  * fosca i vidre clar (`.scrolled`). Els mateixos jocs de colors que Faktu.
  */

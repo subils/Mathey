@@ -1,14 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-
-// El cub del hero de resend.com, amb autorització de Resend (ordre del fundador,
-// 14/11/2026: AGENTS.md). Els fitxers originals són a public/static/:
-//   cube.splinecode  l'escena 3D interactiva (Spline) que Resend fa servir a l'escriptori
-//   cube.mp4         el bucle que Resend fa servir al mòbil (aquí, si no hi ha WebGL)
-// Tot és local: el motor de Spline busca els seus .wasm a /spline/ (public/spline/),
-// no al CDN. Sense internet.
+import { useEffect, useRef, useState } from "react";
 
 const SCENE = "/static/cube.splinecode";
 const WASM = "/spline";

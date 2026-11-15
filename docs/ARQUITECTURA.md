@@ -274,7 +274,7 @@ Al registre `own_helps` del portàtil, totes les respostes de reserva tenien una
    - una resolució són 300–600 tokens, és a dir, 30–55 s;
    - una pregunta de seguiment ho tornava a llegir tot. Un problema curt ja en feia
      450 tokens, uns 40 s.
-   
+
    A més, la IA atén **una sola petició alhora** (`--parallel 1`). La comparteixen el
    mentor del portàtil, l'app d'App Lab de la placa i qualsevol altre que hi
    apunti, així que una petició en marxa fa esperar la següent.
@@ -343,8 +343,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 - Tokens a `web/src/app/globals.css`. Detalls a [web/README.md](../web/README.md).
 
 | Ruta | Què és |
-|---|---|
-| `/` | Landing: navbar de vidre, hero de resend.com tal qual (amb permís): fons negre amb les seves capes de llum, text a l'esquerra i el seu cub 3D de Spline a la dreta; després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
+|---|---| seves capes de llum, text a l'esquerra i el seu cub 3D de Spline a la dreta; després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
 | `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
