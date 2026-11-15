@@ -95,6 +95,11 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   ni pas a l'onboarding (ara és nom → curs → mode), ni opció al menú, ni botó al
   Repte; `POST /api/session` ja no rep `easy_mode` i el problema ja no porta
   `easy_text`. El text adaptat es queda al contingut preparat (la cerca de germans el fa servir).
+- 15/11/2026, ~03:00: **via lliure per millorar la IA de la placa**: es pot canviar
+  qualsevol paràmetre, configuració, model o fitxer perquè vagi més ràpida i encerti més,
+  tant a la web (xat i la resta) com a `predict.py`. Hi ha còpia de seguretat de la placa.
+  Es compleixen tots els requisits del repte (regles 1–7). El pla i el registre de
+  resultats són a `docs/PLA_IA.md`.
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.
