@@ -117,7 +117,7 @@ only ever shows verified content, so the threshold favours precision.
 
 | Measure | Value | How |
 |---|---|---|
-| `predict.py` accuracy (hidden-test proxy: validation set, 562 rows) | **31.7%** (178), against 22.4% for the organizers' baseline and 23.1% for always D. 5-fold cross-validation inside the training set: 27.8% | `eval.py --limit 0 --name prior`; `scripts/train_prior.py` |
+| `predict.py` accuracy (hidden-test proxy: validation set, 562 rows) | **31.7%** (178), against 22.4% for the organizers' baseline and 23.1% for always D. 5-fold cross-validation inside the training set: 26.9% ± 0.3, the cautious estimate for the hidden test. Same result on the board, 0 s per problem, deterministic | `eval.py --limit 0 --name prior`; `scripts/train_prior.py` |
 | Agent solutions matching the official answer | 509 / 517 (98.5%) | blind solve from the image, compared in code |
 | Hints blocked by the leak filter | 12 of 1,527 (0.8%) with the first filter; none shown. `TODO`: re-measure with the current filter | `mentor/filters.py` on every hint (`scripts/build_bank.py`) |
 | Leak filter test cases | 12 / 12 pass; the first filter let through 15 of the leaks we tested | `python -m unittest tests.test_filters` |

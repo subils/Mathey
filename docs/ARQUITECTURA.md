@@ -522,11 +522,14 @@ l'execució oficial no pot canviar per accident.
 |---|---|---|---|
 | Organitzadors (`ANSWER_MODE=llm`) | 22,4 % (126) | ~9 s a la placa | `results/eval-20261115-030400-mac-baseline.csv` |
 | Sempre D | 23,1 % (130) | 0 s | — |
-| **Corrector** (`ANSWER_MODE=prior`) | **31,7 % (178)**; validació creuada dins de train: 27,8 % | 0 s | `results/eval-*-prior.csv`, `scripts/train_prior.py` |
+| **Corrector** (`ANSWER_MODE=prior`) | **31,7 % (178)**; validació creuada dins de train: 26,9 % ± 0,3 (4 particions de 5 blocs) | 0 s | `results/eval-*-prior.csv`, `scripts/train_prior.py` |
 | Corrector + duplicats amb índex de train (apagat) | 33,1 % (186); 20 files trobades, 20 encertades | <0,1 s | `results/eval-20261115-032710-prior-dups-trainindex.csv` |
 
-Mesurat al Mac (el corrector és Python pur: dona el mateix a la placa). La xifra prudent
-per a l'examen és la de la validació creuada: el 31,7 % té ±2,6 punts de soroll.
+Confirmat a la placa (15/11, 03:30): 178 de 562, 0,0 s de mitjana, i dues passades donen
+el mateix CSV. La xifra prudent per a l'examen és la de la validació creuada (~27 %): el
+31,7 % té ±2,6 punts de soroll i una part és sort. Senyals provats que no milloren la
+validació creuada: nivell, opcions no numèriques, llargada del text de l'opció, operacions
+entre els números de l'enunciat.
 
 ---
 
