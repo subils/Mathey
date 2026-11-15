@@ -117,3 +117,7 @@ S'omple a mesura que arriben. Cada fila amb el fitxer que la prova.
 |---|---|---|---|
 | 03:04 | Línia de base de `predict.py` (Mac) | 22,4 % (126/562) | referència |
 | 03:06 | Línia de base del xat (placa, 15) | primer token 25,1 s; 3/15 | referència |
+| 03:15 | A1: calibrar les lletres del 0,8B | 19,9 % un cop tret el biaix: el model no porta senyal | descartat |
+| 03:22 | Puntuar el valor de cada opció amb el 0,8B | 19,3 % (119 problemes) | descartat |
+| 03:26 | A2: corrector entrenat amb M3Kang (`copilot/prior.py`) | 31,7 % a validació (178/562); validació creuada 27,8 % | **aplicat** |
+| 03:27 | A3: duplicats (`copilot/dups.py`), índex = train | +8 files: 33,1 % (186/562); 20 trobades, 20 encertades | fet i apagat: cal permís dels mentors |

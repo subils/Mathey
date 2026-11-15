@@ -117,7 +117,7 @@ only ever shows verified content, so the threshold favours precision.
 
 | Measure | Value | How |
 |---|---|---|
-| `predict.py` accuracy (hidden-test proxy: validation set) | `TODO` vs 22.5% baseline and 25% always-D | `eval.py --limit 0` on the board |
+| `predict.py` accuracy (hidden-test proxy: validation set, 562 rows) | **31.7%** (178), against 22.4% for the organizers' baseline and 23.1% for always D. 5-fold cross-validation inside the training set: 27.8% | `eval.py --limit 0 --name prior`; `scripts/train_prior.py` |
 | Agent solutions matching the official answer | 509 / 517 (98.5%) | blind solve from the image, compared in code |
 | Hints blocked by the leak filter | 12 of 1,527 (0.8%) with the first filter; none shown. `TODO`: re-measure with the current filter | `mentor/filters.py` on every hint (`scripts/build_bank.py`) |
 | Leak filter test cases | 12 / 12 pass; the first filter let through 15 of the leaks we tested | `python -m unittest tests.test_filters` |
@@ -136,6 +136,10 @@ wrong answers explained one by one.
 ## What didn't work
 
 - Letting the 0.8B model reason before answering (organizers: 17.5%, slower).
+- Asking the 0.8B model for the letter at all: with its letter bias removed it scores
+  19.9% on validation (chance), and the English and Catalan versions of the same
+  problem agree 8.5% of the time. `predict.py` now answers from a prior learned on
+  M3Kang's training set instead (`copilot/prior.py`).
 - Similarity on problem statements: it matched stories ("books", "blocks"), not
   mathematical ideas; we switched to similarity of the solution method.
 - Our first leak filter only caught "option C", "(C)" and digits: "la C",

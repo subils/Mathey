@@ -1,0 +1,41 @@
+{
+ "names": [
+  "pos_A",
+  "pos_B",
+  "pos_C",
+  "pos_D",
+  "pos_E",
+  "noopt_A",
+  "noopt_B",
+  "noopt_C",
+  "noopt_D",
+  "noopt_E",
+  "num_min",
+  "num_2nd",
+  "num_mid",
+  "num_4th",
+  "num_max"
+ ],
+ "weights": [
+  0.0019,
+  -0.0822,
+  -0.0459,
+  0.0401,
+  0.086,
+  -0.1532,
+  -0.1667,
+  -0.1399,
+  0.3953,
+  0.0644,
+  -0.663,
+  0.2322,
+  0.475,
+  0.4207,
+  -0.465
+ ],
+ "l2": 1.0,
+ "fitted_on": "data/train.jsonl",
+ "train_rows": 2932,
+ "cv_accuracy": 0.2783,
+ "val_accuracy": 0.3167
+}

@@ -496,6 +496,38 @@ esborra llavors la sessió guardada i torna a la pantalla d'entrada.
 `predict.py` i `copilot/` es mantenen **independents** del mentor i de l'app:
 l'execució oficial no pot canviar per accident.
 
+### 7.1 Com respon `predict.py` (des del 15/11/2026)
+
+`copilot/pipeline.py`, amb `ANSWER_MODE=prior` a `config.env`:
+
+1. **Corrector de lletres** (`copilot/prior.py`): la lletra més probable segons les opcions.
+   - Senyals: la posició de la lletra i, quan les cinc opcions són números, l'ordre del
+     valor (el més petit i el més gran són la resposta un 10 % dels cops cadascun; els tres
+     del mig, entre un 22 % i un 29 %).
+   - Els pesos (`copilot/prior_weights.json`, 15 números, cap text de M3Kang) s'ajusten
+     només amb `train.jsonl`: `scripts/train_prior.py`.
+   - No crida el model: 0 s per problema, determinista.
+2. **Cerca de duplicats** (`copilot/dups.py`), **apagada** (`DUP_INDEX_FILES=` buit): si el
+   problema ja és resolt a M3Kang en un altre nivell o idioma, en copia la resposta pel
+   valor. Queda pendent del permís dels mentors (§9, punt 2).
+
+**Per què no es pregunta al model.** Preguntat per una lletra, el 0,8B no porta informació:
+- un cop tret el seu biaix de lletres, encerta el 19,9 % de validació (l'atzar és el 20 %);
+- la versió anglesa i la catalana del mateix problema coincideixen el 8,5 % dels cops;
+- puntuar el valor de cada opció com a continuació tampoc: 19,3 % (119 problemes).
+
+`ANSWER_MODE=llm` torna al camí dels organitzadors (la lletra del model, amb gramàtica).
+
+| Versió | Validació (562 files) | Temps | Prova |
+|---|---|---|---|
+| Organitzadors (`ANSWER_MODE=llm`) | 22,4 % (126) | ~9 s a la placa | `results/eval-20261115-030400-mac-baseline.csv` |
+| Sempre D | 23,1 % (130) | 0 s | — |
+| **Corrector** (`ANSWER_MODE=prior`) | **31,7 % (178)**; validació creuada dins de train: 27,8 % | 0 s | `results/eval-*-prior.csv`, `scripts/train_prior.py` |
+| Corrector + duplicats amb índex de train (apagat) | 33,1 % (186); 20 files trobades, 20 encertades | <0,1 s | `results/eval-20261115-032710-prior-dups-trainindex.csv` |
+
+Mesurat al Mac (el corrector és Python pur: dona el mateix a la placa). La xifra prudent
+per a l'examen és la de la validació creuada: el 31,7 % té ±2,6 punts de soroll.
+
 ---
 
 ## 8. Decisions preses
@@ -540,6 +572,10 @@ altre document de bases.
    prohibit enlloc, però si l'examen surt de M3Kang seria memoritzar, no raonar.
    A més, si `predict.py` s'executa en una placa seva des del nostre repositori, no
    hi tindria les dades (no es poden publicar). Sense permís explícit, no es fa.
+   **15/11:** el codi existeix (`copilot/dups.py`) i està apagat. Mesurat sense fer
+   trampa (índex = train, preguntes = validació): troba el mateix problema en un altre
+   nivell en 20 files de 562 i les encerta totes. S'encén amb `DUP_INDEX_FILES` a
+   `config.env` si els mentors ho accepten.
 3. **Preparar solucions amb un model gran al portàtil.** ~~Dubtós~~ **Resolt el
    14/11 a les 13:40: vistiplau dels mentors** (segons l'equip) a preparar les
    pistes fora de la placa. Les genera un agent d'IA i es guarden a la placa; la
