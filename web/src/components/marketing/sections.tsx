@@ -32,18 +32,25 @@ function SectionHeader({
   lead: React.ReactNode;
 }) {
   return (
-    <Reveal className="flex flex-col gap-4 pb-12 md:pb-16">
-      <div className="flex items-center gap-2.5">
+    // Com les seccions de Faktu (modulos-section.tsx): etiqueta a dalt; a sota, el
+    // títol a l'esquerra i l'entradeta a la dreta, amb la mateixa mida de lletra.
+    // El títol no es parteix des de lg; l'entradeta s'encongeix si cal.
+    <Reveal className="pb-12 md:pb-16">
+      <div className="mb-5 flex items-center gap-2.5 md:mb-8">
         <Eyebrow>{eyebrow}</Eyebrow>
         {pill && <Pill>{pill}</Pill>}
       </div>
-      <h2
-        className="lg:whitespace-nowrap"
-        style={{ fontSize: "clamp(28px, 3.6vw, 48px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}
-      >
-        {title}
-      </h2>
-      <p className="max-w-lg text-[15px] leading-relaxed font-light text-muted-foreground md:text-base">{lead}</p>
+      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-12">
+        <h2
+          className="md:max-w-xl lg:max-w-none lg:shrink-0 lg:whitespace-nowrap"
+          style={{ fontSize: "clamp(28px, 3.6vw, 48px)", fontWeight: 500, letterSpacing: "-0.03em", lineHeight: 1.05 }}
+        >
+          {title}
+        </h2>
+        <p className="max-w-sm min-w-0 text-sm leading-relaxed font-light text-muted-foreground md:pb-1 md:text-base">
+          {lead}
+        </p>
+      </div>
     </Reveal>
   );
 }
