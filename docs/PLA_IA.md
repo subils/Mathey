@@ -121,3 +121,7 @@ S'omple a mesura que arriben. Cada fila amb el fitxer que la prova.
 | 03:22 | Puntuar el valor de cada opció amb el 0,8B | 19,3 % (119 problemes) | descartat |
 | 03:26 | A2: corrector entrenat amb M3Kang (`copilot/prior.py`) | 31,7 % a validació (178/562), igual a la placa; validació creuada 26,9 % ± 0,3 | **aplicat** (`dabbcca`) |
 | 03:27 | A3: duplicats (`copilot/dups.py`), índex = train | +8 files: 33,1 % (186/562); 20 trobades, 20 encertades | fet i apagat: cal permís dels mentors |
+| 03:30 | `predict.py` a la placa | 178/562, 0,0 s, dues passades idèntiques | confirmat |
+| 03:48 | A6: models més grans, resposta directa (`results/reason_R/resum.txt`) | 2B: 21,9 % (123/562); 4B: 25,5 % (83/325) i el 27 % fora de temps | descartat |
+| 03:48 | A5: raonar abans de la lletra (parcial) | 0,8B: 20,4 % amb 48 tokens i 22,6 % amb 96 (137 files); pensament natiu 10 % (40); 2B amb 48 tokens: 20,4 % (152) | descartat |
+| 03:51 | El resolutor del xat a l'examen, comparant el «Resultat» amb les opcions | 60 problemes de text: 17 amb opció trobada, 5 encerts (corrector: 7) | descartat |

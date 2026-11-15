@@ -515,6 +515,11 @@ l'execució oficial no pot canviar per accident.
 - un cop tret el seu biaix de lletres, encerta el 19,9 % de validació (l'atzar és el 20 %);
 - la versió anglesa i la catalana del mateix problema coincideixen el 8,5 % dels cops;
 - puntuar el valor de cada opció com a continuació tampoc: 19,3 % (119 problemes).
+- un model més gran, preguntat igual, tampoc: Qwen3.5 2B 21,9 % (123/562) i 4B 25,5 %
+  (83/325, amb el 27 % dels problemes fora de temps a la placa);
+- raonar abans de la lletra empitjora: 20,4 % amb 48 tokens i 22,6 % amb 96 (137 files).
+  El raonament no acaba dins del límit i la lletra forçada és gairebé sempre A.
+  Detall: `results/reason_R/resum.txt`.
 
 `ANSWER_MODE=llm` torna al camí dels organitzadors (la lletra del model, amb gramàtica).
 
