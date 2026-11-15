@@ -123,17 +123,39 @@ def _warm_loop():
 
 _slot_lock = threading.Lock()
 _slot_key = None  # la conversa que l'slot té llegida; None si no se sap
+_long_ready = False  # SYSTEM_SOLVE és desat a la placa (si no, el xat fa servir el curt)
+_long_building = False
+_long_last_try = 0.0
+_RETRY_SECONDS = 120
+
+
+def long_prompt_ready():
+    return _long_ready
+
+
+def _ensure_long_prompt():
+    """Si el prompt llarg no és a punt, torna-ho a provar de tant en tant (no bloqueja)."""
+    if not _long_ready and not _long_building and time.monotonic() - _long_last_try > _RETRY_SECONDS:
+        prepare_system_later()
 
 
 def _prefix_file(system):
     return "mathey-" + hashlib.sha1(system.encode()).hexdigest()[:12] + ".bin"
 
 
+_slots_supported = None  # None: no se sap; False: el servei no té --slot-save-path (HTTP 501)
+
+
 def _slot_action(action, filename, timeout):
+    global _slots_supported
     try:
         _post(f"/slots/0?action={action}", {"filename": filename}, timeout=timeout)
+        _slots_supported = True
         return True
-    except (OSError, ValueError):  # sense --slot-save-path, o el fitxer encara no existeix
+    except urllib.error.HTTPError as error:  # 501: sense --slot-save-path; 400: el fitxer no hi és
+        _slots_supported = error.code != 501  # 400 vol dir que sí que pot desar
+        return False
+    except (OSError, ValueError):
         return False
 
 
@@ -150,7 +172,7 @@ def _forget_slot():
 
 def _prepare_slot(messages):
     """Abans d'una petició: si l'slot no té llegida aquesta conversa, restaura el system desat."""
-    global _slot_key
+    global _slot_key, _long_ready
     if not messages or messages[0].get("role") != "system" or messages[0]["content"] != SYSTEM_SOLVE:
         _forget_slot()
         return
@@ -159,29 +181,42 @@ def _prepare_slot(messages):
         if _slot_key == key:
             return  # mateix problema (seguiment, o resolució després de la lectura per endavant)
         _slot_key = key
-    _slot_action("restore", _prefix_file(SYSTEM_SOLVE), timeout=30)
+    if not _slot_action("restore", _prefix_file(SYSTEM_SOLVE), timeout=30):
+        _long_ready = False  # el servei ha canviat o ha perdut el fitxer: torna al curt
+        _forget_slot()
+        _ensure_long_prompt()
 
 
 def _build_prefix():
-    global _slot_key
+    global _slot_key, _long_ready, _long_building, _long_last_try
     name = _prefix_file(SYSTEM_SOLVE)
-    with _slot_lock:
-        _slot_key = None
-    if _slot_action("restore", name, timeout=30):
-        return  # ja estava desat (el fitxer sobreviu als reinicis)
     try:
+        with _slot_lock:
+            _slot_key = None
+        if _slot_action("restore", name, timeout=30):
+            _long_ready = True  # ja estava desat (el fitxer sobreviu als reinicis)
+            return
+        if _slots_supported is False:
+            return  # sense --slot-save-path no es pot desar: el xat continua amb el prompt curt
         _post("/v1/chat/completions", {
             "messages": [{"role": "system", "content": SYSTEM_SOLVE}, {"role": "user", "content": "."}],
             "max_tokens": 1, "temperature": 0, "cache_prompt": True,
             "chat_template_kwargs": {"enable_thinking": False},
-        }, timeout=900)  # un prompt de sistema llarg triga minuts a la placa, un sol cop
+        }, timeout=900)  # el primer cop triga uns 3 minuts a la placa; després el fitxer hi queda
+        _long_ready = _slot_action("save", name, timeout=120)
     except Exception:
-        return
-    _slot_action("save", name, timeout=120)
+        _long_ready = False
+    finally:
+        _long_building = False
+        _long_last_try = time.monotonic()
 
 
 def prepare_system_later():
     """Deixa SYSTEM_SOLVE llegit i desat a disc (no bloqueja). Es crida quan la IA arrenca."""
+    global _long_building
+    if _long_building:
+        return
+    _long_building = True
     threading.Thread(target=_build_prefix, name="system-ia", daemon=True).start()
 
 
@@ -323,7 +358,7 @@ def own_hint(own_text, example, doubt, strategy=""):
 
 # Ordre del fundador (15/11/2026): al xat la IA no s'enrotlla. Sense salutacions
 # ni voltes, directa i precisa; ha de tardar la meitat. Aquest prompt no surt al xat.
-SYSTEM_SOLVE = (
+SYSTEM_SOLVE_CURT = (
     "Ets un mentor de matemàtiques per a alumnes de 10 a 14 anys. Català, directe i precís. "
     "Mai saludes, no repeteixes l'enunciat ni cap càlcul i no fas voltes.\n"
     "Si et demanen resoldre: màxim 4 passos numerats, un per línia, un càlcul per pas; "
@@ -333,13 +368,45 @@ SYSTEM_SOLVE = (
     "Resultat: 19 caramels\n"
     "Si l'alumne pregunta: 1 o 2 frases, sense numerar. Si no n'estàs segur, ho dius."
 )
+# 15/11/2026: prompt del xat amb regles i exemples resolts. Es llegeix un sol cop i es
+# desa a disc (vegeu «el prompt de sistema, llegit un sol cop»): la seva llargada no costa
+# temps a l'alumne. Mesurat al Mac amb el codi de la placa, 31 problemes inventats que no
+# es van fer servir per dissenyar-lo, 3 llavors (results/chat_quality/): encerta 9-11 de
+# 31 (el curt, 3-4), arriba a «Resultat» el 74-87 % dels cops (el curt, 48-61 %) i escriu
+# menys tokens. Mentre no és desat a la placa, el xat fa servir SYSTEM_SOLVE_CURT.
+SYSTEM_SOLVE = "Ets un mentor de matemàtiques per a alumnes de 10 a 14 anys. Reps un problema i el resols.\nRegles:\n- Escrius sempre en català, encara que el problema estigui en castellà.\n- Com a màxim 4 passos numerats, un per línia. Cada pas: una etiqueta curta, dos punts i un càlcul entre $ $.\n- Sense negreta, sense guions i sense subapartats.\n- Després, una sola línia «Resultat: …» amb la resposta i la unitat. Si el problema té opcions A–E, hi poses la lletra i el valor; si no en té, cap lletra.\n- No saludes, no copies l'enunciat i no escrius res després del resultat.\n- Si després l'alumne fa una pregunta, li respons amb 1 o 2 frases curtes en català, sense numerar i sense «Resultat».\n\nExemples:\n\nProblema: Un llibre costa 12 € i un bolígraf 3 €. Compro 2 llibres i 4 bolígrafs. Quant pago en total?\nA) 15 €   B) 30 €   C) 36 €   D) 40 €   E) 48 €\nResolució en català:\n1. Llibres: $2 \\cdot 12 = 24$ €.\n2. Bolígrafs: $4 \\cdot 3 = 12$ €.\n3. Total: $24 + 12 = 36$ €.\nResultat: C) 36 €\n\nProblema: Resol l'equació 4x + 5 = 29.\nResolució en català:\n1. Resto 5 als dos costats: $4x = 29 - 5 = 24$.\n2. Divideixo entre 4: $x = 24 : 4 = 6$.\nResultat: x = 6\n\nPregunta de l'alumne: No entenc el pas 2.\nResposta curta en català: Al pas 2 tenim $4x = 24$, que vol dir 4 vegades x: per trobar x sola dividim 24 entre 4.\n\nProblema: En una caja hay 48 lápices. Se reparten a partes iguales entre 6 niños y cada niño pierde 2. ¿Cuántos lápices le quedan a cada niño?\nResolució en català:\n1. Reparteixo: $48 : 6 = 8$ llapis.\n2. En perd 2: $8 - 2 = 6$ llapis.\nResultat: 6 llapis\n\nProblema: Penso un nombre, el multiplico per 2 i hi sumo 6. Obtinc 30. Quin nombre he pensat?\nA) 7   B) 9   C) 12   D) 18   E) 21\nResolució en català:\n1. Equació: $2x + 6 = 30$.\n2. Resto 6: $2x = 30 - 6 = 24$.\n3. Divideixo entre 2: $x = 24 : 2 = 12$.\nResultat: C) 12\n\nProblema: Uns pantalons de 40 € tenen un 15 % de descompte. Quants euros ens estalviem? Quant costen ara?\nResolució en català:\n1. Descompte: $0,15 \\cdot 40 = 6$ €.\n2. Preu nou: $40 - 6 = 34$ €.\nResultat: ens estalviem 6 € i ara costen 34 €\n\nPregunta de l'alumne: He restat 40 − 15 i em surt 25. Està bé?\nResposta curta en català: El 15 % no són 15 €: primer cal trobar el 15 % de 40, que són 6 €, i després restar-los.\n\nProblema: Una ruleta té 8 sectors iguals: 3 verds i 5 grocs. Quina és la probabilitat que surti verd?\nA) 3/5   B) 5/8   C) 1/3   D) 3/8   E) 1/8\nResolució en català:\n1. Casos favorables: 3.\n2. Casos possibles: 8.\nResultat: D) 3/8\n\nProblema: Un menú té 3 primers, 4 segons i 2 postres. Quants menús diferents es poden triar?\nResolució en català:\n1. Multiplico les opcions: $3 \\cdot 4 \\cdot 2 = 24$.\nResultat: 24 menús\n\nPregunta de l'alumne: I si hi hagués 3 postres?\nResposta curta en català: Llavors serien $3 \\cdot 4 \\cdot 3 = 36$ menús, perquè només canvia l'últim nombre.\n\nProblema: Rosa es más alta que Quim. Quim es más alto que Sara. Tina es más alta que Rosa. Ordénalos de más alto a más bajo.\nResolució en català:\n1. La Tina és més alta que la Rosa, la Rosa més que en Quim i en Quim més que la Sara.\nResultat: Tina, Rosa, Quim, Sara\n\nProblema: Una classe té 30 alumnes. 2/5 hi van a peu, 1/2 en autobús i la resta en cotxe. Quants hi van en cotxe?\nResolució en català:\n1. A peu: $30 : 5 \\cdot 2 = 12$.\n2. En autobús: $30 : 2 = 15$.\n3. En cotxe: $30 - 12 - 15 = 3$.\nResultat: 3 alumnes\n\nPregunta de l'alumne: He fet 30 − 2/5 − 1/2 i em surt 29,1. Què he fet malament?\nResposta curta en català: Les fraccions són parts dels 30 alumnes: primer cal saber quants alumnes són 2/5 i 1/2 de 30, i després restar-los.\n\nProblema: Un coche recorre 150 km en 2 horas. ¿Cuántos kilómetros recorre en 5 horas a la misma velocidad?\nResolució en català:\n1. En una hora: $150 : 2 = 75$ km.\n2. En 5 hores: $75 \\cdot 5 = 375$ km.\nResultat: 375 km\n\nProblema: Problema 4.\nLa Mireia fa una festa d'aniversari un dissabte a la tarda. Hi convida\n11 amics, i comptant-la a ella seran 12 persones. Vol que cada persona\ntingui 3 entrepans petits. A la fleca cada entrepà costa 2 €.\nQuant costen tots els entrepans?\n(A) 24 € (B) 36 € (C) 66 € (D) 72 € (E) 78 €\nResolució en català:\n1. Entrepans: $12 \\cdot 3 = 36$.\n2. Cost: $36 \\cdot 2 = 72$ €.\nResultat: D) 72 €"
+SOLVE_PREFILL = "1."  # la resposta comença pel primer pas: res de salutacions ni «No.»
+
 # Límits de llargada (tokens): la resolució i la resposta a una pregunta
 SOLVE_TOKENS = 130
 ANSWER_TOKENS = 70
 
 
-def _solve_messages(own_text, example, history=(), message=""):
-    """Prompt curt: a la placa, llegir el prompt va a ~11 tok/s."""
+def _solve_messages(own_text, example, history=(), message="", long=None):
+    """Els missatges del xat: el format llarg si el seu prompt de sistema és desat a la placa."""
+    if long is None:
+        long = long_prompt_ready()
+    if not long:
+        return _solve_messages_curt(own_text, example, history, message)
+    turns = []
+    for turn in list(history)[-4:]:  # els últims 2 torns (alumne + IA)
+        role = "assistant" if turn.get("role") == "assistant" else "user"
+        text = str(turn.get("text") or "").strip()[:600]
+        if text:
+            turns.append({"role": role, "content": text})
+    problem = "Problema: " + own_text.strip()[:900]
+    if example and example.get("key_idea"):
+        problem += "\nPista: " + example["key_idea"]
+    first = [{"role": "system", "content": SYSTEM_SOLVE},
+             {"role": "user", "content": problem + "\nResolució en català:"}]
+    if not message:
+        return first + [{"role": "assistant", "content": SOLVE_PREFILL}]
+    ask = "Pregunta de l'alumne: " + message.strip()[:300] + "\nResposta curta en català:"
+    return first + turns + [{"role": "user", "content": ask}]
+
+
+def _solve_messages_curt(own_text, example, history=(), message=""):
+    """El format d'abans del 15/11 (prompt curt): la reserva mentre el llarg no és a punt."""
     context = _own_context(own_text, example)
     turns = []
     for turn in list(history)[-4:]:  # els últims 2 torns (alumne + IA)
@@ -352,7 +419,7 @@ def _solve_messages(own_text, example, history=(), message=""):
     # El primer missatge és sempre el mateix que el de la resolució: així una
     # pregunta de seguiment comença igual que el prompt que la placa ja ha llegit,
     # llama-server en reaprofita la lectura i només llegeix el que és nou.
-    first = [{"role": "system", "content": SYSTEM_SOLVE},
+    first = [{"role": "system", "content": SYSTEM_SOLVE_CURT},
              {"role": "user", "content": context + "\n" + solve}]
     if not message:
         return first
@@ -364,6 +431,7 @@ def _solve_messages(own_text, example, history=(), message=""):
 def warm_solve_later(own_text, example):
     """Llegeix per endavant el problema propi amb el prompt del xat (no bloqueja)."""
     _schedule_warm(_solve_messages(own_text, example)[:2])
+    _ensure_long_prompt()
 
 
 _RESULT_LINE = re.compile(r"Resultat\**\s*:[^\n]*\S[^\n]*\n", re.I)
@@ -415,7 +483,10 @@ def solve_own_stream(own_text, example, history=(), message="", max_tokens=None)
     _cancel_pending_warm()  # la pregunta de l'alumne passa davant
     if max_tokens is None:
         max_tokens = ANSWER_TOKENS if message else SOLVE_TOKENS
+    _ensure_long_prompt()
     messages = _solve_messages(own_text, example, history, message)
+    prefill = messages[-1]["content"] if messages[-1]["role"] == "assistant" else ""
+    one_line = bool(message) and messages[0]["content"] == SYSTEM_SOLVE  # seguiment del format llarg
     _prepare_slot(messages)
     payload = {
         "messages": messages,
@@ -430,6 +501,9 @@ def solve_own_stream(own_text, example, history=(), message="", max_tokens=None)
     first = None
     timings = {}
     think = _ThinkFilter()
+    if prefill:  # el model continua el que ja hi ha: l'alumne ho veu sencer
+        yield think.feed(prefill)
+        first = round(time.perf_counter() - started, 2)
     with urllib.request.urlopen(request, timeout=config.LLM_STREAM_TIMEOUT) as response:
         for raw in response:
             line = raw.decode("utf-8", "replace").strip()
@@ -447,12 +521,15 @@ def solve_own_stream(own_text, example, history=(), message="", max_tokens=None)
             choices = event.get("choices") or [{}]
             chunk = (choices[0].get("delta") or {}).get("content") or ""
             if chunk:
+                stop = False
+                if one_line and "\n" in chunk and think.text():
+                    chunk, stop = chunk.split("\n")[0], True  # una resposta = una línia
                 out = think.feed(chunk)
                 if out:
                     if first is None:
                         first = round(time.perf_counter() - started, 2)
                     yield out
-                if _finished(think.text() + chunk[-1:]):
+                if stop or _finished(think.text() + chunk[-1:]):
                     break  # tancar la connexió atura la generació a llama-server
     timings = dict(timings)
     timings["wall_seconds"] = round(time.perf_counter() - started, 2)

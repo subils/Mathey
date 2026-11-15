@@ -427,7 +427,19 @@ web hi posa «proposta de la IA, pot equivocar-se»).
 - Controls: màxim 130 tokens per resoldre i 70 per a una pregunta (`SOLVE_TOKENS`,
   `ANSWER_TOKENS`), i 1.600 caràcters. La generació s'atura en acabar la línia
   «Resultat: …» (es tanca la connexió amb llama-server).
-- El prompt de sistema (`SYSTEM_SOLVE`, no surt al xat) prohibeix salutacions,
+- **Prompt del xat (15/11/2026).** `SYSTEM_SOLVE` porta regles i ~20 exemples resolts
+  (~1.800 tokens). La resposta comença amb «1.» posat pel mentor (prefix de l'assistent), i
+  el seguiment es talla a la primera línia. Mesurat al Mac amb el codi de la placa, sobre
+  31 problemes inventats que no es van fer servir per dissenyar-lo, 3 llavors
+  (`results/chat_quality/`): encerta 9–11 de 31 (el prompt anterior, 3–4), arriba a
+  «Resultat» el 74–87 % dels cops (abans, 48–61 %), escriu menys tokens i no dona respostes
+  buides com «No.» o «No hi ha resoldre.».
+  - Només es fa servir si el servei pot desar l'estat (`--slot-save-path`): el mentor el
+    llegeix un cop (~3 min a la placa, només el primer cop) i el restaura en 0,2 s.
+  - Mentre no és desat, el xat fa servir el prompt anterior (`SYSTEM_SOLVE_CURT`), sense
+    canvis. El mentor ho torna a provar cada 2 minuts, i hi passa sol quan el servei ho permet.
+  - Un seguiment llegeix uns 260 tokens (~23 s a la placa), una mica més que abans (~17 s).
+- El prompt curt (`SYSTEM_SOLVE_CURT`, el d'abans) prohibeix salutacions,
   repetir l'enunciat i voltes, i porta un exemple de format de dues línies. Abans
   les respostes arribaven sempre al límit de 220 tokens (salutacions, bucles);
   ara en fan 64–91 (15/11/2026, 3 problemes, placa compartida amb proves de la web).
