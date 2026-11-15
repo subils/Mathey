@@ -26,6 +26,7 @@ render() {
       "$REPO_DIR/board/systemd/$1"
 }
 
+mkdir -p "$HOME/slots"  # math-llm desa aquí el prompt de sistema del xat ja llegit
 step "Installing math-llm.service and math-embed.service"
 for unit in math-llm.service math-embed.service; do
   render "$unit" | sudo tee "/etc/systemd/system/$unit" >/dev/null

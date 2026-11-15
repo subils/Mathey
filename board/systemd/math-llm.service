@@ -5,7 +5,7 @@ After=local-fs.target
 [Service]
 Type=simple
 User=@USER@
-ExecStart=@LLAMA_SERVER@ -m @LLM_PATH@ --host 127.0.0.1 --port @LLM_PORT@ --threads @LLM_THREADS@ --ctx-size @LLM_CTX@ --parallel 1 --cache-ram 0 --ctx-checkpoints 2 --jinja --reasoning off --reasoning-budget 0 --alias @LLM_ALIAS@
+ExecStart=@LLAMA_SERVER@ -m @LLM_PATH@ --host 127.0.0.1 --port @LLM_PORT@ --threads @LLM_THREADS@ --ctx-size @LLM_CTX@ --parallel 1 --cache-ram 0 --ctx-checkpoints 4 --slot-save-path /home/@USER@/slots --jinja --reasoning off --reasoning-budget 0 --alias @LLM_ALIAS@
 Restart=on-failure
 RestartSec=5
 

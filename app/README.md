@@ -93,7 +93,7 @@ ss -ltn | grep -E ':808[12]'        # ha de sortir 0.0.0.0:8081 i 0.0.0.0:8082
 Les línies `ExecStart` queden així:
 
 ```text
-ExecStart=/home/arduino/llama.cpp/build/bin/llama-server -m /home/arduino/models/Qwen_Qwen3.5-0.8B-Q8_0.gguf --host 0.0.0.0 --port 8081 --threads 4 --ctx-size 4096 --parallel 1 --cache-ram 0 --ctx-checkpoints 2 --jinja --reasoning off --reasoning-budget 0 --alias qwen3.5-0.8b
+ExecStart=/home/arduino/llama.cpp/build/bin/llama-server -m /home/arduino/models/Qwen_Qwen3.5-0.8B-Q8_0.gguf --host 0.0.0.0 --port 8081 --threads 4 --ctx-size 4096 --parallel 1 --cache-ram 0 --ctx-checkpoints 4 --slot-save-path /home/arduino/slots --jinja --reasoning off --reasoning-budget 0 --alias qwen3.5-0.8b
 ExecStart=/home/arduino/llama.cpp/build/bin/llama-server -m /home/arduino/models/bge-small-en-v1.5-q8_0.gguf --embedding --host 0.0.0.0 --port 8082 --threads 4 --ctx-size 512 --parallel 1 --cache-ram 0 --batch-size 512 --ubatch-size 512
 ```
 

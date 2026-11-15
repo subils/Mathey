@@ -42,7 +42,7 @@ Restart them with `sudo systemctl restart math-llm math-embed`. After changing a
 
 The board has 3.6 GB for everything: Debian, App Lab, both model servers, and your code.
 
-- Every `llama-server` must keep `--parallel 1 --cache-ram 0`. The language model also uses `--ctx-checkpoints 2 --jinja --reasoning off --reasoning-budget 0`. Without them, the server allocates several slots or a prompt cache and the kernel kills it.
+- Every `llama-server` must keep `--parallel 1 --cache-ram 0`. The language model also uses `--ctx-checkpoints 4 --slot-save-path /home/arduino/slots --jinja --reasoning off --reasoning-budget 0` (4, not 2: with 2 a follow-up question erases the checkpoint after the chat's system prompt; each checkpoint is ~19 MiB. The mentor saves the read system prompt in `~/slots` and restores it in 0.2 s). Without them, the server allocates several slots or a prompt cache and the kernel kills it.
 - If a server disappears, look for the OOM killer: `journalctl -k | grep -i "out of memory"`.
 - Check RAM with `free -m` while everything runs, before adding anything new: a vision server, an App Lab app, or a Docker brick.
 - Don't start a second server on a port that's in use. `couldn't bind HTTP server socket` means one already runs: `pgrep -a llama-server`.

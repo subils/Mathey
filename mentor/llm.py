@@ -9,6 +9,7 @@ Dos usos en directe:
 
 Si la IA no hi és o triga massa, el mentor fa servir el contingut preparat.
 """
+import hashlib
 import json
 import re
 import threading
@@ -33,12 +34,20 @@ def _post(path, payload, timeout):
         return json.loads(response.read())
 
 
+_was_available = False
+
+
 def available(timeout=1.0):
+    global _was_available
     try:
         with urllib.request.urlopen(config.LLM_URL + "/health", timeout=timeout) as response:
-            return json.loads(response.read()).get("status") == "ok"
+            up = json.loads(response.read()).get("status") == "ok"
     except (OSError, ValueError):
-        return False
+        up = False
+    if up and not _was_available:  # la IA acaba d'arrencar o torna: deixa el system a punt
+        prepare_system_later()
+    _was_available = up
+    return up
 
 
 def _reply_text(response):
@@ -87,14 +96,93 @@ def _warm_loop():
                 _warm_running = False
                 return
         try:
+            _prepare_slot(messages)
             # Ningú no espera aquesta lectura, però si es talla abans d'hora, llama-server
             # l'anul·la i la pregunta que ve darrere l'ha de tornar a fer sencera: un
             # problema llarg pot trigar més de 40 s a llegir-se.
             _post("/v1/chat/completions", {
                 "messages": messages, "max_tokens": 1, "temperature": 0, "cache_prompt": True,
+                "chat_template_kwargs": {"enable_thinking": False},  # el mateix prompt que el xat
             }, timeout=config.LLM_STREAM_TIMEOUT)
         except Exception:  # és només una preparació: si falla, la pregunta real anirà en fred
             pass
+
+
+# ------------------------------------------- el prompt de sistema, llegit un sol cop
+#
+# El model és híbrid (capes recurrents): llama-server no pot reaprofitar qualsevol
+# inici de prompt, només els punts que ha desat. A la placa, llegir el prompt de
+# sistema del xat costa 0,089 s per token; si s'ha de rellegir a cada problema, el
+# xat no pot portar exemples. Per això:
+# - quan la IA arrenca, el mentor llegeix [SYSTEM_SOLVE, "."] un cop i en desa l'estat
+#   a disc (`POST /slots/0?action=save`; cal `--slot-save-path` al servei);
+# - abans d'un problema nou, restaura aquest estat (menys d'un segon al Mac) i la IA només
+#   llegeix l'enunciat. Una petició d'un altre mode pel mig ja no obliga a rellegir res;
+# - el fitxer porta l'empremta del text: si SYSTEM_SOLVE canvia, se'n fa un de nou.
+# Sense `--slot-save-path` tot funciona igual que abans, només que més lent.
+
+_slot_lock = threading.Lock()
+_slot_key = None  # la conversa que l'slot té llegida; None si no se sap
+
+
+def _prefix_file(system):
+    return "mathey-" + hashlib.sha1(system.encode()).hexdigest()[:12] + ".bin"
+
+
+def _slot_action(action, filename, timeout):
+    try:
+        _post(f"/slots/0?action={action}", {"filename": filename}, timeout=timeout)
+        return True
+    except (OSError, ValueError):  # sense --slot-save-path, o el fitxer encara no existeix
+        return False
+
+
+def _conversation_key(messages):
+    return hashlib.sha1(json.dumps(messages[:2], ensure_ascii=False, sort_keys=True).encode()).hexdigest()
+
+
+def _forget_slot():
+    """Una petició amb un altre prompt de sistema ha passat per l'slot."""
+    global _slot_key
+    with _slot_lock:
+        _slot_key = None
+
+
+def _prepare_slot(messages):
+    """Abans d'una petició: si l'slot no té llegida aquesta conversa, restaura el system desat."""
+    global _slot_key
+    if not messages or messages[0].get("role") != "system" or messages[0]["content"] != SYSTEM_SOLVE:
+        _forget_slot()
+        return
+    key = _conversation_key(messages)
+    with _slot_lock:
+        if _slot_key == key:
+            return  # mateix problema (seguiment, o resolució després de la lectura per endavant)
+        _slot_key = key
+    _slot_action("restore", _prefix_file(SYSTEM_SOLVE), timeout=30)
+
+
+def _build_prefix():
+    global _slot_key
+    name = _prefix_file(SYSTEM_SOLVE)
+    with _slot_lock:
+        _slot_key = None
+    if _slot_action("restore", name, timeout=30):
+        return  # ja estava desat (el fitxer sobreviu als reinicis)
+    try:
+        _post("/v1/chat/completions", {
+            "messages": [{"role": "system", "content": SYSTEM_SOLVE}, {"role": "user", "content": "."}],
+            "max_tokens": 1, "temperature": 0, "cache_prompt": True,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }, timeout=900)  # un prompt de sistema llarg triga minuts a la placa, un sol cop
+    except Exception:
+        return
+    _slot_action("save", name, timeout=120)
+
+
+def prepare_system_later():
+    """Deixa SYSTEM_SOLVE llegit i desat a disc (no bloqueja). Es crida quan la IA arrenca."""
+    threading.Thread(target=_build_prefix, name="system-ia", daemon=True).start()
 
 
 def _context(problem_text, solution_steps):
@@ -113,6 +201,7 @@ def _messages(problem_text, solution_steps, tail=""):
 def warm(problem_text, solution_steps):
     """Fa que el servidor llegeixi el context ara. No espera resposta útil."""
     try:
+        _forget_slot()
         _post("/v1/chat/completions", {
             "messages": _messages(problem_text, solution_steps),
             "max_tokens": 1, "temperature": 0, "cache_prompt": True,
@@ -137,6 +226,7 @@ def socratic(problem_text, solution_steps, chosen_option, trap, student_text):
         "No diguis la resposta ni el resultat."
     )
     _cancel_pending_warm()  # la pregunta de l'alumne passa davant
+    _forget_slot()
     started = time.perf_counter()
     response = _post("/v1/chat/completions", {
         "messages": _messages(problem_text, solution_steps, tail),
@@ -184,6 +274,7 @@ def _own_messages(own_text, example, tail=""):
 
 def warm_own(own_text, example):
     try:
+        _forget_slot()
         _post("/v1/chat/completions", {
             "messages": _own_messages(own_text, example),
             "max_tokens": 1, "temperature": 0, "cache_prompt": True,
@@ -208,6 +299,7 @@ def own_hint(own_text, example, doubt, strategy=""):
         + ". No calculis res, no diguis el resultat i no escriguis cap número que no sigui al seu problema."
     )
     _cancel_pending_warm()  # el dubte de l'alumne passa davant
+    _forget_slot()
     started = time.perf_counter()
     response = _post("/v1/chat/completions", {
         "messages": _own_messages(own_text, example, tail),
@@ -323,8 +415,10 @@ def solve_own_stream(own_text, example, history=(), message="", max_tokens=None)
     _cancel_pending_warm()  # la pregunta de l'alumne passa davant
     if max_tokens is None:
         max_tokens = ANSWER_TOKENS if message else SOLVE_TOKENS
+    messages = _solve_messages(own_text, example, history, message)
+    _prepare_slot(messages)
     payload = {
-        "messages": _solve_messages(own_text, example, history, message),
+        "messages": messages,
         "max_tokens": max_tokens, "temperature": 0.2, "seed": 42,
         "cache_prompt": True, "stream": True,
         "chat_template_kwargs": {"enable_thinking": False},

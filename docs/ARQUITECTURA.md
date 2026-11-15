@@ -440,6 +440,25 @@ web hi posa «proposta de la IA, pot equivocar-se»).
 - Una pregunta de seguiment comença amb els mateixos dos missatges que la resolució.
   Així llama-server en reaprofita la lectura i només llegeix la resposta anterior i la
   pregunta nova.
+- **El prompt de sistema es llegeix un sol cop** (15/11/2026). El model és híbrid (capes
+  recurrents): llama-server no pot reaprofitar qualsevol inici de prompt, només els punts
+  que ha desat.
+  - Servei: `--ctx-checkpoints 4` (amb 2, els punts que desa una pregunta de seguiment
+    esborren el del prompt de sistema) i `--slot-save-path /home/arduino/slots`.
+  - Mentor (`mentor/llm.py`): quan veu arrencar la IA, llegeix `[SYSTEM_SOLVE, "."]` i en
+    desa l'estat a disc (`POST /slots/0?action=save`). Abans d'un problema nou el restaura
+    (`action=restore`) i la IA només llegeix l'enunciat, encara que pel mig hi hagi hagut
+    una petició del mode 1. El fitxer porta l'empremta del text: si `SYSTEM_SOLVE` canvia,
+    se'n fa un de nou. Sense aquests paràmetres al servei, tot funciona igual, més lent.
+  - Mesures a la placa (llama.cpp `2cbe0ec`, 15 problemes de text inventats amb seguiment,
+    `results/prompt_eval/runs/placa_text50_abans.jsonl` contra `results/speed/placa_q8ck4.jsonl`):
+    amb 4 checkpoints, el primer token d'una resolució nova passa de 26,2 s a 9,5 s i el
+    total de 47,2 s a 30,1 s; els seguiments no canvien (16,9 s) i els 30 textos són
+    idèntics. Desar l'estat triga 0,26 s i restaurar-lo 0,19 s, fins i tot amb un prompt
+    de sistema de 1.774 tokens que costa 165 s de llegir (`results/speed/placa_slots.txt`).
+  - Conseqüència: la llargada de `SYSTEM_SOLVE` ja no costa temps a l'alumne. Pot portar
+    exemples resolts (pendent: `results/chat_quality/proposta.py`, que al Mac encerta
+    8–10 de 31 problemes de prova contra 4 de 31 del prompt actual).
 - `own/match` ja llegeix per endavant el prompt del xat (`warm_solve_later`).
 - Es desa a `own_helps`; la pregunta va a `doubt`, i «(resol-lo)» si l'alumne no
   n'ha fet cap.

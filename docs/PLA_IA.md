@@ -125,3 +125,6 @@ S'omple a mesura que arriben. Cada fila amb el fitxer que la prova.
 | 03:48 | A6: models més grans, resposta directa (`results/reason_R/resum.txt`) | 2B: 21,9 % (123/562); 4B: 25,5 % (83/325) i el 27 % fora de temps | descartat |
 | 03:48 | A5: raonar abans de la lletra (parcial) | 0,8B: 20,4 % amb 48 tokens i 22,6 % amb 96 (137 files); pensament natiu 10 % (40); 2B amb 48 tokens: 20,4 % (152) | descartat |
 | 03:51 | El resolutor del xat a l'examen, comparant el «Resultat» amb les opcions | 60 problemes de text: 17 amb opció trobada, 5 encerts (corrector: 7) | descartat |
+| 04:07 | C1: `--ctx-checkpoints 4` (placa, servidor de proves, 15 problemes + seguiment) | resolució nova: primer token 26,2 → 9,5 s, total 47,2 → 30,1 s; 30/30 textos idèntics | **aplicat al repo**; cal reiniciar el servei |
+| 04:19 | Desar i restaurar el prompt de sistema (placa) | desar 0,26 s, restaurar 0,19 s; sense restaurar, 192 s | **aplicat** (`mentor/llm.py`) |
+| 04:20 | B2: prompt del xat amb exemples (Mac, joc de prova) | 8–10/31 encerts contra 4/31; 81–84 % acaben contra 48 % | pendent: falta provar-lo a la placa |
