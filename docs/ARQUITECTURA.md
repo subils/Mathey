@@ -131,7 +131,7 @@ provat de punta a punta a Safari; cap s'ha provat encara a la placa.
 | Funció | Qui la fa | Cost |
 |---|---|---|
 | ✅ Practicar: imatge del problema, respondre A–E, saber si és correcte | SQLite | mil·lisegons |
-| ✅ Lectura fàcil (dislèxia): enunciat adaptat, lletra gran | Contingut preparat | mil·lisegons |
+| ❌ Lectura fàcil: retirada de la web el 15/11 (ordre del fundador). La versió adaptada continua al contingut preparat i a la cerca de germans, però no es mostra | — | — |
 | ✅ Matriu LED: ✓ / ✗ segons la resposta, «pensant» i la K en repòs | Bridge + microcontrolador (només a la placa: la web ja no la mostra) | mil·lisegons |
 | ✅ Següent problema adaptatiu per **Elo**: a cada primera resposta, l'Elo del problema es mou una mica (K = 8) i el de l'alumne es torna a calcular amb totes les seves respostes, les recents pesant més (`elo.estimate`); es tria un problema no fet a ±100 de l'Elo de l'alumne (s'amplia a ±200 i ±400) i, dins d'aquesta finestra, del tema més fluix | `mentor/service.py`, `mentor/elo.py` | mil·lisegons |
 | ✅ «Com ho has pensat?» → una pregunta socràtica | Primer, el **router sense IA** (`mentor/router.py`): si la frase de l'alumne descriu la trampa de l'opció triada, respon a l'instant amb la trampa i la dada clau (preparades). Si no, **IA de la placa en directe**, amb la solució com a context; si no respon o no passa el filtre, l'error típic de l'opció triada (preparat) | Router: mil·lisegons. IA: ~10 s estimats a la placa |
@@ -344,7 +344,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 
 | Ruta | Què és |
 |---|---| seves capes de llum, text a l'esquerra i el seu cub 3D de Spline a la dreta; després, escala d'ajudes, modes i la placa en directe (`/api/stats`, `/api/matrix`) |
-| `/app/` | Onboarding (nom, curs, lectura, mode) o hub si ja hi ha sessió |
+| `/app/` | Onboarding (nom, curs, mode) o hub si ja hi ha sessió |
 | `/app/repte/` | Mode 1, Repte Cangur (`?id=` per obrir un problema concret) |
 | `/app/xat/` | Mode 2, xat «Porta el teu problema» (foto, OCR, semblant i resolució en streaming) |
 | `/app/progres/` | Progrés de l'alumne |
@@ -354,7 +354,7 @@ Llenguatge visual de Faktu (`~/Desktop/Faktu`).
 El logo és el mateix a totes les barres (el de la landing) i sempre porta a la
 landing (`/`). A l'alumne no se li mostra la sala de màquines: la barra de l'app
 només té el mode, la ratxa i el seu menú (el meu inici `/app/`, el meu progrés,
-lectura fàcil, sortir). A `/placa/` el navbar amaga «Veure la placa».
+sortir). A `/placa/` el navbar amaga «Veure la placa».
 
 - Components de tercers copiats al repo (sense xarxa en temps d'execució):
   - prompt-kit (MIT): compositor i contenidor del xat.
@@ -396,7 +396,7 @@ la pinta als LEDs.
 | Mètode i ruta | Entrada | Sortida |
 |---|---|---|
 | `GET /api/health` | — | estat; problemes amb contingut verificat; si la IA respon |
-| `POST /api/session` | `alias`, `grade` (5è, 6è, 1r ESO, 2n ESO), `easy_mode` | `student`, `elo` inicial (segons el curs) |
+| `POST /api/session` | `alias`, `grade` (5è, 6è, 1r ESO, 2n ESO) | `student`, `elo` inicial (segons el curs) |
 | `GET /api/next` | `student`, `id` opcional, `elo` objectiu opcional | problema (sense la resposta, amb el seu `elo`), `elo` de l'alumne, `target_elo`, `elo_range`, `streak` |
 | `GET /api/problem` | `id`, `lang` | un problema concret |
 | `GET /api/image` | `id`, `lang` | PNG del problema |
@@ -462,7 +462,7 @@ Dos fitxers, cap a GitHub (contenen M3Kang o dades d'alumnes):
 
 | Taula | Contingut |
 |---|---|
-| `students` | àlies, curs, `elo` i `elo_attempts`, `level` (derivat de l'Elo; no es mostra enlloc), ratxa, lectura fàcil |
+| `students` | àlies, curs, `elo` i `elo_attempts`, `level` (derivat de l'Elo; no es mostra enlloc), ratxa (la columna `easy_mode` queda a l'esquema però ja no es fa servir) |
 | `attempts` | cada resposta: correcta, primer intent, ajudes usades, segons, tema, nivell de l'examen, Elo de l'alumne abans i després, Elo del problema i `elo_score` (el resultat que compta per a l'Elo: 1, 0 o entremig amb ajudes) |
 | `problem_elo` | Elo actual de cada problema que ja ha rebut respostes (la resta: l'Elo inicial, calculat de l'id) |
 | `hints` | cada graó demanat |

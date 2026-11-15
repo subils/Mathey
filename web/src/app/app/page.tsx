@@ -9,7 +9,7 @@ import { api, type Health, type Session } from "@/lib/api";
 import { GRADES, type Grade } from "@/lib/school";
 import { clearSession, saveSession, useSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight, BookOpenText, Check, Type } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -80,7 +80,6 @@ function Hub({ session }: { session: Session }) {
         </h1>
         <div className="mt-1 flex flex-wrap gap-2 text-[13px]">
           {session.elo !== undefined && <Stat label="Elo" value={String(session.elo)} mono />}
-          {session.easy_mode && <Stat label="Lectura" value="fàcil" />}
         </div>
       </header>
       <ModeCards />
@@ -104,10 +103,10 @@ function Stat({ label, value, mono }: { label: string; value: string; mono?: boo
 }
 
 /* ------------------------------------------------------------------ */
-/* Onboarding: quatre passos en una targeta que canvia d'alçada        */
+/* Onboarding: tres passos en una targeta que canvia d'alçada         */
 /* ------------------------------------------------------------------ */
 
-const STEPS = ["Nom", "Curs", "Lectura", "Mode"] as const;
+const STEPS = ["Nom", "Curs", "Mode"] as const;
 
 function Onboarding({
   health,
@@ -120,10 +119,9 @@ function Onboarding({
   const [direction, setDirection] = useState(1);
   const [alias, setAlias] = useState("");
   const [grade, setGrade] = useState<Grade>("6è");
-  const [easy, setEasy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  // L'alumne creat al pas 3. Es desa en triar el mode: si es desés abans, el
+  // L'alumne creat al pas 2. Es desa en triar el mode: si es desés abans, el
   // hub substituiria l'onboarding abans d'hora.
   const [pending, setPending] = useState<Session | null>(null);
 
@@ -137,8 +135,8 @@ function Onboarding({
     setBusy(true);
     setError("");
     try {
-      setPending(await api.session(alias.trim(), grade, easy));
-      go(3);
+      setPending(await api.session(alias.trim(), grade));
+      go(2);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -151,7 +149,7 @@ function Onboarding({
     <div
       className={cn(
         "mx-auto flex w-full flex-col items-center gap-8 transition-[max-width] duration-300 ease-motion-move",
-        step === 3 ? "max-w-4xl" : "max-w-xl",
+        step === 2 ? "max-w-4xl" : "max-w-xl",
       )}
     >
       <div className="flex flex-col items-center gap-4 text-center">
@@ -191,7 +189,7 @@ function Onboarding({
 
               {step === 1 && (
                 <>
-                  <StepTitle eyebrow="Pas 2 de 4" title={`Quin curs fas, ${alias.trim()}?`} text="Començaràs amb problemes del teu curs i el teu Elo s'anirà ajustant." />
+                  <StepTitle eyebrow="Pas 2 de 3" title={`Quin curs fas, ${alias.trim()}?`} text="Començaràs amb problemes del teu curs i el teu Elo s'anirà ajustant." />
                   <div className="grid grid-cols-2 gap-2.5">
                     {GRADES.map((g) => (
                       <Choice key={g.value} selected={grade === g.value} onClick={() => setGrade(g.value)}>
@@ -200,31 +198,12 @@ function Onboarding({
                       </Choice>
                     ))}
                   </div>
-                  <Nav onBack={() => go(0)} onNext={() => go(2)} />
+                  {error && <p className="text-sm text-destructive">{error}</p>}
+                  <Nav onBack={() => go(0)} onNext={createStudent} busy={busy} nextLabel="Som-hi" />
                 </>
               )}
 
               {step === 2 && (
-                <>
-                  <StepTitle eyebrow="Pas 3 de 4" title="Com t'agrada llegir?" text="Ho pots canviar quan vulguis des del menú." />
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                    <Choice selected={!easy} onClick={() => setEasy(false)}>
-                      <BookOpenText className="size-5 text-muted-foreground" />
-                      <span className="font-semibold">Normal</span>
-                      <span className="text-[13px] leading-snug text-muted-foreground">L&apos;enunciat original del Cangur, amb la figura.</span>
-                    </Choice>
-                    <Choice selected={easy} onClick={() => setEasy(true)}>
-                      <Type className="size-5 text-muted-foreground" />
-                      <span className="font-semibold">Lectura fàcil</span>
-                      <span className="text-[13px] leading-snug text-muted-foreground">Frases curtes, una idea per línia i lletra més gran.</span>
-                    </Choice>
-                  </div>
-                  {error && <p className="text-sm text-destructive">{error}</p>}
-                  <Nav onBack={() => go(1)} onNext={createStudent} busy={busy} nextLabel="Som-hi" />
-                </>
-              )}
-
-              {step === 3 && (
                 <>
                   <StepTitle
                     eyebrow="Ja hi som"

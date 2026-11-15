@@ -57,7 +57,6 @@ def _public(pid, lang="cat"):
         "topic": content["topic"],
         "has_figure": not row["text_only"],
         "text": row["text"],
-        "easy_text": content["easy_text"],
         "options": content["options"],
         "image_url": f"/api/image?id={pid}&lang={row['lang']}",
     }
@@ -196,16 +195,15 @@ def create_session(params):
         raise UserError(400, "cal un àlies")
     if grade not in config.GRADE_LEVEL:
         raise UserError(400, f"curs desconegut: tria'n un de {', '.join(config.GRADE_LEVEL)}")
-    easy = 1 if params.get("easy_mode") else 0
     # El curs només serveix per triar l'Elo inicial; a partir d'aquí tot va per Elo
     rating = elo.initial_elo_for_grade(grade, config.MAX_LEVEL)
     # La columna `level` és obligatòria a la base de dades (i els alumnes d'abans de
     # l'Elo en treuen l'Elo inicial): es continua desant, però ja no es mostra enlloc
     sid = store.execute(store.state(),
-                        "INSERT INTO students (alias, grade, level, easy_mode, elo, elo_attempts) "
-                        "VALUES (?, ?, ?, ?, ?, 0)", (alias, grade, _stored_level(rating), easy, rating))
+                        "INSERT INTO students (alias, grade, level, elo, elo_attempts) "
+                        "VALUES (?, ?, ?, ?, 0)", (alias, grade, _stored_level(rating), rating))
     return {"student": sid, "alias": alias, "grade": grade, "elo": rating, "streak": 0,
-            "easy_mode": bool(easy), "matrix": _set_matrix(matrix.idle())}
+            "matrix": _set_matrix(matrix.idle())}
 
 
 def _stored_level(rating):

@@ -1,13 +1,13 @@
 "use client";
 
-import { ChevronDown, Flame, LayoutGrid, LineChart, LogOut, Type } from "lucide-react";
+import { ChevronDown, Flame, LayoutGrid, LineChart, LogOut } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { NavLogo } from "@/components/brand/nav-logo";
 import { cn } from "@/lib/utils";
-import { clearSession, saveSession, useSession } from "@/lib/session";
+import { clearSession, useSession } from "@/lib/session";
 
 const MODES = [
   { href: "/app/repte/", label: "Repte Cangur", short: "Repte" },
@@ -17,7 +17,7 @@ const MODES = [
 /**
  * Barra de l'app: mínima a propòsit. L'alumne no veu la sala de màquines.
  * Esquerra: el mateix logo que a la landing, i porta a la landing. Centre: el
- * mode. Dreta: ratxa i menú de l'alumne (el seu inici, progrés, lectura fàcil, sortir).
+ * mode. Dreta: ratxa i menú de l'alumne (el seu inici, progrés, sortir).
  */
 export function AppBar() {
   const session = useSession();
@@ -162,27 +162,6 @@ function StudentMenu() {
           }}
         >
           El meu progrés
-        </MenuItem>
-        <MenuItem
-          icon={<Type />}
-          role="menuitemcheckbox"
-          aria-checked={session.easy_mode}
-          onClick={() => saveSession({ ...session, easy_mode: !session.easy_mode })}
-        >
-          <span className="flex-1">Lectura fàcil</span>
-          <span
-            className={cn(
-              "relative h-5 w-9 rounded-full transition-colors",
-              session.easy_mode ? "bg-accent" : "bg-black/15",
-            )}
-          >
-            <span
-              className={cn(
-                "absolute top-0.5 left-0.5 size-4 rounded-full bg-white shadow-sm transition-transform duration-150 ease-motion-move",
-                session.easy_mode && "translate-x-4",
-              )}
-            />
-          </span>
         </MenuItem>
         <div className="my-1 h-px bg-border/70" />
         <MenuItem

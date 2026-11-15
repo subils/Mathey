@@ -191,5 +191,5 @@ Funciona al portàtil i provat de punta a punta a Safari: entrada, pràctica amb
 imatge i lectura fàcil, correcció amb matriu simulada, «Com ho has pensat?» (amb
 la reserva preparada; la IA de la placa encara no s'ha provat), escala de cinc
 ajudes amb problema germà, nivell adaptatiu i perfil. (La vista del mestre es va
-treure el 14/11 al vespre.)
+treure el 14/11 al vespre, i la lectura fàcil, el 15/11 de matinada.)
 **Res s'ha provat encara a la placa.**

@@ -33,7 +33,6 @@ type DemoProblem = {
   elo: number;
   level: number;
   text: string;
-  easy_text: string;
   options: Record<Letter, string>;
   answer: Letter;
   key_idea: string;
@@ -49,7 +48,6 @@ const BANK: DemoProblem[] = [
     elo: 850,
     level: 0,
     text: "La Marta té 3 bosses amb 6 caramels cadascuna. En regala 5 a la seva germana. Quants caramels li queden?",
-    easy_text: "La Marta té 3 bosses.\nCada bossa té 6 caramels.\nEn regala 5.\nQuants caramels li queden?",
     options: { A: "9", B: "12", C: "13", D: "18", E: "23" },
     answer: "C",
     key_idea: "Primer compta quants n'hi ha en total (és una multiplicació) i després treu els que regala.",
@@ -72,7 +70,6 @@ const BANK: DemoProblem[] = [
     elo: 1000,
     level: 0,
     text: "Un rectangle fa 10 cm de llarg i 4 cm d'ample. Quant fa el seu perímetre?",
-    easy_text: "Tenim un rectangle.\nFa 10 cm de llarg.\nFa 4 cm d'ample.\nQuant fa el perímetre?",
     options: { A: "14 cm", B: "24 cm", C: "28 cm", D: "40 cm", E: "20 cm" },
     answer: "C",
     key_idea: "El perímetre és la volta sencera: un rectangle té dos costats llargs i dos de curts.",
@@ -95,7 +92,6 @@ const BANK: DemoProblem[] = [
     elo: 1150,
     level: 1,
     text: "En una fila de 7 nens, l'Anna és la segona començant per l'esquerra. Quina posició ocupa començant per la dreta?",
-    easy_text: "Hi ha 7 nens en fila.\nL'Anna és la segona per l'esquerra.\nQuina posició té per la dreta?",
     options: { A: "2a", B: "4a", C: "5a", D: "6a", E: "7a" },
     answer: "D",
     key_idea: "Fes un dibuix de la fila: les posicions des de l'esquerra i des de la dreta sumen un més que el total.",
@@ -117,7 +113,6 @@ const BANK: DemoProblem[] = [
     elo: 1250,
     level: 1,
     text: "Tinc 3 samarretes i 2 pantalons diferents. De quantes maneres em puc vestir amb una samarreta i un pantaló?",
-    easy_text: "Tinc 3 samarretes.\nTinc 2 pantalons.\nEm poso una samarreta i un pantaló.\nDe quantes maneres ho puc fer?",
     options: { A: "5", B: "6", C: "8", D: "9", E: "3" },
     answer: "B",
     key_idea: "Cada samarreta es pot combinar amb cada pantaló: es multiplica.",
@@ -140,7 +135,6 @@ const BANK: DemoProblem[] = [
     elo: 1350,
     level: 2,
     text: "Penso un nombre. El multiplico per 3 i hi sumo 4. Obtinc 25. Quin nombre he pensat?",
-    easy_text: "Penso un nombre.\nEl multiplico per 3.\nHi sumo 4.\nEm dona 25.\nQuin nombre he pensat?",
     options: { A: "5", B: "6", C: "7", D: "8", E: "9" },
     answer: "C",
     key_idea: "Desfés els passos al revés: primer treu el 4 i després divideix entre 3.",
@@ -161,7 +155,6 @@ const BANK: DemoProblem[] = [
     elo: 1500,
     level: 2,
     text: "Quants nombres de dues xifres tenen les dues xifres parelles?",
-    easy_text: "Busquem nombres de dues xifres.\nLes dues xifres han de ser parelles.\nQuants n'hi ha?",
     options: { A: "16", B: "20", C: "25", D: "40", E: "45" },
     answer: "B",
     key_idea: "Compta les opcions de cada xifra per separat i multiplica. Compte: la primera xifra no pot ser 0.",
@@ -182,7 +175,6 @@ const BANK: DemoProblem[] = [
     elo: 1650,
     level: 3,
     text: "Un quadrat té una àrea de 36 cm². Quant fa el seu perímetre?",
-    easy_text: "Tenim un quadrat.\nLa seva àrea és 36 cm².\nQuant fa el perímetre?",
     options: { A: "6 cm", B: "9 cm", C: "18 cm", D: "24 cm", E: "36 cm" },
     answer: "D",
     key_idea: "De l'àrea en treus el costat (quin nombre per si mateix fa 36?) i després fas la volta.",
@@ -204,7 +196,6 @@ const BANK: DemoProblem[] = [
     elo: 1800,
     level: 3,
     text: "Avui és dimarts. Quin dia de la setmana serà d'aquí a 100 dies?",
-    easy_text: "Avui és dimarts.\nPassen 100 dies.\nQuin dia serà?",
     options: { A: "Dilluns", B: "Dimarts", C: "Dimecres", D: "Dijous", E: "Divendres" },
     answer: "D",
     key_idea: "Cada 7 dies tornes al mateix dia: només compta el que sobra en dividir entre 7.",
@@ -303,7 +294,6 @@ function publicOf(p: DemoProblem): Problem {
     topic: p.topic,
     has_figure: false,
     text: p.text,
-    easy_text: p.easy_text,
     options: p.options,
     image_url: "", // sense imatge: la web ensenya el text
   };
@@ -360,7 +350,7 @@ export async function demoCall(method: string, path: string, body?: Record<strin
         ownTexts: [],
       };
       save(fresh);
-      return { student: DEMO_STUDENT, alias: fresh.alias, grade, elo, easy_mode: Boolean(params.easy_mode), matrix: fresh.matrix } satisfies Session;
+      return { student: DEMO_STUDENT, alias: fresh.alias, grade, elo, matrix: fresh.matrix } satisfies Session;
     }
 
     case "GET /next": {

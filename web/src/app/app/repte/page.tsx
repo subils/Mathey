@@ -2,7 +2,6 @@
 
 import {
   ArrowRight,
-  BookOpenText,
   Check,
   ChevronDown,
   CornerUpLeft,
@@ -10,7 +9,6 @@ import {
   Lightbulb,
   Lock,
   Sparkles,
-  Type,
   X,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -78,7 +76,6 @@ export default function Repte() {
   const [eloChange, setEloChange] = useState<number | null>(null);
   const [eloRange, setEloRange] = useState<[number, number] | null>(null);
   const shownAt = useRef(0);
-  const easy = session?.easy_mode ?? false;
 
   const resetProblemState = () => {
     setWrongLetters([]);
@@ -267,11 +264,7 @@ export default function Repte() {
 
         {problem && phase !== "loading" && phase !== "done" && phase !== "error" && (
           <>
-            <ProblemCard
-              problem={problem}
-              easy={easy}
-              onToggleEasy={() => saveSession({ ...session, easy_mode: !easy })}
-            />
+            <ProblemCard problem={problem} />
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-5">
               {LETTERS.map((letter) => (
@@ -478,49 +471,24 @@ function TopBar({
   );
 }
 
-function ProblemCard({
-  problem,
-  easy,
-  onToggleEasy,
-}: {
-  problem: Problem;
-  easy: boolean;
-  onToggleEasy: () => void;
-}) {
-  const showEasy = easy && Boolean(problem.easy_text);
+function ProblemCard({ problem }: { problem: Problem }) {
   return (
     <DoubleCard plain className="overflow-hidden">
       <div className="flex items-center justify-between gap-3 px-6 pt-5 pb-3">
         <Eyebrow>
           {problem.image_url ? `Cangur ${problem.year}` : "Problema d'exemple"} · Elo {problem.elo}
         </Eyebrow>
-        {problem.easy_text && (
-          <Button variant="ghost" size="sm" onClick={onToggleEasy}>
-            {easy ? <BookOpenText /> : <Type />}
-            {easy ? "Veure l'original" : "Lectura fàcil"}
-          </Button>
-        )}
       </div>
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
-          key={`${problem.id}-${showEasy}`}
+          key={problem.id}
           initial={{ opacity: 0, filter: "blur(4px)" }}
           animate={{ opacity: 1, filter: "blur(0px)" }}
           exit={{ opacity: 0, transition: { duration: 0.1 } }}
           transition={{ duration: 0.25 }}
           className="px-6 pb-6"
         >
-          {showEasy ? (
-            <div className="flex flex-col gap-4">
-              <p className="text-[clamp(20px,2.4vw,26px)] leading-[1.55] tracking-wide whitespace-pre-line">
-                {problem.easy_text}
-              </p>
-              {problem.has_figure && problem.image_url && (
-                // eslint-disable-next-line @next/next/no-img-element -- exportació estàtica
-                <img src={imageUrl(problem)} alt="Figura del problema" className="w-full rounded-xl bg-white" />
-              )}
-            </div>
-          ) : problem.image_url ? (
+          {problem.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element -- exportació estàtica
             <img src={imageUrl(problem)} alt={problem.text} className="w-full rounded-xl bg-white" />
           ) : (

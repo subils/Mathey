@@ -35,7 +35,6 @@ export type Problem = {
   topic: string;
   has_figure: boolean;
   text: string;
-  easy_text: string;
   options: Partial<Record<Letter, string>>;
   image_url: string;
 };
@@ -45,7 +44,6 @@ export type Session = {
   alias: string;
   grade: string;
   elo: number;
-  easy_mode: boolean;
   matrix?: Matrix;
   /** Només al navegador: la ratxa que ha tornat l'última resposta. */
   streak?: number;
@@ -340,8 +338,7 @@ export const imageUrl = (problem: Pick<Problem, "image_url">) => (problem.image_
 
 export const api = {
   health: () => call<Health>("GET", "/health"),
-  session: (alias: string, grade: string, easy_mode: boolean) =>
-    call<Session>("POST", "/session", { alias, grade, easy_mode }),
+  session: (alias: string, grade: string) => call<Session>("POST", "/session", { alias, grade }),
   next: (student: number, id?: string, elo?: number) =>
     call<NextResult>(
       "GET",

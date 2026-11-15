@@ -24,7 +24,7 @@ números (40 s) · què hem après (30 s).
 Wi-Fi apagat. Problema triat i provat el mateix dia.
 
 1. **Entrar** amb un àlies i el curs. «Cap correu, cap compte.»
-2. **Problema** a la pantalla. Botó «Lectura fàcil» un segon: «per a alumnes amb dislèxia».
+2. **Problema** a la pantalla.
 3. **Fallar a propòsit** amb l'opció de la trampa. La matriu marca ✗.
 4. **«Com ho has pensat?»** Escriure la frase de l'error típic.
    «Ara la IA de la placa llegeix el que he dit i em respon amb una pregunta.»

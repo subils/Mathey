@@ -91,6 +91,10 @@ Per a qualsevol persona o agent que toqui aquest repo. Llegeix primer
   i la IA a la placa per un túnel SSH**, sempre amb `scripts/local_amb_placa.sh`
   (web a <http://localhost:3100>, mentor al 7100, ports nets). No es munten túnels
   ni servidors a mà. Per què el xat queia a la reserva: docs/ARQUITECTURA.md §4.2.
+- 15/11/2026, ~02:30: **fora la lectura fàcil** de la web, lògica i interfície:
+  ni pas a l'onboarding (ara és nom → curs → mode), ni opció al menú, ni botó al
+  Repte; `POST /api/session` ja no rep `easy_mode` i el problema ja no porta
+  `easy_text`. El text adaptat es queda al contingut preparat (la cerca de germans el fa servir).
 - 14/11/2026, 18:40: **cada canvi es fa commit i push de seguida** (abans fer
   `git pull --rebase`), perquè els companys treballen sobre el mateix repositori
   i han de tenir sempre la versió al dia.
